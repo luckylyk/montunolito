@@ -37,6 +37,40 @@ chords = dict(
     qm =    [0, 4, 6, 12, 19])
 
 
+hand_parttern = (
+    (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
+    (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0))
+
+# every pattern contains 5 keys: 1, 2, 3, 4, relationships
+# keys 1, 2, 3, 4 contains differents alternative array of hand pattern index.
+# the key number correspond the quarter of the pattern (1 = first quarter, etc)
+# the 'relationship' key contains a dict. His keys represent the pattern index
+# it contain the pattern index of the next quarter and a value (between 0 and 5)
+# it's for generate random patterns.
+rythmic_patterns = dict(
+    basic_a = {
+        1: ((1, 0, 6, 1), (1, 3, 5, 1), (2, 3, 5, 1)),
+        2: ((0, 6, 0, 1), (0, 3, 5, 1), (0, 1, 0, 1)),
+        3: ((0, 6, 0, 1), (0, 6, 0, 6), (0, 3, 5, 1)),
+        4: ((0, 6, 1, 1), (0, 2, 3, 4), (0, 6, 0, 1), (0, 6, 1, 0), (1, 0, 1, 0)),
+        'relationships': {
+            (1, 0): {(2, 0): 5, (2, 1): 0, (2, 2): 3},
+            (1, 1): {(2, 0): 2, (2, 1): 5, (2, 2): 3},
+            (1, 2): {(2, 0): 2, (2, 1): 5, (2, 2): 3},
+            (2, 0): {(3, 0): 5, (3, 1): 1, (3, 2): 1},
+            (2, 1): {(3, 0): 2, (3, 1): 3, (3, 2): 4},
+            (2, 2): {(3, 0): 2, (3, 1): 3, (3, 2): 4},
+            (3, 0): {(4, 0): 3, (4, 1): 1, (4, 2): 2, (4, 3): 2, (4, 4): 3},
+            (3, 1): {(4, 0): 0, (4, 1): 3, (4, 2): 0, (4, 3): 2, (4, 4): 5},
+            (3, 2): {(4, 0): 2, (4, 1): 0, (4, 2): 2, (4, 3): 0, (4, 4): 4},
+            (4, 0): {(1, 0): 3, (1, 1): 3, (1, 2): 0}, 
+            (4, 1): {(1, 0): 2, (1, 1): 0, (1, 2): 5},
+            (4, 2): {(1, 0): 4, (1, 1): 2, (1, 2): 0},
+            (4, 3): {(1, 0): 4, (1, 1): 0, (1, 2): 0},
+            (4, 4): {(1, 0): 2, (1, 1): 4, (1, 2): 0}}
+    })
+
+
 def remap_note(index):
     while index > 11:
         index -= 11
