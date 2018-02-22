@@ -42,7 +42,7 @@ pitches = [0, 1, 2, 3, 4, 5]
 # it represant thumd, index, middle, ring and pinkie
 # 0 mean the finger is not pressing a key
 # 1, it's pressing a key.
-hand_pose = (
+hand_poses = (
     (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
     (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0))
 
@@ -76,13 +76,17 @@ rythmic_patterns = dict(
     })
 
 
+def reverse_chord(chord):
+    return chord[2:] + chord[:-3]
+
+
 def remap_note(index):
     while index > 11:
         index -= 11
     return index
 
 
-def generate_note_array(note, array):
+def remap_note_array(note, array):
     return [remap_note(index + note) for index in array]
 
 
@@ -90,18 +94,14 @@ import random
 import itertools
 
 def pattern_generator(pattern):
-    quarters = itertools.cycle([1, 2, 3, 4])
-    last_index = random.randint(1, len(pattern['4']))
-
+    last_index = (4, random.randint(1, len(pattern[4])))
     while True:
-        quarter = quarters.next()
-        qpatterns = pattern['relationships'][(quarter, last_index)]
-        index = random.choice([
-            p for k, v in qpatterns.items()
-            for i, p in enumerate(v * k)
-            if i % 2 != 0])
-        yield pattern[quarter][index]
+        qpatterns = pattern['relationships'][last_index]
+        index = random.choice(
+            [t for k, v in qpatterns.items() for t in tuple([k] * v) if v])
+        yield pattern[index[0]][index[1]]
         last_index = index
 
 
-
+def convert_hand_pose_to_notes_array(hand_pose, chord, previous_result):
+    pass
