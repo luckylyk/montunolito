@@ -36,8 +36,9 @@ chords = dict(
     aug =   [0, 4, 8, 12, 19],
     qm =    [0, 4, 6, 12, 19])
 
+pitches = [0, 1, 2, 3, 4, 5]
 
-hand_parttern = (
+hand_pose = (
     (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
     (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0))
 
@@ -49,10 +50,10 @@ hand_parttern = (
 # it's for generate random patterns.
 rythmic_patterns = dict(
     basic_a = {
-        1: ((1, 0, 6, 1), (1, 3, 5, 1), (2, 3, 5, 1)),
-        2: ((0, 6, 0, 1), (0, 3, 5, 1), (0, 1, 0, 1)),
-        3: ((0, 6, 0, 1), (0, 6, 0, 6), (0, 3, 5, 1)),
-        4: ((0, 6, 1, 1), (0, 2, 3, 4), (0, 6, 0, 1), (0, 6, 1, 0), (1, 0, 1, 0)),
+        '1': ((1, 0, 6, 1), (1, 3, 5, 1), (2, 3, 5, 1)),
+        '2': ((0, 6, 0, 1), (0, 3, 5, 1), (0, 1, 0, 1)),
+        '3': ((0, 6, 0, 1), (0, 6, 0, 6), (0, 3, 5, 1)),
+        '4': ((0, 6, 1, 1), (0, 2, 3, 4), (0, 6, 0, 1), (0, 6, 1, 0), (1, 0, 1, 0)),
         'relationships': {
             (1, 0): {(2, 0): 5, (2, 1): 0, (2, 2): 3},
             (1, 1): {(2, 0): 2, (2, 1): 5, (2, 2): 3},
@@ -79,3 +80,35 @@ def remap_note(index):
 
 def generate_note_array(note, array):
     return [remap_note(index + note) for index in array]
+
+
+import random
+
+def pattern_generator(pattern):
+    quarter = 1
+    last_index = None
+
+    while True:
+        if quarter > 4:
+            quarter = 1
+        print (quarter)
+        print (quarter, last_index)
+
+        if last_index is None:
+            index = random.randint(1, len(pattern[str(quarter)]))
+            pattern_selected = pattern[str(quarter)][index]
+        else:
+            qpatterns = pattern['relationships'][(quarter, last_index)]
+            index = random.choice([
+                p for k, v in qpatterns.items()
+                for i, p in enumerate(v * k)
+                if i % 2 != 0])
+            print ('index:', index, pattern[str(quarter)])
+            pattern_selected = pattern[str(quarter)][index]
+
+        yield pattern_selected
+        last_index = index
+        quarter += 1
+
+
+
