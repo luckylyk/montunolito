@@ -38,6 +38,10 @@ chords = dict(
 
 pitches = [0, 1, 2, 3, 4, 5]
 
+# this is a list of hand posing pattern for piano
+# it represant thumd, index, middle, ring and pinkie
+# 0 mean the finger is not pressing a key
+# 1, it's pressing a key.
 hand_pose = (
     (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
     (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0))
@@ -49,7 +53,7 @@ hand_pose = (
 # it contain the pattern index of the next quarter and a value (between 0 and 5)
 # it's for generate random patterns.
 rythmic_patterns = dict(
-    basic_a = {
+    basic = {
         '1': ((1, 0, 6, 1), (1, 3, 5, 1), (2, 3, 5, 1)),
         '2': ((0, 6, 0, 1), (0, 3, 5, 1), (0, 1, 0, 1)),
         '3': ((0, 6, 0, 1), (0, 6, 0, 6), (0, 3, 5, 1)),
@@ -83,32 +87,21 @@ def generate_note_array(note, array):
 
 
 import random
+import itertools
 
 def pattern_generator(pattern):
-    quarter = 1
-    last_index = None
+    quarters = itertools.cycle([1, 2, 3, 4])
+    last_index = random.randint(1, len(pattern['4']))
 
     while True:
-        if quarter > 4:
-            quarter = 1
-        print (quarter)
-        print (quarter, last_index)
-
-        if last_index is None:
-            index = random.randint(1, len(pattern[str(quarter)]))
-            pattern_selected = pattern[str(quarter)][index]
-        else:
-            qpatterns = pattern['relationships'][(quarter, last_index)]
-            index = random.choice([
-                p for k, v in qpatterns.items()
-                for i, p in enumerate(v * k)
-                if i % 2 != 0])
-            print ('index:', index, pattern[str(quarter)])
-            pattern_selected = pattern[str(quarter)][index]
-
-        yield pattern_selected
+        quarter = quarters.next()
+        qpatterns = pattern['relationships'][(quarter, last_index)]
+        index = random.choice([
+            p for k, v in qpatterns.items()
+            for i, p in enumerate(v * k)
+            if i % 2 != 0])
+        yield pattern[str(quarter)][index]
         last_index = index
-        quarter += 1
 
 
 
