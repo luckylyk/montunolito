@@ -54,10 +54,10 @@ hand_pose = (
 # it's for generate random patterns.
 rythmic_patterns = dict(
     basic = {
-        '1': ((1, 0, 6, 1), (1, 3, 5, 1), (2, 3, 5, 1)),
-        '2': ((0, 6, 0, 1), (0, 3, 5, 1), (0, 1, 0, 1)),
-        '3': ((0, 6, 0, 1), (0, 6, 0, 6), (0, 3, 5, 1)),
-        '4': ((0, 6, 1, 1), (0, 2, 3, 4), (0, 6, 0, 1), (0, 6, 1, 0), (1, 0, 1, 0)),
+        1: ((1, 0, 6, 1), (1, 3, 5, 1), (2, 3, 5, 1)),
+        2: ((0, 6, 0, 1), (0, 3, 5, 1), (0, 1, 0, 1)),
+        3: ((0, 6, 0, 1), (0, 6, 0, 6), (0, 3, 5, 1)),
+        4: ((0, 6, 1, 1), (0, 2, 3, 4), (0, 6, 0, 1), (0, 6, 1, 0), (1, 0, 1, 0)),
         'relationships': {
             (1, 0): {(2, 0): 5, (2, 1): 0, (2, 2): 3},
             (1, 1): {(2, 0): 2, (2, 1): 5, (2, 2): 3},
@@ -100,7 +100,7 @@ def pattern_generator(pattern):
             p for k, v in qpatterns.items()
             for i, p in enumerate(v * k)
             if i % 2 != 0])
-        yield pattern[str(quarter)][index]
+        yield pattern[quarter][index]
         last_index = index
 
 
