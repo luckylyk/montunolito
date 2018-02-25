@@ -38,13 +38,20 @@ chords = dict(
 
 pitches = [0, 1, 2, 3, 4, 5]
 
+comportments = dict(
+    static = 1,
+    melodic = 2,
+    harpege = 3,
+    chromatic = 4)
+
 # this is a list of hand posing pattern for piano
 # it represant thumd, index, middle, ring and pinkie
 # 0 mean the finger is not pressing a key
 # 1, it's pressing a key.
 hand_poses = (
     (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
-    (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0))
+    (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0), (1, 1, 1, 1, 1))
+
 
 # every pattern contains 5 keys: 1, 2, 3, 4, relationships
 # keys 1, 2, 3, 4 contains differents alternative array of hand pattern index.
@@ -72,8 +79,45 @@ rythmic_patterns = dict(
             (4, 1): {(1, 0): 2, (1, 1): 0, (1, 2): 5},
             (4, 2): {(1, 0): 4, (1, 1): 2, (1, 2): 0},
             (4, 3): {(1, 0): 4, (1, 1): 0, (1, 2): 0},
-            (4, 4): {(1, 0): 2, (1, 1): 4, (1, 2): 0}}
-    })
+            (4, 4): {(1, 0): 2, (1, 1): 4, (1, 2): 0}},
+        'comportments': {
+            (1, 0): {'static': 3, 'melodic': 1, 'harpege': 5, 'chromatic': 0},
+            (1, 1): {'static': 0, 'melodic': 0, 'harpege': 5, 'chromatic': 0},
+            (1, 2): {'static': 0, 'melodic': 3, 'harpege': 5, 'chromatic': 0},
+            (2, 0): {'static': 5, 'melodic': 3, 'harpege': 3, 'chromatic': 2},
+            (2, 1): {'static': 0, 'melodic': 0, 'harpege': 5, 'chromatic': 0},
+            (2, 2): {'static': 2, 'melodic': 3, 'harpege': 0, 'chromatic': 3},
+            (3, 0): {'static': 5, 'melodic': 3, 'harpege': 3, 'chromatic': 2},
+            (3, 1): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
+            (3, 2): {'static': 0, 'melodic': 0, 'harpege': 5, 'chromatic': 0},
+            (4, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
+            (4, 1): {'static': 0, 'melodic': 3, 'harpege': 1, 'chromatic': 3},
+            (4, 2): {'static': 5, 'melodic': 3, 'harpege': 3, 'chromatic': 2},
+            (4, 3): {'static': 3, 'melodic': 0, 'harpege': 3, 'chromatic': 1},
+            (4, 4): {'static': 0, 'melodic': 3, 'harpege': 0, 'chromatic': 3}}
+            },
+
+    chacha = {
+        1: ((6, 1, 0, 1)),
+        2: ((6, 1, 0, 1)),
+        3: ((6, 1, 0, 1)),
+        4: ((6, 1, 0, 1)),
+        'relationships': {
+            (1, 0): {(2, 0): 5},
+            (2, 0): {(3, 0): 5},
+            (3, 0): {(4, 0): 5},
+            (4, 0): {(1, 0): 5}},
+        'comportments': {
+            (1, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
+            (2, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
+            (3, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
+            (4, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0}}})
+
+
+chord_grids = dict(
+    example = [
+        (1, 'Minor'), None, (4, 'Minor'), None,
+        (5, 'M7') , None, (4, 'Minor'), None])
 
 
 def reverse_chord(chord):
@@ -93,15 +137,62 @@ def remap_note_array(note, array):
 import random
 import itertools
 
-def pattern_generator(pattern):
+def pattern_iterator(pattern):
     last_index = (4, random.randint(1, len(pattern[4])))
     while True:
         qpatterns = pattern['relationships'][last_index]
         index = random.choice(
             [t for k, v in qpatterns.items() for t in tuple([k] * v) if v])
-        yield pattern[index[0]][index[1]]
+        yield index
         last_index = index
 
 
-def convert_hand_pose_to_notes_array(hand_pose, chord, previous_result):
-    pass
+def pick_comportment(pattern, index):
+    comportment_prefs = pattern['comportments'][index]
+    return random.choice([
+        t for k, v in comportment_prefs.items()
+        for t in tuple([k] * v) if v])
+
+
+def chord_iterator(chord_grid):
+    assert len(chord_grid) % 8 == 0, 'chord grid len must be multiple of 8'
+    chords = itertools.cycle(chord_grid)
+    beat_1 = next(chords)
+    beat_2 = next(chords) or beat_1
+    while True:
+        yield beat_1, beat_2
+        beat_1 = next(chords) or beat_2
+        beat_2 = next(chords) or beat_1
+
+
+def hand_poses_to_notes_generator(
+        pattern, tonality, mode, chord_grid, mandatory_comportment=None):
+    patterns = pattern_iterator(pattern)
+    chords = chord_iterator(chord_grid)
+
+    last_index_pattern = None
+    last_prefered_comportment = None
+    last_chords = None
+
+    current_index_pattern = next(patterns)
+    current_prefered_comportment = pick_comportment(pattern, current_index_pattern)
+    current_chords = next(chords)
+
+    next_index_pattern = next(patterns)
+    next_prefered_comportment = pick_comportment(pattern, next_index_pattern)
+    next_chords = next(chords)
+
+    while True:
+        last_index_pattern = current_index_pattern
+        last_prefered_comportment = current_prefered_comportment
+        last_chords = current_chords
+
+        current_index_pattern = next_index_pattern
+        current_prefered_comportment = next_prefered_comportment
+        current_chords = next_chords
+
+        next_index_pattern = next(patterns)
+        next_prefered_comportment = pick_comportment(pattern, next_index_pattern)
+        next_chords = next(chords)
+
+    # iteration done, do the note selection algorythm
