@@ -1,3 +1,4 @@
+
 notes = dict(
     A = 0,
     Bb = 1,
@@ -53,12 +54,27 @@ hand_poses = (
     (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0), (1, 1, 1, 1, 1))
 
 
+hand_pose_types = {
+    'mute': (0),
+    'melodic': (1, 2, 3, 4, 5),
+    'rythmic': (6, 7)}
+
+
+def get_handpose_type(hand_pose):
+    index = hand_poses.index(hand_pose)
+    for hand_pose_type, indexes in hand_pose_types.items():
+        if index in indexes:
+            return hand_pose_type
+
+
 # every pattern contains 5 keys: 1, 2, 3, 4, relationships
 # keys 1, 2, 3, 4 contains differents alternative array of hand pattern index.
 # the key number correspond the quarter of the pattern (1 = first quarter, etc)
 # the 'relationship' key contains a dict. His keys represent the pattern index
 # it contain the pattern index of the next quarter and a value (between 0 and 5)
 # it's for generate random patterns.
+# this is data and will be moved in JSON files. Every pattern will be save as
+# different json file.
 rythmic_patterns = dict(
     basic = {
         1: ((1, 0, 6, 1), (1, 3, 5, 1), (2, 3, 5, 1)),
@@ -111,7 +127,9 @@ rythmic_patterns = dict(
             (1, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
             (2, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
             (3, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
-            (4, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0}}})
+            (4, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0}
+            }
+        })
 
 
 chord_grids = dict(
@@ -120,11 +138,13 @@ chord_grids = dict(
         (5, 'M7') , None, (4, 'Minor'), None])
 
 
-def reverse_chord(chord):
-    return chord[2:] + chord[:-3]
+def reverse_chord(chord, degree):
+    ''' this method offset a chord list '''
+    return chord[degree:] + chord[:5-degree]
 
 
 def remap_note(index):
+    ''' this method remap note to force value to be between 0 - 11 '''
     while index > 11:
         index -= 11
     return index
@@ -136,6 +156,7 @@ def remap_note_array(note, array):
 
 import random
 import itertools
+
 
 def pattern_iterator(pattern):
     last_index = (4, random.randint(1, len(pattern[4])))
@@ -165,7 +186,7 @@ def chord_iterator(chord_grid):
         beat_2 = next(chords) or beat_1
 
 
-def hand_poses_to_notes_generator(
+def notes_hand_pose_generator(
         pattern, tonality, mode, chord_grid, mandatory_comportment=None):
     patterns = pattern_iterator(pattern)
     chords = chord_iterator(chord_grid)
@@ -182,6 +203,8 @@ def hand_poses_to_notes_generator(
     next_prefered_comportment = pick_comportment(pattern, next_index_pattern)
     next_chords = next(chords)
 
+    last_reference_note = None
+
     while True:
         last_index_pattern = current_index_pattern
         last_prefered_comportment = current_prefered_comportment
@@ -194,5 +217,7 @@ def hand_poses_to_notes_generator(
         next_index_pattern = next(patterns)
         next_prefered_comportment = pick_comportment(pattern, next_index_pattern)
         next_chords = next(chords)
+
+
 
     # iteration done, do the note selection algorythm
