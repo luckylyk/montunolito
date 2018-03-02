@@ -55,9 +55,9 @@ hand_poses = (
 
 
 hand_pose_types = {
-    'mute': (0),
-    'melodic': (1, 2, 3, 4, 5),
-    'rythmic': (6, 7)}
+    'mute': [0],
+    'melodic': [1, 2, 3, 4, 5],
+    'rythmic': [6, 7]}
 
 
 def get_handpose_type(hand_pose):
@@ -218,6 +218,15 @@ def notes_hand_pose_generator(
         next_prefered_comportment = pick_comportment(pattern, next_index_pattern)
         next_chords = next(chords)
 
-
+        print (current_index_pattern)
+        yield "\n".join([
+        # hps = [
+            str([hand_poses[i], get_handpose_type(hand_poses[i]), next_prefered_comportment, current_chords])
+            for i in 
+                pattern[current_index_pattern[0]][current_index_pattern[1]]])
+        # print (hps)
 
     # iteration done, do the note selection algorythm
+
+
+gen = notes_hand_pose_generator(rythmic_patterns['basic'], None, None, chord_grids['example'])
