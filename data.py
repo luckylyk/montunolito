@@ -134,8 +134,10 @@ rythmic_patterns = dict(
 
 chord_grids = dict(
     example = [
-        (1, 'Minor'), None, (4, 'Minor'), None,
-        (5, 'M7') , None, (4, 'Minor'), None])
+        (1, 'Minor'), None, None, (4, 'Minor'),
+        None, None, (5, 'M7'), None,
+        None, None, None, (4, 'Minor'),
+        None, None, (1, 'Minor'), None])
 
 
 def reverse_chord(chord, degree):
@@ -151,6 +153,7 @@ def remap_note(index):
 
 
 def remap_note_array(note, array):
+    ''' this method is usefull to repitch a scale '''
     return [remap_note(index + note) for index in array]
 
 
@@ -159,7 +162,14 @@ import itertools
 
 
 def pattern_iterator(pattern):
-    last_index = (4, random.randint(1, len(pattern[4])))
+    '''
+    this iterator loop on a pattern. A parttern is a dict containing four
+    key as int representing the the quater of the pattern. A complete parttern
+    is during 2 mesures. To selected the pattern, it randomize picking an
+    relationship indice between the indexes definied in the sub patter dict:
+    'relationship'
+    '''
+    last_index = (4, random.randint(1, len(pattern[4]) - 1))
     while True:
         qpatterns = pattern['relationships'][last_index]
         index = random.choice(
@@ -169,6 +179,10 @@ def pattern_iterator(pattern):
 
 
 def pick_comportment(pattern, index):
+    '''
+    this method pick a random comportement in the pattern subdict 'comportment'
+    using the indice of probabilty defined in the dict.
+    '''
     comportment_prefs = pattern['comportments'][index]
     return random.choice([
         t for k, v in comportment_prefs.items()
@@ -176,57 +190,59 @@ def pick_comportment(pattern, index):
 
 
 def chord_iterator(chord_grid):
-    assert len(chord_grid) % 8 == 0, 'chord grid len must be multiple of 8'
+    """
+    this iterator cycle on a given chord grid.
+    Chord grid len must be multiple of 16.
+    Each chord grid element represent an eighth note. 
+    """
+    assert len(chord_grid) % 16 == 0, 'chord grid len must be multiple of 16'
+    assert chord_grid[0] is not None, 'the first chord grid element cannot be None'
+
     chords = itertools.cycle(chord_grid)
-    beat_1 = next(chords)
-    beat_2 = next(chords) or beat_1
+    beat_4 = None
     while True:
-        yield beat_1, beat_2
-        beat_1 = next(chords) or beat_2
+        beat_1 = next(chords) or beat_4
         beat_2 = next(chords) or beat_1
+        beat_3 = next(chords) or beat_2
+        beat_4 = next(chords) or beat_3
+        yield beat_1, beat_2, beat_3, beat_4
 
 
-def notes_hand_pose_generator(
-        pattern, tonality, mode, chord_grid, mandatory_comportment=None):
-    patterns = pattern_iterator(pattern)
-    chords = chord_iterator(chord_grid)
+def zip_chords_hand_poses(pattern_index, pattern, chords):
+    """
+    @pattern_index is a tuple containing the parttern index e.g. :(3, 2)
+    @pattern is a pattern dict used for the generation
+    @chords list of 4 chords to zip 
+    method return a list e.g.
+        ((4, 'Minor'), (0, 0, 0, 0, 0))
+        ((4, 'Minor'), (0, 1, 1, 1, 0))
+        ((1, 'Minor'), (0, 0, 0, 0, 0))
+        ((1, 'Minor'), (1, 0, 0, 0, 1))
+    representing 4 eighth notes.
+    """
+    hand_poses_retrived = []
+    qpattern = pattern[pattern_index[0]][pattern_index[1]]
+    for index in qpattern:
+        hand_poses_retrived.append(hand_poses[index])
+    return [(c, hp) for c, hp in zip(chords, hand_poses_retrived)]
 
-    last_index_pattern = None
-    last_prefered_comportment = None
-    last_chords = None
 
-    current_index_pattern = next(patterns)
-    current_prefered_comportment = pick_comportment(pattern, current_index_pattern)
-    current_chords = next(chords)
-
-    next_index_pattern = next(patterns)
-    next_prefered_comportment = pick_comportment(pattern, next_index_pattern)
-    next_chords = next(chords)
-
-    last_reference_note = None
+def zipped_chords_hand_poses_and_comportment_iterator(
+        pattern, chord_grid, mandatory_comportment=None):
+    patterns_it = pattern_iterator(pattern)
+    chords_it = chord_iterator(chord_grid)
 
     while True:
-        last_index_pattern = current_index_pattern
-        last_prefered_comportment = current_prefered_comportment
-        last_chords = current_chords
+        index_pattern = next(patterns_it)
+        chords = next(chords_it)
+        prefered_comportment = (
+            mandatory_comportment or pick_comportment(
+                pattern, index_pattern))
+        current_zipped_datas = zip_chords_hand_poses(
+            index_pattern, pattern, chords)
 
-        current_index_pattern = next_index_pattern
-        current_prefered_comportment = next_prefered_comportment
-        current_chords = next_chords
-
-        next_index_pattern = next(patterns)
-        next_prefered_comportment = pick_comportment(pattern, next_index_pattern)
-        next_chords = next(chords)
-
-        print (current_index_pattern)
-        yield "\n".join([
-        # hps = [
-            str([hand_poses[i], get_handpose_type(hand_poses[i]), next_prefered_comportment, current_chords])
-            for i in 
-                pattern[current_index_pattern[0]][current_index_pattern[1]]])
-        # print (hps)
-
-    # iteration done, do the note selection algorythm
+        yield current_zipped_datas, prefered_comportment
 
 
-gen = notes_hand_pose_generator(rythmic_patterns['basic'], None, None, chord_grids['example'])
+gen = zipped_chords_hand_poses_and_comportment_iterator(
+    rythmic_patterns['basic'], chord_grids['example'])
