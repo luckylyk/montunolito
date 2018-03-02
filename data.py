@@ -229,6 +229,20 @@ def zip_chords_hand_poses(pattern_index, pattern, chords):
 
 def zipped_chords_hand_poses_and_comportment_iterator(
         pattern, chord_grid, mandatory_comportment=None):
+    """
+    this iterator itera synchronulsy on the chord grid and the rythmic pattern
+    it generate the hand poses and return a zipped list of all eighth and the 
+    picked prefered comportment e.g.
+        (
+          [
+            ((5, 'M7'), (0, 0, 0, 0, 0)),
+            ((5, 'M7'), (0, 1, 1, 1, 0)),
+            ((5, 'M7'), (0, 0, 0, 0, 0)),
+            ((4, 'Minor'), (1, 0, 0, 0, 1))
+          ],
+          'chromatic'
+        )
+    """
     patterns_it = pattern_iterator(pattern)
     chords_it = chord_iterator(chord_grid)
 
