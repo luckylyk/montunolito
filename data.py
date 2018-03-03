@@ -39,7 +39,7 @@ chords = dict(
 
 pitches = [0, 1, 2, 3, 4, 5]
 
-progression = dict(
+progression_type = dict(
     static = 1,
     diatonic = 2,
     harpege = 3,
@@ -57,7 +57,7 @@ hand_poses = (
 hand_pose_types = {
     'mute': [0],
     'melodic': [1, 2, 3, 4, 5],
-    'rythmic': [6, 7]}
+    'chord': [6, 7]}
 
 
 def get_handpose_type(hand_pose):
@@ -125,10 +125,10 @@ rythmic_patterns = dict(
             (3, 0): {(4, 0): 5},
             (4, 0): {(1, 0): 5}},
         'progressions': {
-            (1, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
-            (2, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
-            (3, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
-            (4, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0}
+            (1, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
+            (2, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
+            (3, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
+            (4, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0}
             }
         })
 
@@ -179,7 +179,7 @@ def pattern_iterator(pattern):
         last_index = index
 
 
-def pick_progression(pattern, index):
+def pick_progression_type(pattern, index):
     '''
     this method pick a random comportement in the pattern subdict 'progression'
     using the indice of probabilty defined in the dict.
@@ -229,7 +229,7 @@ def zip_chords_hand_poses(pattern_index, pattern, chords):
 
 
 def zipped_chords_hand_poses_and_progression_iterator(
-        pattern, chord_grid, mandatory_progression=None):
+        pattern, chord_grid, mandatory_progression_type=None):
     """
     this iterator itera synchronulsy on the chord grid and the rythmic pattern
     it generate the hand poses and return a zipped list of all eighth and the 
@@ -250,48 +250,49 @@ def zipped_chords_hand_poses_and_progression_iterator(
     while True:
         index_pattern = next(patterns_it)
         chords = next(chords_it)
-        prefered_progression = (
-            mandatory_progression or pick_progression(
+        prefered_progression_type = (
+            mandatory_progression_type or pick_progression_type(
                 pattern, index_pattern))
         current_zipped_datas = zip_chords_hand_poses(
             index_pattern, pattern, chords)
 
-        yield current_zipped_datas, prefered_progression
+        yield current_zipped_datas, prefered_progression_type
 
 
 def converte_hand_poses_boolean_to_notes(
         reference_note, reference_note_array, zipped_datas,
-        prefered_progression, next_zipped_datas, next_prefered_progression,
-        tonality, mode):
+        prefered_progression_type, next_zipped_datas,
+        next_prefered_progression_type, tonality, mode):
     """ TODO """
     return [None, None, None]
 
 
 def zipped_datas_treatment_iterator(  # Find better name
-        pattern, chord_grid, tonality, mode, mandatory_progression=None):
+        pattern, chord_grid, tonality, mode, mandatory_progression_type=None):
 
     data_it = zipped_chords_hand_poses_and_progression_iterator(
-        pattern, chord_grid, mandatory_progression=mandatory_progression)
+        pattern, chord_grid, mandatory_progression_type)
 
     last_melodic_reference_note = tonality
     last_harmonic_reference_note_array = None
 
-    current_zipped_datas, current_prefered_progression = next(data_it)
-    next_zipped_datas, next_prefered_progression = next(data_it)
+    current_zipped_datas, current_prefered_progression_type = next(data_it)
+    next_zipped_datas, next_prefered_progression_type = next(data_it)
 
     while True:
         datas = converte_hand_poses_boolean_to_notes(
             last_melodic_reference_note,
             last_harmonic_reference_note_array,
-            current_zipped_datas, current_prefered_progression,
-            next_zipped_datas, next_prefered_progression, tonality, mode)
+            current_zipped_datas, current_prefered_progression_type,
+            next_zipped_datas, next_prefered_progression_type, tonality, mode)
         yield datas[0]
 
         last_melodic_reference_note = datas[1]
         last_harmonic_reference_note_array = datas[2]
         current_zipped_datas = next_zipped_datas
-        current_prefered_progression = next_prefered_progression
-        next_zipped_datas, next_prefered_progression = next(data_it)
+        current_prefered_progression_type = next_prefered_progression_type
+        next_zipped_datas, next_prefered_progression_type = next(data_it)
+
 
 gen = zipped_chords_hand_poses_and_progression_iterator(
     rythmic_patterns['basic'], chord_grids['example'])
