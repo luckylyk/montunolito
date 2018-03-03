@@ -39,9 +39,9 @@ chords = dict(
 
 pitches = [0, 1, 2, 3, 4, 5]
 
-comportments = dict(
+progression = dict(
     static = 1,
-    melodic = 2,
+    diatonic = 2,
     harpege = 3,
     chromatic = 4)
 
@@ -71,7 +71,8 @@ def get_handpose_type(hand_pose):
 # keys 1, 2, 3, 4 contains differents alternative array of hand pattern index.
 # the key number correspond the quarter of the pattern (1 = first quarter, etc)
 # the 'relationship' key contains a dict. His keys represent the pattern index
-# it contain the pattern index of the next quarter and a value (between 0 and 5)
+# it contain the pattern index of the next quarter and a value
+# (between 0 and 5)
 # it's for generate random patterns.
 # this is data and will be moved in JSON files. Every pattern will be save as
 # different json file.
@@ -96,21 +97,21 @@ rythmic_patterns = dict(
             (4, 2): {(1, 0): 4, (1, 1): 2, (1, 2): 0},
             (4, 3): {(1, 0): 4, (1, 1): 0, (1, 2): 0},
             (4, 4): {(1, 0): 2, (1, 1): 4, (1, 2): 0}},
-        'comportments': {
-            (1, 0): {'static': 3, 'melodic': 1, 'harpege': 5, 'chromatic': 0},
-            (1, 1): {'static': 0, 'melodic': 0, 'harpege': 5, 'chromatic': 0},
-            (1, 2): {'static': 0, 'melodic': 3, 'harpege': 5, 'chromatic': 0},
-            (2, 0): {'static': 5, 'melodic': 3, 'harpege': 3, 'chromatic': 2},
-            (2, 1): {'static': 0, 'melodic': 0, 'harpege': 5, 'chromatic': 0},
-            (2, 2): {'static': 2, 'melodic': 3, 'harpege': 0, 'chromatic': 3},
-            (3, 0): {'static': 5, 'melodic': 3, 'harpege': 3, 'chromatic': 2},
-            (3, 1): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
-            (3, 2): {'static': 0, 'melodic': 0, 'harpege': 5, 'chromatic': 0},
-            (4, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
-            (4, 1): {'static': 0, 'melodic': 3, 'harpege': 1, 'chromatic': 3},
-            (4, 2): {'static': 5, 'melodic': 3, 'harpege': 3, 'chromatic': 2},
-            (4, 3): {'static': 3, 'melodic': 0, 'harpege': 3, 'chromatic': 1},
-            (4, 4): {'static': 0, 'melodic': 3, 'harpege': 0, 'chromatic': 3}}
+        'progressions': {
+            (1, 0): {'static': 3, 'diatonic': 1, 'harpege': 5, 'chromatic': 0},
+            (1, 1): {'static': 0, 'diatonic': 0, 'harpege': 5, 'chromatic': 0},
+            (1, 2): {'static': 0, 'diatonic': 3, 'harpege': 5, 'chromatic': 0},
+            (2, 0): {'static': 5, 'diatonic': 3, 'harpege': 3, 'chromatic': 2},
+            (2, 1): {'static': 0, 'diatonic': 0, 'harpege': 5, 'chromatic': 0},
+            (2, 2): {'static': 2, 'diatonic': 3, 'harpege': 0, 'chromatic': 3},
+            (3, 0): {'static': 5, 'diatonic': 3, 'harpege': 3, 'chromatic': 2},
+            (3, 1): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
+            (3, 2): {'static': 0, 'diatonic': 0, 'harpege': 5, 'chromatic': 0},
+            (4, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
+            (4, 1): {'static': 0, 'diatonic': 3, 'harpege': 1, 'chromatic': 3},
+            (4, 2): {'static': 5, 'diatonic': 3, 'harpege': 3, 'chromatic': 2},
+            (4, 3): {'static': 3, 'diatonic': 0, 'harpege': 3, 'chromatic': 1},
+            (4, 4): {'static': 0, 'diatonic': 3, 'harpege': 0, 'chromatic': 3}}
             },
 
     chacha = {
@@ -123,7 +124,7 @@ rythmic_patterns = dict(
             (2, 0): {(3, 0): 5},
             (3, 0): {(4, 0): 5},
             (4, 0): {(1, 0): 5}},
-        'comportments': {
+        'progressions': {
             (1, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
             (2, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
             (3, 0): {'static': 5, 'melodic': 0, 'harpege': 0, 'chromatic': 0},
@@ -178,14 +179,14 @@ def pattern_iterator(pattern):
         last_index = index
 
 
-def pick_comportment(pattern, index):
+def pick_progression(pattern, index):
     '''
-    this method pick a random comportement in the pattern subdict 'comportment'
+    this method pick a random comportement in the pattern subdict 'progression'
     using the indice of probabilty defined in the dict.
     '''
-    comportment_prefs = pattern['comportments'][index]
+    progression_prefs = pattern['progressions'][index]
     return random.choice([
-        t for k, v in comportment_prefs.items()
+        t for k, v in progression_prefs.items()
         for t in tuple([k] * v) if v])
 
 
@@ -227,12 +228,12 @@ def zip_chords_hand_poses(pattern_index, pattern, chords):
     return [(c, hp) for c, hp in zip(chords, hand_poses_retrived)]
 
 
-def zipped_chords_hand_poses_and_comportment_iterator(
-        pattern, chord_grid, mandatory_comportment=None):
+def zipped_chords_hand_poses_and_progression_iterator(
+        pattern, chord_grid, mandatory_progression=None):
     """
     this iterator itera synchronulsy on the chord grid and the rythmic pattern
     it generate the hand poses and return a zipped list of all eighth and the 
-    picked prefered comportment e.g.
+    picked prefered progression e.g.
         (
           [
             ((5, 'M7'), (0, 0, 0, 0, 0)),
@@ -249,14 +250,48 @@ def zipped_chords_hand_poses_and_comportment_iterator(
     while True:
         index_pattern = next(patterns_it)
         chords = next(chords_it)
-        prefered_comportment = (
-            mandatory_comportment or pick_comportment(
+        prefered_progression = (
+            mandatory_progression or pick_progression(
                 pattern, index_pattern))
         current_zipped_datas = zip_chords_hand_poses(
             index_pattern, pattern, chords)
 
-        yield current_zipped_datas, prefered_comportment
+        yield current_zipped_datas, prefered_progression
 
 
-gen = zipped_chords_hand_poses_and_comportment_iterator(
+def converte_hand_poses_boolean_to_notes(
+        reference_note, reference_note_array, zipped_datas,
+        prefered_progression, next_zipped_datas, next_prefered_progression,
+        tonality, mode):
+    """ TODO """
+    return [None, None, None]
+
+
+def zipped_datas_treatment_iterator(  # Find better name
+        pattern, chord_grid, tonality, mode, mandatory_progression=None):
+
+    data_it = zipped_chords_hand_poses_and_progression_iterator(
+        pattern, chord_grid, mandatory_progression=mandatory_progression)
+
+    last_melodic_reference_note = tonality
+    last_harmonic_reference_note_array = None
+
+    current_zipped_datas, current_prefered_progression = next(data_it)
+    next_zipped_datas, next_prefered_progression = next(data_it)
+
+    while True:
+        datas = converte_hand_poses_boolean_to_notes(
+            last_melodic_reference_note,
+            last_harmonic_reference_note_array,
+            current_zipped_datas, current_prefered_progression,
+            next_zipped_datas, next_prefered_progression, tonality, mode)
+        yield datas[0]
+
+        last_melodic_reference_note = datas[1]
+        last_harmonic_reference_note_array = datas[2]
+        current_zipped_datas = next_zipped_datas
+        current_prefered_progression = next_prefered_progression
+        next_zipped_datas, next_prefered_progression = next(data_it)
+
+gen = zipped_chords_hand_poses_and_progression_iterator(
     rythmic_patterns['basic'], chord_grids['example'])
