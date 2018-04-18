@@ -1,4 +1,8 @@
 
+##############################################################################
+#  CORE / CONSTANTS
+##############################################################################
+
 notes = dict(
     A = 0,
     Bb = 1,
@@ -60,11 +64,9 @@ hand_pose_types = {
     'chord': [6, 7]}
 
 
-def get_handpose_type(hand_pose):
-    index = hand_poses.index(hand_pose)
-    for hand_pose_type, indexes in hand_pose_types.items():
-        if index in indexes:
-            return hand_pose_type
+##############################################################################
+#  DATA (must be moved in json files)
+##############################################################################
 
 
 # every pattern contains 5 keys: 1, 2, 3, 4, relationships
@@ -141,6 +143,22 @@ chord_grids = dict(
         None, None, (1, 'Minor'), None])
 
 
+##############################################################################
+#  GENERATORS / ITERATOR / CONVERTOR
+##############################################################################
+
+
+import random
+import itertools
+
+
+def get_handpose_type(hand_pose):
+    index = hand_poses.index(hand_pose)
+    for hand_pose_type, indexes in hand_pose_types.items():
+        if index in indexes:
+            return hand_pose_type
+
+
 def reverse_chord(chord, degree):
     ''' this method offset a chord list '''
     return chord[degree:] + chord[:5-degree]
@@ -156,10 +174,6 @@ def remap_note(index):
 def remap_note_array(note, array):
     ''' this method is usefull to repitch a scale '''
     return [remap_note(index + note) for index in array]
-
-
-import random
-import itertools
 
 
 def pattern_iterator(pattern):
@@ -179,7 +193,7 @@ def pattern_iterator(pattern):
         last_index = index
 
 
-def pick_progression_type(pattern, index):
+def pick_pattern_prefered_progression_type(pattern, index):
     '''
     this method pick a random comportement in the pattern subdict 'progression'
     using the indice of probabilty defined in the dict.
@@ -190,12 +204,41 @@ def pick_progression_type(pattern, index):
         for t in tuple([k] * v) if v])
 
 
+def pick_progression_type(
+        reference_note, prefered_progression_type, previous_zipped_datas,
+        zipped_datas, next_zipped_datas):
+
+    zipped = previous_zipped_datas[2:] + zipped_datas + next_zipped_datas[:2]
+    indexes_and_chords = [
+        (i, chord) for i, (chord, hand_pose) in enumerate(zipped)
+        if get_handpose_type(hand_pose) == 'melodic']
+    indexes = [i for (i, c) in indexes_and_chords]
+    chords = [c for (i, c) in indexes_and_chords]
+
+    # if there's no chord evolution return static
+    if len(set(chords)) == 1 and len(chords) > 1:
+        return ['static'] * 4
+
+    if not 0 in indexes or 1 in indexes:
+        reference_note = None
+
+    for index, (i, c) in enumerate(indexes_and_chords):
+        if i in [0, 1, 6, 7]:
+            continue
+        if not index or index >= (len(indexes_and_chords) - 1):
+            continue
+
+        """TODO"""
+
+    return [prefered_progression_type] * 4
+
+
 def chord_iterator(chord_grid):
-    """
+    '''
     this iterator cycle on a given chord grid.
     Chord grid len must be multiple of 16.
     Each chord grid element represent an eighth note. 
-    """
+    '''
     assert len(chord_grid) % 16 == 0, 'chord grid len must be multiple of 16'
     assert chord_grid[0] is not None, 'the first chord grid element cannot be None'
 
@@ -210,17 +253,17 @@ def chord_iterator(chord_grid):
 
 
 def zip_chords_hand_poses(pattern_index, pattern, chords):
-    """
+    '''
     @pattern_index is a tuple containing the parttern index e.g. :(3, 2)
     @pattern is a pattern dict used for the generation
-    @chords list of 4 chords to zip 
+    @chords list of 4 chords to zip
     method return a list e.g.
         ((4, 'Minor'), (0, 0, 0, 0, 0))
         ((4, 'Minor'), (0, 1, 1, 1, 0))
         ((1, 'Minor'), (0, 0, 0, 0, 0))
         ((1, 'Minor'), (1, 0, 0, 0, 1))
     representing 4 eighth notes.
-    """
+    '''
     hand_poses_retrived = []
     qpattern = pattern[pattern_index[0]][pattern_index[1]]
     for index in qpattern:
@@ -230,8 +273,8 @@ def zip_chords_hand_poses(pattern_index, pattern, chords):
 
 def zipped_chords_hand_poses_and_progression_iterator(
         pattern, chord_grid, mandatory_progression_type=None):
-    """
-    this iterator itera synchronulsy on the chord grid and the rythmic pattern
+    '''
+    this iterator iter synchronulsy on the chord grid and the rythmic pattern
     it generate the hand poses and return a zipped list of all eighth and the 
     picked prefered progression e.g.
         (
@@ -243,7 +286,7 @@ def zipped_chords_hand_poses_and_progression_iterator(
           ],
           'chromatic'
         )
-    """
+    '''
     patterns_it = pattern_iterator(pattern)
     chords_it = chord_iterator(chord_grid)
 
@@ -251,48 +294,48 @@ def zipped_chords_hand_poses_and_progression_iterator(
         index_pattern = next(patterns_it)
         chords = next(chords_it)
         prefered_progression_type = (
-            mandatory_progression_type or pick_progression_type(
-                pattern, index_pattern))
+            mandatory_progression_type or
+            pick_pattern_prefered_progression_type(pattern, index_pattern))
         current_zipped_datas = zip_chords_hand_poses(
             index_pattern, pattern, chords)
 
         yield current_zipped_datas, prefered_progression_type
 
 
-def converte_hand_poses_boolean_to_notes(
-        reference_note, reference_note_array, zipped_datas,
-        prefered_progression_type, next_zipped_datas,
-        next_prefered_progression_type, tonality, mode):
+def convert_hand_poses_booleans_to_hand_poses_notes(
+        processed_datas, to_process_datas, tonality, progression_type):
     """ TODO """
+
     return [None, None, None]
 
 
-def zipped_datas_treatment_iterator(  # Find better name
+def montuno_generator(  # Find better name
         pattern, chord_grid, tonality, mode, mandatory_progression_type=None):
 
     data_it = zipped_chords_hand_poses_and_progression_iterator(
         pattern, chord_grid, mandatory_progression_type)
 
-    last_melodic_reference_note = tonality
-    last_harmonic_reference_note_array = None
-
-    current_zipped_datas, current_prefered_progression_type = next(data_it)
-    next_zipped_datas, next_prefered_progression_type = next(data_it)
+    processed_datas = [None, None, None, None]
+    to_process_datas = next(data_it)
 
     while True:
-        datas = converte_hand_poses_boolean_to_notes(
-            last_melodic_reference_note,
-            last_harmonic_reference_note_array,
-            current_zipped_datas, current_prefered_progression_type,
-            next_zipped_datas, next_prefered_progression_type, tonality, mode)
-        yield datas[0]
+        datas = convert_hand_poses_booleans_to_hand_poses_notes(
+            processed_datas, to_process_datas,
+            tonality, mandatory_progression_type)
 
-        last_melodic_reference_note = datas[1]
-        last_harmonic_reference_note_array = datas[2]
-        current_zipped_datas = next_zipped_datas
-        current_prefered_progression_type = next_prefered_progression_type
-        next_zipped_datas, next_prefered_progression_type = next(data_it)
+        for data in datas:
+            yield data
+
+        processed_datas = processed_datas[-len(datas)+1:-1] + datas
+        to_process_datas = to_process_datas[len(datas):]
+
+        if len(to_process_datas) < 4:
+            to_process_datas += next(data_it)
 
 
 gen = zipped_chords_hand_poses_and_progression_iterator(
     rythmic_patterns['basic'], chord_grids['example'])
+
+
+for elt in next(gen):
+    print(elt)
