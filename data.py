@@ -171,7 +171,7 @@ def remap_note(index):
     return index
 
 
-def remap_note_array(note, array):
+def remap_notearray(note, array):
     ''' this method is usefull to repitch a scale '''
     return [remap_note(index + note) for index in array]
 
@@ -193,7 +193,7 @@ def pattern_iterator(pattern):
         last_index = index
 
 
-def pick_pattern_prefered_progression_type(pattern, index):
+def pick_favorite_progression_type(pattern, index):
     '''
     this method pick a random comportement in the pattern subdict 'progression'
     using the indice of probabilty defined in the dict.
@@ -202,35 +202,6 @@ def pick_pattern_prefered_progression_type(pattern, index):
     return random.choice([
         t for k, v in progression_prefs.items()
         for t in tuple([k] * v) if v])
-
-
-def pick_progression_type(
-        reference_note, prefered_progression_type, previous_zipped_datas,
-        zipped_datas, next_zipped_datas):
-
-    zipped = previous_zipped_datas[2:] + zipped_datas + next_zipped_datas[:2]
-    indexes_and_chords = [
-        (i, chord) for i, (chord, handpose) in enumerate(zipped)
-        if get_handpose_type(handpose) == 'melodic']
-    indexes = [i for (i, c) in indexes_and_chords]
-    chords = [c for (i, c) in indexes_and_chords]
-
-    # if there's no chord evolution return static
-    if len(set(chords)) == 1 and len(chords) > 1:
-        return ['static'] * 4
-
-    if not 0 in indexes or 1 in indexes:
-        reference_note = None
-
-    for index, (i, c) in enumerate(indexes_and_chords):
-        if i in [0, 1, 6, 7]:
-            continue
-        if not index or index >= (len(indexes_and_chords) - 1):
-            continue
-
-        """TODO"""
-
-    return [prefered_progression_type] * 4
 
 
 def chord_iterator(chord_grid):
@@ -252,40 +223,40 @@ def chord_iterator(chord_grid):
         yield beat_1, beat_2, beat_3, beat_4
 
 
-def zip_chords_handposes(pattern_index, pattern, chords):
+def zip_chords_handposes(
+        pattern_index, pattern, chords, prefered_progression_type):
     '''
     @pattern_index is a tuple containing the parttern index e.g. :(3, 2)
     @pattern is a pattern dict used for the generation
     @chords list of 4 chords to zip
     method return a list e.g.
-        ((4, 'Minor'), (0, 0, 0, 0, 0))
-        ((4, 'Minor'), (0, 1, 1, 1, 0))
-        ((1, 'Minor'), (0, 0, 0, 0, 0))
-        ((1, 'Minor'), (1, 0, 0, 0, 1))
+        {'chord': (5, 'M7'), 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
+        {'chord': (5, 'M7'), 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
+        {'chord': (5, 'M7'), 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
+        {'chord': (4, 'Minor'), 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'}
     representing 4 eighth notes.
     '''
     handposes_retrived = []
     qpattern = pattern[pattern_index[0]][pattern_index[1]]
     for index in qpattern:
         handposes_retrived.append(handposes[index])
-    return [(c, hp) for c, hp in zip(chords, handposes_retrived)]
+    return [
+        {'chord': c, 'handpose': hp, 'progression': prefered_progression_type}
+        for c, hp in zip(chords, handposes_retrived)]
 
 
-def zipped_chords_handposes_and_progression_iterator(
+def chords_handposes_and_progressions_iterator(
         pattern, chord_grid, mandatory_progression_type=None):
     '''
     this iterator iter synchronulsy on the chord grid and the rythmic pattern
     it generate the hand poses and return a zipped list of all eighth and the 
     picked prefered progression e.g.
-        (
-          [
-            ((5, 'M7'), (0, 0, 0, 0, 0)),
-            ((5, 'M7'), (0, 1, 1, 1, 0)),
-            ((5, 'M7'), (0, 0, 0, 0, 0)),
-            ((4, 'Minor'), (1, 0, 0, 0, 1))
-          ],
-          'chromatic'
-        )
+    [
+        {'chord': (5, 'M7'), 'handpose': (0, 0, 0, 0, 0), 'progression':'chromatic'},
+        {'chord': (5, 'M7'), 'handpose': (0, 1, 1, 1, 0), 'progression':'chromatic'},
+        {'chord': (5, 'M7'), 'handpose': (0, 0, 0, 0, 0), 'progression':'chromatic'},
+        {'chord': (4, 'Minor'), 'handpose': (1, 0, 0, 0, 1), 'progression':'chromatic'}
+    ]
     '''
     patterns_it = pattern_iterator(pattern)
     chords_it = chord_iterator(chord_grid)
@@ -295,11 +266,10 @@ def zipped_chords_handposes_and_progression_iterator(
         chords = next(chords_it)
         prefered_progression_type = (
             mandatory_progression_type or
-            pick_pattern_prefered_progression_type(pattern, index_pattern))
-        current_zipped_datas = zip_chords_handposes(
-            index_pattern, pattern, chords)
+            pick_favorite_progression_type(pattern, index_pattern))
 
-        yield current_zipped_datas, prefered_progression_type
+        yield zip_chords_handposes(
+            index_pattern, pattern, chords, prefered_progression_type)
 
 
 def convert_handposes_booleans_to_handposes_notes(
@@ -312,11 +282,11 @@ def convert_handposes_booleans_to_handposes_notes(
 def montuno_generator(  # Find better name
         pattern, chord_grid, tonality, mode, mandatory_progression_type=None):
 
-    data_it = zipped_chords_handposes_and_progression_iterator(
+    data_it = chords_handposes_and_progressions_iterator(
         pattern, chord_grid, mandatory_progression_type)
 
     processed_datas = [None, None, None, None]
-    to_process_datas = next(data_it)
+    to_process_datas = next(data_it) + next(data_it)
 
     while True:
         datas = convert_handposes_booleans_to_handposes_notes(
@@ -329,13 +299,14 @@ def montuno_generator(  # Find better name
         processed_datas = processed_datas[-len(datas)+1:-1] + datas
         to_process_datas = to_process_datas[len(datas):]
 
-        if len(to_process_datas) < 4:
+        while len(to_process_datas) < 8:
             to_process_datas += next(data_it)
 
 
-gen = zipped_chords_handposes_and_progression_iterator(
+gen = chords_handposes_and_progressions_iterator(
     rythmic_patterns['basic'], chord_grids['example'])
 
 
-for elt in next(gen):
-    print(elt)
+for _ in range(5):
+    for elt in next(gen):
+        print (elt)
