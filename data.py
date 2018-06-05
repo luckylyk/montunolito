@@ -137,10 +137,22 @@ rythmic_patterns = dict(
 
 chord_grids = dict(
     example = [
-        (1, 'Minor'), None, None, (4, 'Minor'),
-        None, None, (5, 'M7'), None,
-        None, None, None, (4, 'Minor'),
-        None, None, (1, 'Minor'), None])
+        {'degree': 1, 'name': 'Minor'},
+        None,
+        None,
+        {'degree': 4, 'name': 'Minor'},
+        None,
+        None,
+        {'degree': 5, 'name': 'M7'},
+        None,
+        None,
+        None,
+        None,
+        {'degree': 4, 'name': 'Minor'},
+        None,
+        None, 
+        {'degree': 1, 'name': 'Minor'},
+        None])
 
 
 ##############################################################################
@@ -153,6 +165,7 @@ import itertools
 
 
 def get_handpose_type(handpose):
+    handpose = tuple([1 if value > 0 else 0 for value in handpose])
     index = handposes.index(handpose)
     for handpose_type, indexes in handpose_types.items():
         if index in indexes:
@@ -174,6 +187,17 @@ def remap_note(index):
 def remap_notearray(note, array):
     ''' this method is usefull to repitch a scale '''
     return [remap_note(index + note) for index in array]
+
+
+def generate_notearray_from_chord(chord, tonality):
+    '''
+    this return and number array contain degree.
+    give a chord with this structure :
+        chord = {'degree': 5, 'name': 'M7'}
+    '''
+    concert_pitch_array = remap_notearray(
+        chord['degree'], chords[chord['name']])
+    return remap_notearray(tonality, concert_pitch_array)
 
 
 def pattern_iterator(pattern):
@@ -230,10 +254,10 @@ def zip_chords_handposes(
     @pattern is a pattern dict used for the generation
     @chords list of 4 chords to zip
     method return a list e.g.
-        {'chord': (5, 'M7'), 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
-        {'chord': (5, 'M7'), 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
-        {'chord': (5, 'M7'), 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
-        {'chord': (4, 'Minor'), 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'}
+        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
+        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
+        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
+        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'}
     representing 4 eighth notes.
     '''
     handposes_retrived = []
@@ -252,31 +276,102 @@ def chords_handposes_and_progressions_iterator(
     it generate the hand poses and return a zipped list of all eighth and the 
     picked prefered progression e.g.
     [
-        {'chord': (5, 'M7'), 'handpose': (0, 0, 0, 0, 0), 'progression':'chromatic'},
-        {'chord': (5, 'M7'), 'handpose': (0, 1, 1, 1, 0), 'progression':'chromatic'},
-        {'chord': (5, 'M7'), 'handpose': (0, 0, 0, 0, 0), 'progression':'chromatic'},
-        {'chord': (4, 'Minor'), 'handpose': (1, 0, 0, 0, 1), 'progression':'chromatic'}
+        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
+        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
+        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
+        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'}
     ]
     '''
     patterns_it = pattern_iterator(pattern)
     chords_it = chord_iterator(chord_grid)
 
     while True:
-        index_pattern = next(patterns_it)
+        pattern_index = next(patterns_it)
         chords = next(chords_it)
         prefered_progression_type = (
             mandatory_progression_type or
-            pick_favorite_progression_type(pattern, index_pattern))
+            pick_favorite_progression_type(pattern, pattern_index))
 
         yield zip_chords_handposes(
-            index_pattern, pattern, chords, prefered_progression_type)
+            pattern_index, pattern, chords, prefered_progression_type)
 
 
 def convert_handposes_booleans_to_handposes_notes(
         processed_datas, to_process_datas, tonality, progression_type):
-    """ TODO """
+    '''
+    processed_datas
+        [0, 5, 6, 8, 0]
+        [0, 0, 0, 0, 0]
+        [6, 7, 8, 9, 0]
+        [0, 0, 0, 0, 0]
+
+    to_process_datas
+        {'chord': {'degree': 1, 'name': 'M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
+        {'chord': {'degree': 1, 'name': 'M7'}, 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
+        {'chord': {'degree': 1, 'name': 'M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
+        {'chord': {'degree': 4, 'name': 'M7'}, 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'},
+        {'chord': {'degree': 4, 'name': 'M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
+        {'chord': {'degree': 4, 'name': 'M7'}, 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
+        {'chord': {'degree': 5, 'name': 'M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
+        {'chord': {'degree': 5, 'name': 'M7'}, 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'}
+    '''
+    if get_handpose_type(to_process_datas[0]) == 'mute':
+        return [[None, None, None, None, None]]
+
+    melodic_indexes = []
+    chord_indexes = []
+    mute_indexes = []
+    for i, data in enumerate(to_process_datas):
+        if get_handpose_type(data) == 'melodic':
+            melodic_indexes.append(i)
+        elif get_handpose_type(data) == 'chord':
+            chord_indexes.append(i)
+        elif get_handpose_type(data) == 'mute':
+            mute_indexes.append(i)
+
+    melodic_processed_datas = [
+        data for data in processed_datas
+        if get_handpose_type(data) == 'melodic']
+
+    melodic_datas = [
+            data for i, data in enumerate(to_process_datas)
+            if i in melodic_indexes]
+
+    melody = generate_melody_from_datas(
+        processed_datas=melodic_processed_datas,
+        datas=melodic_datas,
+        tonality=tonality)
 
     return [None, None, None]
+
+
+def generate_melody_from_datas(processed_datas, datas, tonality):
+    # define the melody length who will be generated
+    len_continuity = sorted([
+        count_continuity([d['chord'] for d in datas]),
+        count_continuity([d['progression'] for d in datas])])[0]
+    if len_continuity < len(datas):
+        len_continuity += 1
+    datas = datas[:len_continuity]
+
+    # analyse reference datas
+    reference_note = [
+        note for note in processed_datas[-1] if note is not None][0]
+
+
+def count_continuity(array):
+    '''
+    utils who count the occurence in a list before a difference
+    example :
+        ['salut', 'salut', 'salut', 'prout', 'salut'] = 3
+        ['salut', 'prout', 'salut', 'salut', 'salut'] = 1
+    '''
+    result = 0
+    for element in array:
+        if element != array[0]:
+            break
+        result += 1
+    return result
 
 
 def montuno_generator(  # Find better name
@@ -303,10 +398,18 @@ def montuno_generator(  # Find better name
             to_process_datas += next(data_it)
 
 
-gen = chords_handposes_and_progressions_iterator(
-    rythmic_patterns['basic'], chord_grids['example'])
+if __name__ == '__main__':
+    # gen = chords_handposes_and_progressions_iterator(
+    #     rythmic_patterns['basic'], chord_grids['example'])
 
-
-for _ in range(5):
-    for elt in next(gen):
-        print (elt)
+    # for _ in range(2):
+    #     for elt in next(gen):
+    #         print (elt)
+    for chord in (
+        {'degree': 0, 'name': 'Minor'},
+        {'degree': 1, 'name': 'Minor'},
+        {'degree': 2, 'name': 'Minor'},
+        {'degree': 3, 'name': 'Minor'},
+        {'degree': 4, 'name': 'Minor'},
+        {'degree': 5, 'name': 'Minor'}):
+            print(generate_notearray_from_chord(chord, 0))
