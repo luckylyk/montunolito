@@ -158,7 +158,27 @@ chord_grids = dict(
 ##############################################################################
 #  GENERATORS / ITERATOR / CONVERTOR
 ##############################################################################
-
+"""
+nomenclature : 
+    chord = {'degree': 0, 'name': 'Minor'}
+    tonality = int (factor to offset all values)
+    meta_handpose = [0, 1, 1, 1, 0]
+        list representing fingers in action on keyboard:
+            0 = released,
+            1 = pressed
+    handpose = [None, 2, 6, 8, None]
+        list representing note played by pressed fingers. None is
+        for released fingers
+    progression = list of constant for algorythme, represention the melodic behavior
+    meta_eighth = 
+        {
+            'chord': {'degree': 5, 'name': M7'},
+            'handpose': (0, 0, 0, 0, 0),
+            'progression': 'chromatic'
+        }
+        dict of meta data representing eighth note, used by the generator
+        to be transformed in final_eighth
+"""
 
 import random
 import itertools
@@ -194,6 +214,7 @@ def generate_notearray_from_chord(chord, tonality):
     this return and number array contain degree.
     give a chord with this structure :
         chord = {'degree': 5, 'name': 'M7'}
+        tonality = int >= 0 and int <=11
     '''
     concert_pitch_array = remap_notearray(
         chord['degree'], chords[chord['name']])
@@ -347,16 +368,63 @@ def convert_handposes_booleans_to_handposes_notes(
 
 def generate_melody_from_datas(processed_datas, datas, tonality):
     # define the melody length who will be generated
-    len_continuity = sorted([
+    melody_lenght = sorted([
         count_continuity([d['chord'] for d in datas]),
         count_continuity([d['progression'] for d in datas])])[0]
-    if len_continuity < len(datas):
-        len_continuity += 1
-    datas = datas[:len_continuity]
+    if melody_lenght < len(datas):
+        melody_lenght += 1
+    datas = datas[:melody_lenght]
 
     # analyse reference datas
     reference_note = [
         note for note in processed_datas[-1] if note is not None][0]
+
+    original_chord = generate_notearray_from_chord(
+        chord=datas[0]['chord'], tonality=tonality)
+    destination_chord = generate_notearray_from_chord(
+        chord=datas[-1]['chord'], tonality=tonality)
+
+    if datas[0]['progession'] == 'harpege':
+        original_chord_notes_iterator = itertools.cycle(original_chord)
+        notes = [
+            next(original_chord_notes_iterator)
+            for _ in range(melody_lenght)]
+        if original_chord == destination_chord:
+            return notes
+        return notes[:-1] + [random.choice(
+            [destination_chord[0]] * 3 + [destination_chord[2]])]
+
+    elif datas[0]['progession'] == 'static':
+        if reference_note in (original_chord[0], original_chord[2]):
+            note = reference_note
+        if original_chord == destination_chord:
+            return [note] * melody_lenght
+
+    chord_is_reversed = bool(
+        find_closer_index(
+            number=reference_note,
+            array=(original_chord[0], original_chord[2])))
+    if chord_is_reversed:
+        original_chord = reverse_chord(chord=original_chord, degree=2)
+
+    elif datas[0]['progession'] == 'melodic':
+        pass
+
+    elif datas[0]['progession'] == 'chromatic':
+        pass
+
+
+def find_closer_index(number, array, clamp=11):
+    if number in array:
+        return array.index(number)
+
+    closer_difference = None
+    for i, num in enumerate(array):
+        difference = min(abs(number - num), abs(number + (num - clamp)))
+        if not closer_difference or closer_difference > difference:
+            closer_index = i
+            closer_difference = difference
+    return closer_index
 
 
 def count_continuity(array):
