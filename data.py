@@ -363,8 +363,13 @@ def convert_handposes_booleans_to_handposes_notes(
         datas=melodic_datas,
         tonality=tonality)
 
-    return [None, None, None]
+    chords = generate_chord_from_datas()
 
+    return combine_chord_and_melody(
+        melody, chords, melodic_indexes, chord_indexes)
+
+def combine_chord_and_melody(melody, chords, melodic_indexes, chord_indexes):
+    pass
 
 def generate_melody_from_datas(processed_datas, datas, tonality):
     # define the melody length who will be generated
@@ -412,6 +417,10 @@ def generate_melody_from_datas(processed_datas, datas, tonality):
 
     elif datas[0]['progession'] == 'chromatic':
         pass
+
+
+def generate_chord_from_datas():
+    return None
 
 
 def find_closer_index(number, array, clamp=11):
