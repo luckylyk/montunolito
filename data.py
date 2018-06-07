@@ -371,11 +371,12 @@ def convert_handposes_booleans_to_handposes_notes(
 def combine_chord_and_melody(melody, chords, melodic_indexes, chord_indexes):
     pass
 
+
 def generate_melody_from_datas(processed_datas, datas, tonality):
     # define the melody length who will be generated
-    melody_lenght = sorted([
+    melody_lenght = min([
         count_continuity([d['chord'] for d in datas]),
-        count_continuity([d['progression'] for d in datas])])[0]
+        count_continuity([d['progression'] for d in datas])])
     if melody_lenght < len(datas):
         melody_lenght += 1
     datas = datas[:melody_lenght]
@@ -384,12 +385,14 @@ def generate_melody_from_datas(processed_datas, datas, tonality):
     reference_note = [
         note for note in processed_datas[-1] if note is not None][0]
 
+    progression = datas[0]['progession']
+    handposes = [d['handpose'] for d in datas]
     original_chord = generate_notearray_from_chord(
         chord=datas[0]['chord'], tonality=tonality)
     destination_chord = generate_notearray_from_chord(
         chord=datas[-1]['chord'], tonality=tonality)
 
-    if datas[0]['progession'] == 'harpege':
+    if progression == 'harpege':
         original_chord_notes_iterator = itertools.cycle(original_chord)
         notes = [
             next(original_chord_notes_iterator)
@@ -399,23 +402,32 @@ def generate_melody_from_datas(processed_datas, datas, tonality):
         return notes[:-1] + [random.choice(
             [destination_chord[0]] * 3 + [destination_chord[2]])]
 
-    elif datas[0]['progession'] == 'static':
-        if reference_note in (original_chord[0], original_chord[2]):
-            note = reference_note
+    if progression == 'static':
+        if len(set(handposes)) != 1:
+            progression = 'melodic'
+
+    if progression == 'static':
+        note = find_closer_number(
+            number=reference_note,
+            array=(original_chord[0], original_chord[2]))
+
         if original_chord == destination_chord:
             return [note] * melody_lenght
+        else:
+            return [note] * (melody_lenght - 1)
+
 
     chord_is_reversed = bool(
-        find_closer_index(
+        find_closer_number(
             number=reference_note,
-            array=(original_chord[0], original_chord[2])))
+            array=(original_chord[0], original_chord[2]), index=True))
     if chord_is_reversed:
         original_chord = reverse_chord(chord=original_chord, degree=2)
 
-    elif datas[0]['progession'] == 'melodic':
+    elif progression == 'melodic':
         pass
 
-    elif datas[0]['progession'] == 'chromatic':
+    elif progression == 'chromatic':
         pass
 
 
@@ -423,9 +435,9 @@ def generate_chord_from_datas():
     return None
 
 
-def find_closer_index(number, array, clamp=11):
+def find_closer_number(number, array, clamp=11, index=False):
     if number in array:
-        return array.index(number)
+        return array.index(number) if index else number
 
     closer_difference = None
     for i, num in enumerate(array):
@@ -433,7 +445,7 @@ def find_closer_index(number, array, clamp=11):
         if not closer_difference or closer_difference > difference:
             closer_index = i
             closer_difference = difference
-    return closer_index
+    return closer_index if index else array[closer_index]
 
 
 def count_continuity(array):
