@@ -17,9 +17,11 @@ notes = dict(
     G = 10,
     Ab = 11)
 
+
 scales = dict(
     major = [0, 2, 4, 5, 7, 9, 11],
     minor = [0, 2, 3, 5, 7, 8, 10])
+
 
 chords = dict(
     Major = [0, 4, 7, 12, 19],
@@ -41,24 +43,25 @@ chords = dict(
     aug =   [0, 4, 8, 12, 19],
     qm =    [0, 4, 6, 12, 19])
 
+
+scale_by_chord = dict(
+    major = ('Major', 'M6', 'M7', 'M7M', 'M7b9', 'M9', 'M11', 'Sus4'),
+    minor = ('Minor', 'm6', 'm7', 'm7M', 'm7b9', 'm9', 'm11', 'dim', 'qm'))
+
+
 pitches = [0, 1, 2, 3, 4, 5]
 
-progression_type = dict(
-    static = 1,
-    diatonic = 2,
-    harpege = 3,
-    chromatic = 4)
 
 # this is a list of hand posing pattern for piano
 # it represant thumd, index, middle, ring and pinkie
 # 0 mean the finger is not pressing a key
 # 1, it's pressing a key.
-handposes = (
+fingersstates = (
     (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
     (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0), (1, 1, 1, 1, 1))
 
 
-handpose_types = {
+fingersstate_types = {
     'mute': [0],
     'melodic': [1, 2, 3, 4, 5],
     'chord': [6, 7]}
@@ -99,21 +102,21 @@ rythmic_patterns = dict(
             (4, 2): {(1, 0): 4, (1, 1): 2, (1, 2): 0},
             (4, 3): {(1, 0): 4, (1, 1): 0, (1, 2): 0},
             (4, 4): {(1, 0): 2, (1, 1): 4, (1, 2): 0}},
-        'progressions': {
-            (1, 0): {'static': 3, 'diatonic': 1, 'harpege': 5, 'chromatic': 0},
-            (1, 1): {'static': 0, 'diatonic': 0, 'harpege': 5, 'chromatic': 0},
-            (1, 2): {'static': 0, 'diatonic': 3, 'harpege': 5, 'chromatic': 0},
-            (2, 0): {'static': 5, 'diatonic': 3, 'harpege': 3, 'chromatic': 2},
-            (2, 1): {'static': 0, 'diatonic': 0, 'harpege': 5, 'chromatic': 0},
-            (2, 2): {'static': 2, 'diatonic': 3, 'harpege': 0, 'chromatic': 3},
-            (3, 0): {'static': 5, 'diatonic': 3, 'harpege': 3, 'chromatic': 2},
-            (3, 1): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
-            (3, 2): {'static': 0, 'diatonic': 0, 'harpege': 5, 'chromatic': 0},
-            (4, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
-            (4, 1): {'static': 0, 'diatonic': 3, 'harpege': 1, 'chromatic': 3},
-            (4, 2): {'static': 5, 'diatonic': 3, 'harpege': 3, 'chromatic': 2},
-            (4, 3): {'static': 3, 'diatonic': 0, 'harpege': 3, 'chromatic': 1},
-            (4, 4): {'static': 0, 'diatonic': 3, 'harpege': 0, 'chromatic': 3}}
+        'behaviors': {
+            (1, 0): {'static': 3, 'diatonic': 1, 'arpegic': 5, 'chromatic': 0},
+            (1, 1): {'static': 0, 'diatonic': 0, 'arpegic': 5, 'chromatic': 0},
+            (1, 2): {'static': 0, 'diatonic': 3, 'arpegic': 5, 'chromatic': 0},
+            (2, 0): {'static': 5, 'diatonic': 3, 'arpegic': 3, 'chromatic': 2},
+            (2, 1): {'static': 0, 'diatonic': 0, 'arpegic': 5, 'chromatic': 0},
+            (2, 2): {'static': 2, 'diatonic': 3, 'arpegic': 0, 'chromatic': 3},
+            (3, 0): {'static': 5, 'diatonic': 3, 'arpegic': 3, 'chromatic': 2},
+            (3, 1): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0},
+            (3, 2): {'static': 0, 'diatonic': 0, 'arpegic': 5, 'chromatic': 0},
+            (4, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0},
+            (4, 1): {'static': 0, 'diatonic': 3, 'arpegic': 1, 'chromatic': 3},
+            (4, 2): {'static': 5, 'diatonic': 3, 'arpegic': 3, 'chromatic': 2},
+            (4, 3): {'static': 3, 'diatonic': 0, 'arpegic': 3, 'chromatic': 1},
+            (4, 4): {'static': 0, 'diatonic': 3, 'arpegic': 0, 'chromatic': 3}}
             },
 
     chacha = {
@@ -126,11 +129,11 @@ rythmic_patterns = dict(
             (2, 0): {(3, 0): 5},
             (3, 0): {(4, 0): 5},
             (4, 0): {(1, 0): 5}},
-        'progressions': {
-            (1, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
-            (2, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
-            (3, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0},
-            (4, 0): {'static': 5, 'diatonic': 0, 'harpege': 0, 'chromatic': 0}
+        'behaviors': {
+            (1, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0},
+            (2, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0},
+            (3, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0},
+            (4, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0}
             }
         })
 
@@ -162,19 +165,19 @@ chord_grids = dict(
 nomenclature : 
     chord = {'degree': 0, 'name': 'Minor'}
     tonality = int (factor to offset all values)
-    meta_handpose = [0, 1, 1, 1, 0]
+    fingersstate = (0, 1, 1, 1, 0)
         list representing fingers in action on keyboard:
             0 = released,
             1 = pressed
-    handpose = [None, 2, 6, 8, None]
+    fingersnote = [None, 2, 6, 8, None]
         list representing note played by pressed fingers. None is
         for released fingers
-    progression = list of constant for algorythme, represention the melodic behavior
+    behavior = list of constant for algorythme, represention the melodic behavior
     meta_eighth = 
         {
             'chord': {'degree': 5, 'name': M7'},
-            'handpose': (0, 0, 0, 0, 0),
-            'progression': 'chromatic'
+            'fingersstate': (0, 0, 0, 0, 0),
+            'behavior': 'chromatic'
         }
         dict of meta data representing eighth note, used by the generator
         to be transformed in final_eighth
@@ -184,12 +187,12 @@ import random
 import itertools
 
 
-def get_handpose_type(handpose):
-    handpose = tuple([1 if value > 0 else 0 for value in handpose])
-    index = handposes.index(handpose)
-    for handpose_type, indexes in handpose_types.items():
+def get_fingersstate_type(fingersstate):
+    fingersstate = tuple([1 if value > 0 else 0 for value in fingersstate])
+    index = fingersstates.index(fingersstate)
+    for fingersstate_type, indexes in fingersstate_types.items():
         if index in indexes:
-            return handpose_type
+            return fingersstate_type
 
 
 def reverse_chord(chord, degree):
@@ -209,7 +212,7 @@ def remap_notearray(note, array):
     return [remap_note(index + note) for index in array]
 
 
-def generate_notearray_from_chord(chord, tonality):
+def generate_notearray_chord(chord, tonality):
     '''
     this return and number array contain degree.
     give a chord with this structure :
@@ -219,6 +222,12 @@ def generate_notearray_from_chord(chord, tonality):
     concert_pitch_array = remap_notearray(
         chord['degree'], chords[chord['name']])
     return remap_notearray(tonality, concert_pitch_array)
+
+
+def generate_notearray_scale(chord, tonality):
+    scalename = 'major' if chord['name'] in scale_by_chord['major'] else 'minor'
+    chordnotes = generate_notearray_chord(chord, tonality)
+    return scales[scalename]
 
 
 def pattern_iterator(pattern):
@@ -238,14 +247,14 @@ def pattern_iterator(pattern):
         last_index = index
 
 
-def pick_favorite_progression_type(pattern, index):
+def pick_favorite_behavior(pattern, index):
     '''
-    this method pick a random comportement in the pattern subdict 'progression'
+    this method pick a random comportement in the pattern subdict 'behavior'
     using the indice of probabilty defined in the dict.
     '''
-    progression_prefs = pattern['progressions'][index]
+    behavior_prefs = pattern['behaviors'][index]
     return random.choice([
-        t for k, v in progression_prefs.items()
+        t for k, v in behavior_prefs.items()
         for t in tuple([k] * v) if v])
 
 
@@ -268,40 +277,30 @@ def chord_iterator(chord_grid):
         yield beat_1, beat_2, beat_3, beat_4
 
 
-def zip_chords_handposes(
-        pattern_index, pattern, chords, prefered_progression_type):
+def create_meta_eighths(
+        pattern_index, pattern, chords, prefered_behavior):
     '''
     @pattern_index is a tuple containing the parttern index e.g. :(3, 2)
     @pattern is a pattern dict used for the generation
     @chords list of 4 chords to zip
     method return a list e.g.
-        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
-        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
-        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
-        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'}
     representing 4 eighth notes.
     '''
-    handposes_retrived = []
+    fingersstates_retrieved = []
     qpattern = pattern[pattern_index[0]][pattern_index[1]]
     for index in qpattern:
-        handposes_retrived.append(handposes[index])
+        fingersstates_retrieved.append(fingersstates[index])
     return [
-        {'chord': c, 'handpose': hp, 'progression': prefered_progression_type}
-        for c, hp in zip(chords, handposes_retrived)]
+        {'chord': c, 'fingersstate': hp, 'behavior': prefered_behavior}
+        for c, hp in zip(chords, fingersstates_retrieved)]
 
 
-def chords_handposes_and_progressions_iterator(
-        pattern, chord_grid, mandatory_progression_type=None):
+def meta_eighths_iterator(
+        pattern, chord_grid, mandatory_behavior=None):
     '''
     this iterator iter synchronulsy on the chord grid and the rythmic pattern
     it generate the hand poses and return a zipped list of all eighth and the 
-    picked prefered progression e.g.
-    [
-        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
-        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
-        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
-        {'chord': {'degree': 5, 'name': M7'}, 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'}
-    ]
+    picked prefered behavior.
     '''
     patterns_it = pattern_iterator(pattern)
     chords_it = chord_iterator(chord_grid)
@@ -309,58 +308,42 @@ def chords_handposes_and_progressions_iterator(
     while True:
         pattern_index = next(patterns_it)
         chords = next(chords_it)
-        prefered_progression_type = (
-            mandatory_progression_type or
-            pick_favorite_progression_type(pattern, pattern_index))
+        prefered_behavior = (
+            mandatory_behavior or
+            pick_favorite_behavior(pattern, pattern_index))
 
-        yield zip_chords_handposes(
-            pattern_index, pattern, chords, prefered_progression_type)
+        yield create_meta_eighths (
+            pattern_index, pattern, chords, prefered_behavior)
 
 
-def convert_handposes_booleans_to_handposes_notes(
-        processed_datas, to_process_datas, tonality, progression_type):
-    '''
-    processed_datas
-        [0, 5, 6, 8, 0]
-        [0, 0, 0, 0, 0]
-        [6, 7, 8, 9, 0]
-        [0, 0, 0, 0, 0]
+def convert_meta_eighths_to_fingersnotes(
+        processed_datas, meta_eighths, tonality, behavior):
 
-    to_process_datas
-        {'chord': {'degree': 1, 'name': 'M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
-        {'chord': {'degree': 1, 'name': 'M7'}, 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
-        {'chord': {'degree': 1, 'name': 'M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
-        {'chord': {'degree': 4, 'name': 'M7'}, 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'},
-        {'chord': {'degree': 4, 'name': 'M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression': 'chromatic'},
-        {'chord': {'degree': 4, 'name': 'M7'}, 'handpose': (0, 1, 1, 1, 0), 'progression': 'chromatic'},
-        {'chord': {'degree': 5, 'name': 'M7'}, 'handpose': (0, 0, 0, 0, 0), 'progression':' chromatic'},
-        {'chord': {'degree': 5, 'name': 'M7'}, 'handpose': (1, 0, 0, 0, 1), 'progression': 'chromatic'}
-    '''
-    if get_handpose_type(to_process_datas[0]) == 'mute':
+    if get_fingersstate_type(meta_eighths[0]) == 'mute':
         return [[None, None, None, None, None]]
 
     melodic_indexes = []
     chord_indexes = []
     mute_indexes = []
-    for i, data in enumerate(to_process_datas):
-        if get_handpose_type(data) == 'melodic':
+    for i, data in enumerate(meta_eighths):
+        if get_fingersstate_type(data) == 'melodic':
             melodic_indexes.append(i)
-        elif get_handpose_type(data) == 'chord':
+        elif get_fingersstate_type(data) == 'chord':
             chord_indexes.append(i)
-        elif get_handpose_type(data) == 'mute':
+        elif get_fingersstate_type(data) == 'mute':
             mute_indexes.append(i)
 
     melodic_processed_datas = [
         data for data in processed_datas
-        if get_handpose_type(data) == 'melodic']
+        if get_fingersstate_type(data) == 'melodic']
 
     melodic_datas = [
-            data for i, data in enumerate(to_process_datas)
+            data for i, data in enumerate(meta_eighths)
             if i in melodic_indexes]
 
-    melody = generate_melody_from_datas(
+    melody = generate_melody_from_meta_eighths(
         processed_datas=melodic_processed_datas,
-        datas=melodic_datas,
+        meta_eighths=melodic_datas,
         tonality=tonality)
 
     chords = generate_chord_from_datas()
@@ -372,27 +355,29 @@ def combine_chord_and_melody(melody, chords, melodic_indexes, chord_indexes):
     pass
 
 
-def generate_melody_from_datas(processed_datas, datas, tonality):
+def generate_melody_from_meta_eighths(processed_datas, meta_eighths, tonality):
+    assert set([get_fingersstate_type(me['fingersstate']) for me in meta_eighths]) == {'melodic'}
+
     # define the melody length who will be generated
     melody_lenght = min([
-        count_continuity([d['chord'] for d in datas]),
-        count_continuity([d['progression'] for d in datas])])
-    if melody_lenght < len(datas):
+        count_continuity([d['chord'] for d in meta_eighths]),
+        count_continuity([d['behavior'] for d in meta_eighths])])
+    if melody_lenght < len(meta_eighths):
         melody_lenght += 1
-    datas = datas[:melody_lenght]
+    meta_eighths = meta_eighths[:melody_lenght]
 
     # analyse reference datas
     reference_note = [
         note for note in processed_datas[-1] if note is not None][0]
 
-    progression = datas[0]['progession']
-    handposes = [d['handpose'] for d in datas]
-    original_chord = generate_notearray_from_chord(
-        chord=datas[0]['chord'], tonality=tonality)
-    destination_chord = generate_notearray_from_chord(
-        chord=datas[-1]['chord'], tonality=tonality)
+    behavior = meta_eighths[0]['behavior']
+    fingersstates = [d['fingersstate'] for d in meta_eighths]
+    original_chord = generate_notearray_chord(
+        chord=meta_eighths[0]['chord'], tonality=tonality)
+    destination_chord = generate_notearray_chord(
+        chord=meta_eighths[-1]['chord'], tonality=tonality)
 
-    if progression == 'harpege':
+    if behavior == 'arpegic':
         original_chord_notes_iterator = itertools.cycle(original_chord)
         notes = [
             next(original_chord_notes_iterator)
@@ -402,11 +387,11 @@ def generate_melody_from_datas(processed_datas, datas, tonality):
         return notes[:-1] + [random.choice(
             [destination_chord[0]] * 3 + [destination_chord[2]])]
 
-    if progression == 'static':
-        if len(set(handposes)) != 1:
-            progression = 'melodic'
+    if behavior == 'static':
+        if len(set(fingersstates)) != 1:
+            behavior = 'chromatic'
 
-    if progression == 'static':
+    if behavior == 'static':
         note = find_closer_number(
             number=reference_note,
             array=(original_chord[0], original_chord[2]))
@@ -416,6 +401,22 @@ def generate_melody_from_datas(processed_datas, datas, tonality):
         else:
             return [note] * (melody_lenght - 1)
 
+    if behavior == 'chromatic' or behavior == 'melodic':
+
+        startnote = find_closer_number(
+            number=reference_note,
+            array=(original_chord[0], original_chord[2]))
+
+        destination_notes = destination_chord[0],  destination_chord[2]
+        if startnote + (len(meta_eighths) - 1) in destination_notes:
+            return range(startnote, startnote + len(meta_eighths))
+        elif startnote - (len(meta_eighths) - 1) in destination_notes:
+            return sorted(
+                range(startnote - (len(meta_eighths) - 1), startnote + 1), reverse=True)
+        else:
+            print ('not chromaticable')
+            behavior = 'melodic'
+
 
     chord_is_reversed = bool(
         find_closer_number(
@@ -424,10 +425,7 @@ def generate_melody_from_datas(processed_datas, datas, tonality):
     if chord_is_reversed:
         original_chord = reverse_chord(chord=original_chord, degree=2)
 
-    elif progression == 'melodic':
-        pass
-
-    elif progression == 'chromatic':
+    elif behavior == 'melodic':
         pass
 
 
@@ -464,18 +462,18 @@ def count_continuity(array):
 
 
 def montuno_generator(  # Find better name
-        pattern, chord_grid, tonality, mode, mandatory_progression_type=None):
+        pattern, chord_grid, tonality, mode, forced_behavior=None):
 
-    data_it = chords_handposes_and_progressions_iterator(
-        pattern, chord_grid, mandatory_progression_type)
+    data_it = meta_eighths_iterator(
+        pattern, chord_grid, forced_behavior)
 
     processed_datas = [None, None, None, None]
     to_process_datas = next(data_it) + next(data_it)
 
     while True:
-        datas = convert_handposes_booleans_to_handposes_notes(
+        datas = convert_meta_eighths_to_fingersnotes(
             processed_datas, to_process_datas,
-            tonality, mandatory_progression_type)
+            tonality, forced_behavior)
 
         for data in datas:
             yield data
@@ -488,17 +486,27 @@ def montuno_generator(  # Find better name
 
 
 if __name__ == '__main__':
-    # gen = chords_handposes_and_progressions_iterator(
+    # gen = meta_eighths_iterator(
     #     rythmic_patterns['basic'], chord_grids['example'])
 
     # for _ in range(2):
     #     for elt in next(gen):
     #         print (elt)
-    for chord in (
-        {'degree': 0, 'name': 'Minor'},
-        {'degree': 1, 'name': 'Minor'},
-        {'degree': 2, 'name': 'Minor'},
-        {'degree': 3, 'name': 'Minor'},
-        {'degree': 4, 'name': 'Minor'},
-        {'degree': 5, 'name': 'Minor'}):
-            print(generate_notearray_from_chord(chord, 0))
+    # for chord in (
+    #     {'degree': 0, 'name': 'Minor'},
+    #     {'degree': 1, 'name': 'Minor'},
+    #     {'degree': 2, 'name': 'Minor'},
+    #     {'degree': 3, 'name': 'Minor'},
+    #     {'degree': 4, 'name': 'Minor'},
+    #     {'degree': 5, 'name': 'Minor'}):
+    #         print(generate_notearray_chord(chord, 0))
+    generated_eighth = ([2, 0, 0, 0, 2], [3, 0, 0, 0, 3], [4, 0, 0, 0, 4])
+    datas = [
+        {'chord': {'degree': 4, 'name': 'M7'}, 'fingersstate': (1, 0, 0, 0, 1), 'behavior': 'chromatic'},
+        {'chord': {'degree': 4, 'name': 'M7'}, 'fingersstate': (0, 1, 0, 0, 0), 'behavior': 'chromatic'},
+        {'chord': {'degree': 2, 'name': 'M7'}, 'fingersstate': (0, 0, 1, 0, 0), 'behavior': 'chromatic'},
+        {'chord': {'degree': 4, 'name': 'M7'}, 'fingersstate': (0, 0, 0, 1, 0), 'behavior': 'chromatic'},
+        {'chord': {'degree': 4, 'name': 'M7'}, 'fingersstate': (1, 0, 0, 0, 1), 'behavior': 'chromatic'},
+    ]
+    for data in generate_melody_from_meta_eighths(generated_eighth, datas, 3):
+        print(data)
