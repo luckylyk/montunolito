@@ -247,7 +247,7 @@ def pattern_iterator(pattern):
         last_index = index
 
 
-def pick_favorite_behavior(pattern, index):
+def choose_favorite_behavior(pattern, index):
     '''
     this method pick a random comportement in the pattern subdict 'behavior'
     using the indice of probabilty defined in the dict.
@@ -310,14 +310,14 @@ def meta_eighths_iterator(
         chords = next(chords_it)
         prefered_behavior = (
             mandatory_behavior or
-            pick_favorite_behavior(pattern, pattern_index))
+            choose_favorite_behavior(pattern, pattern_index))
 
         yield create_meta_eighths (
             pattern_index, pattern, chords, prefered_behavior)
 
 
 def convert_meta_eighths_to_fingersnotes(
-        processed_datas, meta_eighths, tonality, behavior):
+        fingersnotes, meta_eighths, tonality, behavior):
 
     if get_fingersstate_type(meta_eighths[0]) == 'mute':
         return [[None, None, None, None, None]]
@@ -333,17 +333,17 @@ def convert_meta_eighths_to_fingersnotes(
         elif get_fingersstate_type(data) == 'mute':
             mute_indexes.append(i)
 
-    melodic_processed_datas = [
-        data for data in processed_datas
+    melodic_fingersnotes = [
+        data for data in fingersnotes
         if get_fingersstate_type(data) == 'melodic']
 
-    melodic_datas = [
+    melodic_meta_eighths = [
             data for i, data in enumerate(meta_eighths)
             if i in melodic_indexes]
 
     melody = generate_melody_from_meta_eighths(
-        processed_datas=melodic_processed_datas,
-        meta_eighths=melodic_datas,
+        fingersnotes=melodic_fingersnotes,
+        meta_eighths=melodic_meta_eighths,
         tonality=tonality)
 
     chords = generate_chord_from_datas()
@@ -351,71 +351,96 @@ def convert_meta_eighths_to_fingersnotes(
     return combine_chord_and_melody(
         melody, chords, melodic_indexes, chord_indexes)
 
+
 def combine_chord_and_melody(melody, chords, melodic_indexes, chord_indexes):
     pass
 
 
-def generate_melody_from_meta_eighths(processed_datas, meta_eighths, tonality):
-    assert set([get_fingersstate_type(me['fingersstate']) for me in meta_eighths]) == {'melodic'}
-
-    # define the melody length who will be generated
-    melody_lenght = min([
+def define_melody_lenght(meta_eighths):
+    lenght = min([
         count_continuity([d['chord'] for d in meta_eighths]),
         count_continuity([d['behavior'] for d in meta_eighths])])
-    if melody_lenght < len(meta_eighths):
-        melody_lenght += 1
+    if lenght < len(meta_eighths):
+        lenght += 1
+    return lenght
+
+
+def generate_arpegic_melody(original_chord, destination_chord, melody_lenght):
+        original_chord_notes_iterator = itertools.cycle(original_chord)
+        notes = [
+            next(original_chord_notes_iterator)
+            for _ in range(melody_lenght)]
+
+        if original_chord == destination_chord:
+            return notes
+
+        return notes[:-1] + [random.choice(
+            [destination_chord[0]] * 3 + [destination_chord[2]])]
+
+
+def generate_static_melody(
+        reference_note, original_chord, destination_chord, melody_lenght):
+
+    note = find_closer_number(
+        number=reference_note,
+        array=(original_chord[0], original_chord[2]))
+
+    if original_chord == destination_chord:
+        return [note] * melody_lenght
+    else:
+        return [note] * (melody_lenght - 1)
+
+
+def generate_chromatic_melody(
+        reference_note, original_chord, destination_chord, meta_eighths):
+
+    startnote = find_closer_number(
+        number=reference_note,
+        array=(original_chord[0], original_chord[2]))
+
+    destination_notes = destination_chord[0],  destination_chord[2]
+
+    if startnote + (len(meta_eighths) - 1) in destination_notes:
+        return range(startnote, startnote + len(meta_eighths))
+    elif startnote - (len(meta_eighths) - 1) in destination_notes:
+        return sorted(
+            range(startnote - (len(meta_eighths) - 1), startnote + 1),
+            reverse=True)
+    else:
+        return None
+
+
+def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
+    assert set([get_fingersstate_type(me['fingersstate']) for me in meta_eighths]) == {'melodic'}
+
+    melody_lenght = define_melody_lenght(meta_eighths)
     meta_eighths = meta_eighths[:melody_lenght]
-
-    # analyse reference datas
-    reference_note = [
-        note for note in processed_datas[-1] if note is not None][0]
-
+    reference_note = [note for note in fingersnotes[-1] if note is not None][0]
     behavior = meta_eighths[0]['behavior']
-    fingersstates = [d['fingersstate'] for d in meta_eighths]
+    fingersstates = [me['fingersstate'] for me in meta_eighths]
+
     original_chord = generate_notearray_chord(
         chord=meta_eighths[0]['chord'], tonality=tonality)
     destination_chord = generate_notearray_chord(
         chord=meta_eighths[-1]['chord'], tonality=tonality)
 
     if behavior == 'arpegic':
-        original_chord_notes_iterator = itertools.cycle(original_chord)
-        notes = [
-            next(original_chord_notes_iterator)
-            for _ in range(melody_lenght)]
-        if original_chord == destination_chord:
-            return notes
-        return notes[:-1] + [random.choice(
-            [destination_chord[0]] * 3 + [destination_chord[2]])]
+        return generate_arpegic_melody(
+            original_chord, destination_chord, melody_lenght)
 
     if behavior == 'static':
-        if len(set(fingersstates)) != 1:
+        if len(set(fingersstates)) == 1:
+            return generate_static_melody(
+                reference_note, original_chord,
+                destination_chord, melody_lenght)
+        else:
             behavior = 'chromatic'
 
-    if behavior == 'static':
-        note = find_closer_number(
-            number=reference_note,
-            array=(original_chord[0], original_chord[2]))
-
-        if original_chord == destination_chord:
-            return [note] * melody_lenght
-        else:
-            return [note] * (melody_lenght - 1)
-
     if behavior == 'chromatic' or behavior == 'melodic':
-
-        startnote = find_closer_number(
-            number=reference_note,
-            array=(original_chord[0], original_chord[2]))
-
-        destination_notes = destination_chord[0],  destination_chord[2]
-        if startnote + (len(meta_eighths) - 1) in destination_notes:
-            return range(startnote, startnote + len(meta_eighths))
-        elif startnote - (len(meta_eighths) - 1) in destination_notes:
-            return sorted(
-                range(startnote - (len(meta_eighths) - 1), startnote + 1), reverse=True)
-        else:
-            print ('not chromaticable')
-            behavior = 'melodic'
+        melody = generate_chromatic_melody(
+            reference_note, original_chord, destination_chord, meta_eighths)
+        if melody is not None:
+            return melody
 
 
     chord_is_reversed = bool(
