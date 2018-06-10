@@ -38,14 +38,31 @@ chords = dict(
     m9 =    [0, 3, 7, 10, 14],
     M11 =   [0, 4, 10, 14, 17],
     m11 =   [0, 3, 10, 14, 17],
-    dim =   [0, 3, 6, 9, 12],
+    dim =   [0, 3, 6, 10, 12],
     sus4 =  [0, 5, 7, 12, 19],
     aug =   [0, 4, 8, 12, 19],
     qm =    [0, 4, 6, 12, 19])
 
 
+# this dict contain index usefull for scales creation
+# To generate a scale from chord, it use a major or minor as base scale.
+# If some scale notes are modified by the chord, the method can use this
+# dictionnary to know which note in the scale must be replaced by the chord.
+# The sub-dictionnaries contain the array index for the note replacement.
+# The key is the index in the scale array, and the value is the index in the
+# chord array.
+chord_scales_replacement_indexes = dict(
+    m6 =    {5: 3}, 
+    M7 =    {6: 3},
+    m7M =   {6: 3},
+    M7b9 =  {6: 3, 1: 4},
+    m7b9 =  {1: 4},
+    dim =   {4: 2},
+    aug =   {4: 2},
+    qm =    {4: 2})
+
 scale_by_chord = dict(
-    major = ('Major', 'M6', 'M7', 'M7M', 'M7b9', 'M9', 'M11', 'Sus4'),
+    major = ('Major', 'M6', 'M7', 'M7M', 'M7b9', 'M9', 'M11', 'Sus4', 'aug'),
     minor = ('Minor', 'm6', 'm7', 'm7M', 'm7b9', 'm9', 'm11', 'dim', 'qm'))
 
 
@@ -203,18 +220,27 @@ def reverse_chord(chord, degree):
 def remap_note(index):
     ''' this method remap note to force value to be between 0 - 11 '''
     while index > 11:
-        index -= 11
+        index -= 12
     return index
 
 
-def remap_notearray(note, array):
+def remap_index(index, clamp=7):
+    ''' this method remap note to force value to be between 0 - 7 '''
+    while index > clamp - 1:
+        index -= clamp
+    while index < 0:
+        index -= clamp
+    return index
+
+
+def remap_notearray(tonality, array):
     ''' this method is usefull to repitch a scale '''
-    return [remap_note(index + note) for index in array]
+    return [remap_note(note + tonality) for note in array]
 
 
 def generate_notearray_chord(chord, tonality):
     '''
-    this return and number array contain degree.
+    This method returns and number array contain degree.
     give a chord with this structure :
         chord = {'degree': 5, 'name': 'M7'}
         tonality = int >= 0 and int <=11
@@ -225,9 +251,17 @@ def generate_notearray_chord(chord, tonality):
 
 
 def generate_notearray_scale(chord, tonality):
+    '''
+    This method returns and number array contain degree as scale.
+    '''
     scalename = 'major' if chord['name'] in scale_by_chord['major'] else 'minor'
-    scale = scales[scalename]
-    return 
+    scale = scales[scalename][:]
+    replacements = chord_scales_replacement_indexes.get(chord['name'])
+    if replacements:
+        chord_pitch_array = chords[chord['name']]
+        for scale_index, chord_index in replacements.items():
+            scale[scale_index] = chord_pitch_array[chord_index]
+    return remap_notearray(tonality, scale)
 
 
 def pattern_iterator(pattern):
@@ -349,10 +383,11 @@ def convert_meta_eighths_to_fingersnotes(
     chords = generate_chord_from_datas()
 
     return combine_chord_and_melody(
-        melody, chords, melodic_indexes, chord_indexes)
+        melody, chords, melodic_indexes, chord_indexes, mute_indexes)
 
 
-def combine_chord_and_melody(melody, chords, melodic_indexes, chord_indexes):
+def combine_chord_and_melody(
+        melody, chords, melodic_indexes, chord_indexes, mute_indexes):
     pass
 
 
@@ -398,7 +433,7 @@ def generate_chromatic_melody(
         number=reference_note,
         array=(original_chord[0], original_chord[2]))
 
-    destination_notes = destination_chord[0],  destination_chord[2]
+    destination_notes = destination_chord[0], destination_chord[2]
 
     if startnote + (len(meta_eighths) - 1) in destination_notes:
         return range(startnote, startnote + len(meta_eighths))
@@ -410,8 +445,24 @@ def generate_chromatic_melody(
         return None
 
 
-def generate_melodic_melody():
-    pass
+def generate_melodic_melody(
+        reference_note, original_chord, destination_chord,
+        meta_eighths, tonality):
+
+    scale = generate_notearray_scale(
+        chord=meta_eighths[0]['chord'], tonality=tonality)
+    startnote_index = scale.index(find_closer_number(
+        number=reference_note, array=original_chord))
+
+    startnote_index_offsets = [
+        remap_index(startnote_index + (len(meta_eighths) - 1)),
+        remap_index(startnote_index - (len(meta_eighths) - 1))]
+
+    for startnote_index_offset in startnote_index_offsets:
+        if scale[startnote_index_offset] in destination_chord:
+            return [
+                scale[remap_index(startnote_index + index)]
+                for index in range(len(meta_eighths))]
 
 
 def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
@@ -432,29 +483,33 @@ def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
         return generate_arpegic_melody(
             original_chord, destination_chord, melody_lenght)
 
-    if behavior == 'static':
+    elif behavior == 'static':
         if len(set(fingersstates)) == 1:
             return generate_static_melody(
                 reference_note, original_chord,
                 destination_chord, melody_lenght)
-        else:
-            behavior = 'chromatic'
 
-    if behavior == 'chromatic' or behavior == 'melodic':
-        melody = generate_chromatic_melody(
-            reference_note, original_chord, destination_chord, meta_eighths)
-        if melody is not None:
-            return melody
-    return generate_melodic_melody()
+    melody = generate_chromatic_melody(
+        reference_note, original_chord, destination_chord, meta_eighths)
+    if melody is None:
+        melody = generate_melodic_melody(
+            reference_note, original_chord, destination_chord,
+            meta_eighths, tonality)
+    if melody is not None:
+        return melody
+
+    # if afterall, melody still None, it force arpegic melody
+    return generate_arpegic_melody(
+        original_chord, destination_chord, melody_lenght)
 
 
 def generate_chord_from_datas():
     return None
 
 
-def find_closer_number(number, array, clamp=11, index=False):
+def find_closer_number(number, array, clamp=11, return_index=False):
     if number in array:
-        return array.index(number) if index else number
+        return array.index(number) if return_index else number
 
     closer_difference = None
     for i, num in enumerate(array):
@@ -462,7 +517,7 @@ def find_closer_number(number, array, clamp=11, index=False):
         if not closer_difference or closer_difference > difference:
             closer_index = i
             closer_difference = difference
-    return closer_index if index else array[closer_index]
+    return closer_index if return_index else array[closer_index]
 
 
 def count_occurence_continuity(array):
@@ -505,20 +560,25 @@ def montuno_generator(  # Find better name
 
 
 if __name__ == '__main__':
-    # gen = meta_eighths_iterator(
-    #     rythmic_patterns['basic'], chord_grids['example'])
+    print("\n##############\n### TEST 1 ###\n##############\nMeta Eighths Generation")
+    gen = meta_eighths_iterator(
+        rythmic_patterns['basic'], chord_grids['example'])
 
-    # for _ in range(2):
-    #     for elt in next(gen):
-    #         print (elt)
-    # for chord in (
-    #     {'degree': 0, 'name': 'Minor'},
-    #     {'degree': 1, 'name': 'Minor'},
-    #     {'degree': 2, 'name': 'Minor'},
-    #     {'degree': 3, 'name': 'Minor'},
-    #     {'degree': 4, 'name': 'Minor'},
-    #     {'degree': 5, 'name': 'Minor'}):
-    #         print(generate_notearray_chord(chord, 0))
+    for _ in range(10):
+        for elt in next(gen):
+            print (elt)
+
+    print("\n##############\n### TEST 2 ###\n##############\nChord array generation")
+    for chord in (
+        {'degree': 0, 'name': 'Minor'},
+        {'degree': 1, 'name': 'Minor'},
+        {'degree': 2, 'name': 'Minor'},
+        {'degree': 3, 'name': 'Minor'},
+        {'degree': 4, 'name': 'Minor'},
+        {'degree': 5, 'name': 'Minor'}):
+            print(generate_notearray_chord(chord, 0))
+
+    print("\n##############\n### TEST 3 ###\n##############\nMelody Generation")
     generated_eighth = ([2, 0, 0, 0, 2], [3, 0, 0, 0, 3], [4, 0, 0, 0, 4])
     datas = [
         {'chord': {'degree': 4, 'name': 'M7'}, 'fingersstate': (1, 0, 0, 0, 1), 'behavior': 'chromatic'},
@@ -529,3 +589,39 @@ if __name__ == '__main__':
     ]
     for data in generate_melody_from_meta_eighths(generated_eighth, datas, 3):
         print(data)
+
+    print("\n##############\n### TEST 4 ###\n##############\nScales Generation")
+    def names(notearray):
+        ns = {v: k for k, v in notes.items()}
+        return [ns[n] for n in notearray]
+    print("Major")
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'Major'}, 3)), 'Major')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 3)), 'M7')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'M7b9'}, 3)), 'M7b9')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'aug'}, 3)), 'aug')
+    print("\nMinor")
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'Minor'}, 3)), 'Minor')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'm6'}, 3)), 'm6')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'm7M'}, 3)), 'm7M')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'm7b9'}, 3)), 'm7b9')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'dim'}, 3)), 'dim')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'qm'}, 3)), 'qm')
+    print("\nScales remapped")
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 3)), 'M7')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 4)), 'M7')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 5)), 'M7')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 6)), 'M7')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 7)), 'M7')
+    print(names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 8)), 'M7')
+
+
+    print("\n##############\n### TEST 5 ###\n##############\nMelody Generation")
+    generated_eighth = ([2, 0, 0, 0, 2], [3, 0, 0, 0, 3], [4, 0, 0, 0, 4])
+    datas = [
+        {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (1, 0, 0, 0, 1), 'behavior': 'melodic'},
+        {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (0, 1, 0, 0, 0), 'behavior': 'melodic'},
+        {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (0, 0, 1, 0, 0), 'behavior': 'melodic'},
+        {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (0, 0, 0, 1, 0), 'behavior': 'melodic'},
+        {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (1, 0, 0, 0, 1), 'behavior': 'melodic'},
+    ]
+    print(names(generate_melody_from_meta_eighths(generated_eighth, datas, 3)))
