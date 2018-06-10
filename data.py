@@ -417,7 +417,7 @@ def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
     melody = generate_chromatic_melody(
         reference_note, original_chord, destination_chord, meta_eighths)
     if melody is None:
-        melody = generate_melodic_melody(
+        melody = generate_diatonic_melody(
             reference_note, original_chord, destination_chord,
             meta_eighths, tonality)
     if melody is not None:
@@ -482,7 +482,7 @@ def generate_chromatic_melody(
         return None
 
 
-def generate_melodic_melody(
+def generate_diatonic_melody(
         reference_note, original_chord, destination_chord,
         meta_eighths, tonality):
 
