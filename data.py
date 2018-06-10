@@ -226,8 +226,8 @@ def generate_notearray_chord(chord, tonality):
 
 def generate_notearray_scale(chord, tonality):
     scalename = 'major' if chord['name'] in scale_by_chord['major'] else 'minor'
-    chordnotes = generate_notearray_chord(chord, tonality)
-    return scales[scalename]
+    scale = scales[scalename]
+    return 
 
 
 def pattern_iterator(pattern):
@@ -358,8 +358,8 @@ def combine_chord_and_melody(melody, chords, melodic_indexes, chord_indexes):
 
 def define_melody_lenght(meta_eighths):
     lenght = min([
-        count_continuity([d['chord'] for d in meta_eighths]),
-        count_continuity([d['behavior'] for d in meta_eighths])])
+        count_occurence_continuity([d['chord'] for d in meta_eighths]),
+        count_occurence_continuity([d['behavior'] for d in meta_eighths])])
     if lenght < len(meta_eighths):
         lenght += 1
     return lenght
@@ -410,6 +410,10 @@ def generate_chromatic_melody(
         return None
 
 
+def generate_melodic_melody():
+    pass
+
+
 def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
     assert set([get_fingersstate_type(me['fingersstate']) for me in meta_eighths]) == {'melodic'}
 
@@ -441,17 +445,7 @@ def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
             reference_note, original_chord, destination_chord, meta_eighths)
         if melody is not None:
             return melody
-
-
-    chord_is_reversed = bool(
-        find_closer_number(
-            number=reference_note,
-            array=(original_chord[0], original_chord[2]), index=True))
-    if chord_is_reversed:
-        original_chord = reverse_chord(chord=original_chord, degree=2)
-
-    elif behavior == 'melodic':
-        pass
+    return generate_melodic_melody()
 
 
 def generate_chord_from_datas():
@@ -471,7 +465,7 @@ def find_closer_number(number, array, clamp=11, index=False):
     return closer_index if index else array[closer_index]
 
 
-def count_continuity(array):
+def count_occurence_continuity(array):
     '''
     utils who count the occurence in a list before a difference
     example :
