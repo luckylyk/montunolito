@@ -3,7 +3,7 @@
 #  CORE / CONSTANTS
 ##############################################################################
 
-notes = dict(
+NOTES = dict(
     A = 0,
     Bb = 1,
     B = 2,
@@ -18,12 +18,12 @@ notes = dict(
     Ab = 11)
 
 
-scales = dict(
+SCALES = dict(
     major = [0, 2, 4, 5, 7, 9, 11],
     minor = [0, 2, 3, 5, 7, 8, 10])
 
 
-chords = dict(
+CHORDS = dict(
     Major = [0, 4, 7, 12, 19],
     Minor = [0, 3, 7, 12, 19],
     M6 =    [0, 4, 7, 9, 12],
@@ -51,7 +51,7 @@ chords = dict(
 # The sub-dictionnaries contain the array index for the note replacement.
 # The key is the index in the scale array, and the value is the index in the
 # chord array.
-chord_scales_replacement_indexes = dict(
+CHORD_SCALES_REMPLACEMENT_INDEXES = dict(
     m6 =    {5: 3}, 
     M7 =    {6: 3},
     m7M =   {6: 3},
@@ -61,24 +61,24 @@ chord_scales_replacement_indexes = dict(
     aug =   {4: 2},
     qm =    {4: 2})
 
-scale_by_chord = dict(
+SCALENAME_BY_CHORDNAME = dict(
     major = ('Major', 'M6', 'M7', 'M7M', 'M7b9', 'M9', 'M11', 'Sus4', 'aug'),
     minor = ('Minor', 'm6', 'm7', 'm7M', 'm7b9', 'm9', 'm11', 'dim', 'qm'))
 
 
-pitches = [0, 1, 2, 3, 4, 5]
+PITCHES = [0, 1, 2, 3, 4, 5]
 
 
 # this is a list of hand posing pattern for piano
 # it represant thumd, index, middle, ring and pinkie
 # 0 mean the finger is not pressing a key
 # 1, it's pressing a key.
-fingersstates = (
+FINGERSSTATES = (
     (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
     (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 1, 1, 0), (1, 1, 1, 1, 1))
 
 
-fingersstate_types = {
+FINGERSSTATE_TYPES = {
     'mute': [0],
     'melodic': [1, 2, 3, 4, 5],
     'chord': [6, 7]}
@@ -206,8 +206,8 @@ import itertools
 
 def get_fingersstate_type(fingersstate):
     fingersstate = tuple([1 if value > 0 else 0 for value in fingersstate])
-    index = fingersstates.index(fingersstate)
-    for fingersstate_type, indexes in fingersstate_types.items():
+    index = FINGERSSTATES.index(fingersstate)
+    for fingersstate_type, indexes in FINGERSSTATE_TYPES.items():
         if index in indexes:
             return fingersstate_type
 
@@ -246,7 +246,7 @@ def generate_notearray_chord(chord, tonality):
         tonality = int >= 0 and int <=11
     '''
     concert_pitch_array = remap_notearray(
-        chord['degree'], chords[chord['name']])
+        chord['degree'], CHORDS[chord['name']])
     return remap_notearray(tonality, concert_pitch_array)
 
 
@@ -254,14 +254,15 @@ def generate_notearray_scale(chord, tonality):
     '''
     This method returns and number array contain degree as scale.
     '''
-    scalename = 'major' if chord['name'] in scale_by_chord['major'] else 'minor'
-    scale = scales[scalename][:]
-    replacements = chord_scales_replacement_indexes.get(chord['name'])
-    if replacements:
-        chord_pitch_array = chords[chord['name']]
-        for scale_index, chord_index in replacements.items():
-            scale[scale_index] = chord_pitch_array[chord_index]
-    return remap_notearray(tonality, scale)
+    for scalename, chordnames in SCALENAME_BY_CHORDNAME.items():
+        if chord['name'] in chordnames:
+            scale = SCALES[scalename][:]
+            replacements = CHORD_SCALES_REMPLACEMENT_INDEXES.get(chord['name'])
+            if replacements:
+                chord_pitch_array = CHORDS[chord['name']]
+                for scale_index, chord_index in replacements.items():
+                    scale[scale_index] = chord_pitch_array[chord_index]
+            return remap_notearray(tonality, scale)
 
 
 def pattern_iterator(pattern):
@@ -323,7 +324,7 @@ def create_meta_eighths(
     fingersstates_retrieved = []
     qpattern = pattern[pattern_index[0]][pattern_index[1]]
     for index in qpattern:
-        fingersstates_retrieved.append(fingersstates[index])
+        fingersstates_retrieved.append(FINGERSSTATES[index])
     return [
         {'chord': c, 'fingersstate': hp, 'behavior': prefered_behavior}
         for c, hp in zip(chords, fingersstates_retrieved)]
@@ -392,8 +393,6 @@ def combine_chord_and_melody(
 
 
 def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
-    assert set([get_fingersstate_type(me['fingersstate']) for me in meta_eighths]) == {'melodic'}
-
     melody_lenght = define_melody_lenght(meta_eighths)
     meta_eighths = meta_eighths[:melody_lenght]
     reference_note = [note for note in fingersnotes[-1] if note is not None][0]
@@ -592,7 +591,7 @@ if __name__ == '__main__':
 
     print("\n##############\n### TEST 4 ###\n##############\nScales Generation")
     def names(notearray):
-        ns = {v: k for k, v in notes.items()}
+        ns = {v: k for k, v in NOTES.items()}
         return [ns[n] for n in notearray]
     print("Major")
     print(names(generate_notearray_scale({'degree': 0, 'name': 'Major'}, 3)), 'Major')
