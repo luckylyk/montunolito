@@ -391,6 +391,44 @@ def combine_chord_and_melody(
     pass
 
 
+def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
+    assert set([get_fingersstate_type(me['fingersstate']) for me in meta_eighths]) == {'melodic'}
+
+    melody_lenght = define_melody_lenght(meta_eighths)
+    meta_eighths = meta_eighths[:melody_lenght]
+    reference_note = [note for note in fingersnotes[-1] if note is not None][0]
+    behavior = meta_eighths[0]['behavior']
+    fingersstates = [me['fingersstate'] for me in meta_eighths]
+
+    original_chord = generate_notearray_chord(
+        chord=meta_eighths[0]['chord'], tonality=tonality)
+    destination_chord = generate_notearray_chord(
+        chord=meta_eighths[-1]['chord'], tonality=tonality)
+
+    if behavior == 'arpegic':
+        return generate_arpegic_melody(
+            original_chord, destination_chord, melody_lenght)
+
+    elif behavior == 'static':
+        if len(set(fingersstates)) == 1:
+            return generate_static_melody(
+                reference_note, original_chord,
+                destination_chord, melody_lenght)
+
+    melody = generate_chromatic_melody(
+        reference_note, original_chord, destination_chord, meta_eighths)
+    if melody is None:
+        melody = generate_melodic_melody(
+            reference_note, original_chord, destination_chord,
+            meta_eighths, tonality)
+    if melody is not None:
+        return melody
+
+    # if afterall, melody still None, it force arpegic melody
+    return generate_arpegic_melody(
+        original_chord, destination_chord, melody_lenght)
+
+
 def define_melody_lenght(meta_eighths):
     lenght = min([
         count_occurence_continuity([d['chord'] for d in meta_eighths]),
@@ -463,44 +501,6 @@ def generate_melodic_melody(
             return [
                 scale[remap_index(startnote_index + index)]
                 for index in range(len(meta_eighths))]
-
-
-def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
-    assert set([get_fingersstate_type(me['fingersstate']) for me in meta_eighths]) == {'melodic'}
-
-    melody_lenght = define_melody_lenght(meta_eighths)
-    meta_eighths = meta_eighths[:melody_lenght]
-    reference_note = [note for note in fingersnotes[-1] if note is not None][0]
-    behavior = meta_eighths[0]['behavior']
-    fingersstates = [me['fingersstate'] for me in meta_eighths]
-
-    original_chord = generate_notearray_chord(
-        chord=meta_eighths[0]['chord'], tonality=tonality)
-    destination_chord = generate_notearray_chord(
-        chord=meta_eighths[-1]['chord'], tonality=tonality)
-
-    if behavior == 'arpegic':
-        return generate_arpegic_melody(
-            original_chord, destination_chord, melody_lenght)
-
-    elif behavior == 'static':
-        if len(set(fingersstates)) == 1:
-            return generate_static_melody(
-                reference_note, original_chord,
-                destination_chord, melody_lenght)
-
-    melody = generate_chromatic_melody(
-        reference_note, original_chord, destination_chord, meta_eighths)
-    if melody is None:
-        melody = generate_melodic_melody(
-            reference_note, original_chord, destination_chord,
-            meta_eighths, tonality)
-    if melody is not None:
-        return melody
-
-    # if afterall, melody still None, it force arpegic melody
-    return generate_arpegic_melody(
-        original_chord, destination_chord, melody_lenght)
 
 
 def generate_chord_from_datas():
