@@ -259,9 +259,8 @@ def generate_notearray_scale(chord, tonality):
             scale = SCALES[scalename][:]
             replacements = CHORD_SCALES_REMPLACEMENT_INDEXES.get(chord['name'])
             if replacements:
-                chord_pitch_array = CHORDS[chord['name']]
                 for scale_index, chord_index in replacements.items():
-                    scale[scale_index] = chord_pitch_array[chord_index]
+                    scale[scale_index] = CHORDS[chord['name']][chord_index]
             return remap_notearray(tonality, scale)
 
 
@@ -351,40 +350,64 @@ def meta_eighths_iterator(
             pattern_index, pattern, chords, prefered_behavior)
 
 
+def sort_meta_eighth_indexes_by_fingerssstates_type(meta_eighths):
+    melodic_indexes = []
+    chord_indexes = []
+    mute_indexes = []
+    for i, me in enumerate(meta_eighths):
+        if get_fingersstate_type(me) == 'melodic':
+            melodic_indexes.append(i)
+        elif get_fingersstate_type(me) == 'chord':
+            chord_indexes.append(i)
+        elif get_fingersstate_type(me) == 'mute':
+            mute_indexes.append(i)
+
+    return melodic_indexes, chord_indexes, mute_indexes
+
 def convert_meta_eighths_to_fingersnotes(
         fingersnotes, meta_eighths, tonality, behavior):
 
     if get_fingersstate_type(meta_eighths[0]) == 'mute':
         return [[None, None, None, None, None]]
 
-    melodic_indexes = []
-    chord_indexes = []
-    mute_indexes = []
-    for i, data in enumerate(meta_eighths):
-        if get_fingersstate_type(data) == 'melodic':
-            melodic_indexes.append(i)
-        elif get_fingersstate_type(data) == 'chord':
-            chord_indexes.append(i)
-        elif get_fingersstate_type(data) == 'mute':
-            mute_indexes.append(i)
+    melodic_indexes, chord_indexes, mute_indexes = (
+        sort_meta_eighth_indexes_by_fingerssstates_type(meta_eighths))
 
     melodic_fingersnotes = [
-        data for data in fingersnotes
-        if get_fingersstate_type(data) == 'melodic']
+        fingersnote for fingersnote in fingersnotes
+        if get_fingersstate_type(fingersnote) == 'melodic']
 
     melodic_meta_eighths = [
-            data for i, data in enumerate(meta_eighths)
-            if i in melodic_indexes]
+            me for me in meta_eighths
+            if get_fingersstate_type(me) == 'melodic']
 
     melody = generate_melody_from_meta_eighths(
         fingersnotes=melodic_fingersnotes,
         meta_eighths=melodic_meta_eighths,
         tonality=tonality)
 
-    chords = generate_chord_from_datas()
+    chord_fingernotes = [
+        fingersnote for fingersnote in fingersnotes
+        if get_fingersstate_type(fingersnote) == 'chord']
+
+    chord_meta_eighths = [
+        me for me in meta_eighths
+        if get_fingersstate_type(me) == 'chord']
+
+    chords = generate_chord_from_datas(
+        melodic_indexes, melody, chord_meta_eighths, chord_indexes)
 
     return combine_chord_and_melody(
         melody, chords, melodic_indexes, chord_indexes, mute_indexes)
+
+
+def generate_chord_from_datas(
+        melodic_indexes, melody, chord_fingernotes,
+        chord_meta_eighths, chord_indexes):
+    reference_chord = chord_fingernotes[0] if chord_fingernotes else None
+
+
+    return None
 
 
 def combine_chord_and_melody(
@@ -416,16 +439,15 @@ def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
 
     melody = generate_chromatic_melody(
         reference_note, original_chord, destination_chord, meta_eighths)
-    if melody is None:
-        melody = generate_diatonic_melody(
-            reference_note, original_chord, destination_chord,
-            meta_eighths, tonality)
-    if melody is not None:
-        return melody
 
-    # if afterall, melody still None, it force arpegic melody
-    return generate_arpegic_melody(
+    melody = melody or generate_diatonic_melody(
+        reference_note, original_chord, destination_chord,
+        meta_eighths, tonality)
+
+    melody = melody or generate_arpegic_melody(
         original_chord, destination_chord, melody_lenght)
+
+    return melody
 
 
 def define_melody_lenght(meta_eighths):
@@ -438,16 +460,16 @@ def define_melody_lenght(meta_eighths):
 
 
 def generate_arpegic_melody(original_chord, destination_chord, melody_lenght):
-        original_chord_notes_iterator = itertools.cycle(original_chord)
-        notes = [
-            next(original_chord_notes_iterator)
-            for _ in range(melody_lenght)]
+    original_chord_notes_iterator = itertools.cycle(original_chord)
+    notes = [
+        next(original_chord_notes_iterator)
+        for _ in range(melody_lenght)]
 
-        if original_chord == destination_chord:
-            return notes
+    if original_chord == destination_chord:
+        return notes
 
-        return notes[:-1] + [random.choice(
-            [destination_chord[0]] * 3 + [destination_chord[2]])]
+    return notes[:-1] + [random.choice(
+        [destination_chord[0]] * 3 + [destination_chord[2]])]
 
 
 def generate_static_melody(
@@ -461,6 +483,8 @@ def generate_static_melody(
         return [note] * melody_lenght
     else:
         return [note] * (melody_lenght - 1)
+
+    return None
 
 
 def generate_chromatic_melody(
@@ -488,8 +512,9 @@ def generate_diatonic_melody(
 
     scale = generate_notearray_scale(
         chord=meta_eighths[0]['chord'], tonality=tonality)
-    startnote_index = scale.index(find_closer_number(
-        number=reference_note, array=original_chord))
+
+    startnote_index = scale.index(
+        find_closer_number(number=reference_note, array=original_chord))
 
     startnote_index_offsets = [
         remap_index(startnote_index + (len(meta_eighths) - 1)),
@@ -501,8 +526,6 @@ def generate_diatonic_melody(
                 scale[remap_index(startnote_index + index)]
                 for index in range(len(meta_eighths))]
 
-
-def generate_chord_from_datas():
     return None
 
 
