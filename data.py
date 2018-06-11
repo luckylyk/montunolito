@@ -259,9 +259,9 @@ def generate_notearray_scale(chord, tonality):
             scale = SCALES[scalename][:]
             replacements = CHORD_SCALES_REMPLACEMENT_INDEXES.get(chord['name'])
             if replacements:
-                chord_pitch_array = CHORDS[chord['name']]
+                chord_array = CHORDS[chord['name']]
                 for scale_index, chord_index in replacements.items():
-                    scale[scale_index] = chord_pitch_array[chord_index]
+                    scale[scale_index] = chord_array[chord_index]
             return remap_notearray(tonality, scale)
 
 
@@ -416,16 +416,15 @@ def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
 
     melody = generate_chromatic_melody(
         reference_note, original_chord, destination_chord, meta_eighths)
-    if melody is None:
-        melody = generate_diatonic_melody(
+
+    melody = melody or generate_diatonic_melody(
             reference_note, original_chord, destination_chord,
             meta_eighths, tonality)
-    if melody is not None:
-        return melody
 
-    # if afterall, melody still None, it force arpegic melody
-    return generate_arpegic_melody(
+    melody = melody or generate_arpegic_melody(
         original_chord, destination_chord, melody_lenght)
+    
+    return melody
 
 
 def define_melody_lenght(meta_eighths):
@@ -438,16 +437,16 @@ def define_melody_lenght(meta_eighths):
 
 
 def generate_arpegic_melody(original_chord, destination_chord, melody_lenght):
-        original_chord_notes_iterator = itertools.cycle(original_chord)
-        notes = [
-            next(original_chord_notes_iterator)
-            for _ in range(melody_lenght)]
+    original_chord_notes_iterator = itertools.cycle(original_chord)
+    notes = [
+        next(original_chord_notes_iterator)
+        for _ in range(melody_lenght)]
 
-        if original_chord == destination_chord:
-            return notes
+    if original_chord == destination_chord:
+        return notes
 
-        return notes[:-1] + [random.choice(
-            [destination_chord[0]] * 3 + [destination_chord[2]])]
+    return notes[:-1] + [random.choice(
+        [destination_chord[0]] * 3 + [destination_chord[2]])]
 
 
 def generate_static_melody(
