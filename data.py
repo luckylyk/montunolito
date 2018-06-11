@@ -261,6 +261,7 @@ def generate_notearray_scale(chord, tonality):
             if replacements:
                 for scale_index, chord_index in replacements.items():
                     scale[scale_index] = CHORDS[chord['name']][chord_index]
+
             return remap_notearray(tonality, scale)
 
 
@@ -444,8 +445,11 @@ def generate_melody_from_meta_eighths(fingersnotes, meta_eighths, tonality):
         reference_note, original_chord, destination_chord,
         meta_eighths, tonality)
 
+
     melody = melody or generate_arpegic_melody(
         original_chord, destination_chord, melody_lenght)
+    
+    return melody
 
     return melody
 
