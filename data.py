@@ -373,6 +373,15 @@ def meta_eighths_iterator(
 
 
 def convert_meta_eighths_to_fingersnotes(fingersnotes, meta_eighths, tonality):
+    """
+    this is the main conversion meta, it transform meta data to notes array
+    by finger pressed.
+    The method need the last fingersnotes generated as reference to continue
+    a cohenrent melody and chord progession. Firstly, it convert all mute
+    meta_eighth to MUTE_EIGHTH because it is not used for melody and chord
+    generation. Secondly it generate a melody as notearray. And finally the
+    melody is used to convert the chords fingersnotes.
+    """
     meta_eighths = meta_eighths[:]
 
     if get_fingersstate_type(meta_eighths[0]['fingersstate']) == 'mute':
@@ -426,10 +435,10 @@ def combine_eight_and_meta_eighths(indexes, eights, meta_eighths):
 
     wip_meta_eighths = list(meta_eighths[:indexes[len(eights)] - 1][:])
     for i, eighth in enumerate(eights):
-        # if it's combined with chord
+        # Combined with chord
         if isinstance(eighth, int):
             wip_meta_eighths[indexes[i]] = eighth
-        # if it's combined with melody
+        # Combined with melody
         else:
             wip_meta_eighths[indexes[i]] = [
                 eighth if state else None for state in
@@ -472,6 +481,9 @@ def combine_chord_and_melody(
 
 
 def generate_melody_from_meta_eighths(reference_note, meta_eighths, tonality):
+    """
+    This method generate a melody as note array based on meta_eighths.
+    """
     melody_lenght = define_melody_lenght(meta_eighths)
     meta_eighths = meta_eighths[:melody_lenght]
     behavior = meta_eighths[0]['behavior']
