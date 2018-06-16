@@ -534,10 +534,11 @@ def convert_meta_eighths_to_fingersnotes(fingersnotes, meta_eighths, tonality):
     generation. Secondly it generate a melody as notearray. And finally the
     melody is used to convert the chords fingersnotes.
     """
+    # To avoid immutable bad surprises
     meta_eighths = meta_eighths[:]
 
     if get_fingersstate_type(meta_eighths[0]['fingersstate']) == 'mute':
-        return MUTE_EIGHTH
+        return [MUTE_EIGHTH]
 
     for i, eighth in enumerate(meta_eighths):
         if get_fingersstate_type(eighth['fingersstate']) == 'mute':
@@ -546,6 +547,7 @@ def convert_meta_eighths_to_fingersnotes(fingersnotes, meta_eighths, tonality):
     melodic_fingersnotes = [
         fingersnote for fingersnote in fingersnotes
         if get_fingersstate_type(fingersnote) == 'melodic']
+
     reference_note = [
         note for note in melodic_fingersnotes[-1] if note is not None][0]
 
@@ -573,14 +575,17 @@ def convert_meta_eighths_to_fingersnotes(fingersnotes, meta_eighths, tonality):
     chord = generate_chords_from_meta_eights(
         reference_chord=reference_chord,
         reference_note=reference_note,
-        fingernotes=chord_fingernotes,
         wip_eighths=wip_eighths,
         tonality=tonality)
 
-    eighths = combine_eight_and_meta_eighths(
-        melody, chords, melodic_indexes, chord_indexes, mute_indexes)
+    indexes = [
+        i for i, me in enumerate(meta_eighths)
+        if get_fingersstate_type(me['fingersstate']) == 'chord']
 
-    return meta_eighths
+    eighths = combine_eight_and_meta_eighths(
+        indexes, chord, wip_eighths)
+
+    return eighths
 
 
 def combine_eight_and_meta_eighths(indexes, eights, meta_eighths):
@@ -609,22 +614,37 @@ def generate_chords_from_meta_eights(
             reference_note = [n for n in eighth[-1] if n is not None][0]
             continue
 
-        chord_notearray = generate_notearray_chord(eighth['chord'], tonality)
-        len_current_chord = len([n for n in eighth['fingersstate']])
+        chord_array = generate_notearray_chord(eighth['chord'], tonality)
+        fingersstate = eighth['fingersstate']
+        len_current_chord = len([n for n in fingersstate if n])
         if len_current_chord == 5:
-            chords_fingersnotes.append(chord_notearray)
-            reference_chord = chord_notearray
+            chords_fingersnotes.append(chord_array)
+            reference_chord = chord_array
             continue
 
         indexes_priority = CHORD_INDEXES_PRIORITY_ORDER.get(
             eighth['chord']['name'], [0, 1, 2, 3, 4])
 
-        if reference_chord:
-            pass #'TODO'
+        chord_notes_used = []
+        for i in indexes_priority:
+            note = chord_array[i]
+            if note != reference_note:
+                chord_notes_used.append(note)
+            if len(chord_notes_used) == len_current_chord:
+                break
 
-        chords_fingersnotes.append(chord_notearray)
-        reference_chord = chord_notearray
-    return None
+        i = 0
+        fingersnotes = []
+        for finger in fingersstate:
+            if not finger:
+                fingersnotes.append(None)
+            else:
+                fingersnotes.append(chord_notes_used[i])
+                i += 1
+
+        chords_fingersnotes.append(fingersnotes)
+        reference_chord = chord_array
+    return chords_fingersnotes
 
 
 def montuno_generator(  # Find better name
@@ -639,7 +659,7 @@ def montuno_generator(  # Find better name
     while True:
         datas = convert_meta_eighths_to_fingersnotes(
             processed_datas, to_process_datas,
-            tonality, forced_behavior)
+            tonality)
 
         for data in datas:
             yield data
