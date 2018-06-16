@@ -3,19 +3,7 @@
 #  CORE / CONSTANTS
 ##############################################################################
 
-NOTES = dict(
-    A = 0,
-    Bb = 1,
-    B = 2,
-    C = 3,
-    Db = 4,
-    D = 5,
-    Eb = 6,
-    E = 7,
-    F = 8,
-    Gb = 9,
-    G = 10,
-    Ab = 11)
+NOTES = ('A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab')
 
 
 SCALES = dict(
@@ -244,39 +232,15 @@ def remap_number(number, value=10):
     return number
 
 
-def unit_test_math():
-    print("MATH UTILS UNIT TEST -- > started")
-
-    print("####################")
-    print("#find_closer_number#")
-    print("####################")
-    assert find_closer_number(reference=8, array=(3, 6, 7, 8), clamp=12) == 8
-    assert find_closer_number(reference=4, array=(3, 6, 7, 8), clamp=12) == 3
-    assert find_closer_number(reference=14, array=(3, 6, 7, 8), clamp=12) == 3
-    assert find_closer_number(reference=4, array=(3, 6, 7, 8), return_index=True) == 0
-    print()
+def offset_array(array, offset):
+    ''' this method offset a list '''
+    return array[offset:] + array[:offset - len(array)]
 
 
-    print("############################")
-    print("#count_occurence_continuity#")
-    print("############################")
-    assert count_occurence_continuity(['salut', 'salut', 'salut', 'prout', 'salut']) == 3
-    assert count_occurence_continuity(['salut', 'prout', 'salut', 'salut', 'salut']) == 1
-    assert count_occurence_continuity([5, 4, 3, 2, 1]) == 1
-    assert count_occurence_continuity(['a', 'a', 'a', 'a', 'a', 'a']) == 6
-    assert count_occurence_continuity(['salut', 'salut', 'salut', 'salut', 'prout']) == 4
-    print()
-
-    print("##############")
-    print("#remap_number#")
-    print("##############")
-    assert remap_number(-1, value=12) == 11
-    assert remap_number(10, value=12) == 10
-    assert remap_number(14, value=12) == 2
-    assert remap_number(0, value=12) == 0
-    assert remap_number(62, value=12) == 2
-    print()
-    print("MATH UTILS UNIT TEST -- > finished")
+def choose(items):
+    return random.choice([
+        t for k, v in items.items()
+        for t in tuple([k] * v) if v])
 
 
 ##############################################################################
@@ -315,11 +279,6 @@ def get_fingersstate_type(fingersstate):
             return fingersstate_type
 
 
-def reverse_chord(chord, degree):
-    ''' this method offset a chord list '''
-    return chord[degree:] + chord[:5-degree]
-
-
 def generate_notearray_chord(chord, tonality):
     '''
     This method returns and number array contain degree.
@@ -351,8 +310,8 @@ def generate_melody_from_meta_eighths(reference_note, meta_eighths, tonality):
     """
     This method generate a melody as note array based on meta_eighths.
     """
-    melody_lenght = define_melody_lenght(meta_eighths)
-    meta_eighths = meta_eighths[:melody_lenght]
+    melody_length = define_melody_length(meta_eighths)
+    meta_eighths = meta_eighths[:melody_length]
     behavior = meta_eighths[0]['behavior']
     fingersstates = [me['fingersstate'] for me in meta_eighths]
 
@@ -363,59 +322,78 @@ def generate_melody_from_meta_eighths(reference_note, meta_eighths, tonality):
 
     if behavior == 'arpegic':
         return generate_arpegic_melody(
-            chord_array, chord_array_destination, melody_lenght)
+            chord_array=chord_array[:],
+            chord_array_destination=chord_array_destination[:],
+            length=melody_length)
 
     elif behavior == 'static':
         if len(set(fingersstates)) == 1:
             return generate_static_melody(
-                reference_note, chord_array,
-                chord_array_destination, melody_lenght)
+                reference_note=reference_note,
+                chord_array=chord_array[:],
+                chord_array_destination=chord_array_destination[:],
+                length=melody_length)
 
     melody = generate_chromatic_melody(
-        reference_note, chord_array, chord_array_destination, meta_eighths)
+        reference_note=reference_note,
+        chord_array=chord_array[:],
+        chord_array_destination=chord_array_destination[:],
+        length=melody_length)
 
-    melody = melody or generate_diatonic_melody(
-        reference_note, chord_array, chord_array_destination,
-        meta_eighths, tonality)
+    if melody is None:
+        scale = generate_notearray_scale(
+            chord=meta_eighths[0]['chord'], tonality=tonality)
 
-    melody = melody or generate_arpegic_melody(
-        chord_array, chord_array_destination, melody_lenght)
-    
+        melody = generate_diatonic_melody(
+            reference_note=reference_note,
+            chord_array=chord_array[:],
+            chord_array_destination=chord_array_destination[:],
+            scale=scale[:],
+            length=melody_length)
+
+    if melody is None:
+        melody = generate_arpegic_melody(
+            chord_array=chord_array[:],
+            chord_array_destination=chord_array_destination[:],
+            length=melody_length)
+
     return melody
 
 
-def define_melody_lenght(meta_eighths):
-    lenght = min([
+def define_melody_length(meta_eighths):
+    length = min([
         count_occurence_continuity([d['chord'] for d in meta_eighths]),
         count_occurence_continuity([d['behavior'] for d in meta_eighths])])
-    if lenght < len(meta_eighths):
-        lenght += 1
-    return lenght
+    if length < len(meta_eighths):
+        length += 1
+    return length
 
 
 def generate_arpegic_melody(
-        chord_array, chord_array_destination, melody_lenght):
+        chord_array, chord_array_destination, length):
 
-    descending = random.choice([False] * 2 + [True])
+    descending = choose({False: 2, True: 1})
     if descending:
         chord_array.reverse()
         # offset to ensure the good start note
-        chord_array = reverse_chord(chord_array, 4)
+        chord_array = offset_array(chord_array, 4)
 
     original_chord_notes_iterator = itertools.cycle(chord_array)
     notes = [
         next(original_chord_notes_iterator)
-        for _ in range(melody_lenght)]
+        for _ in range(length)]
 
     if chord_array == chord_array_destination:
         return notes
 
-    return notes[:-1] + [random.choice(
-        [chord_array_destination[0]] * 3 + [chord_array_destination[2]])]
+    last_note = choose({
+        chord_array_destination[0]: 3,
+        chord_array_destination[2]: 1})
+    return notes[:-1] + [last_note]
 
 
 def generate_static_melody(
-        reference_note, chord_array, chord_array_destination, melody_lenght):
+        reference_note, chord_array, chord_array_destination, length):
 
     note = find_closer_number(
         reference=reference_note,
@@ -423,15 +401,13 @@ def generate_static_melody(
         clamp=12)
 
     if chord_array == chord_array_destination:
-        return [note] * melody_lenght
-    else:
-        return [note] * (melody_lenght - 1)
+        return [note] * length
+    return [note] * (length - 1)
 
-    return None
 
 
 def generate_chromatic_melody(
-        reference_note, chord_array, chord_array_destination, meta_eighths):
+        reference_note, chord_array, chord_array_destination, length):
 
     startnote = find_closer_number(
         reference=reference_note,
@@ -440,108 +416,35 @@ def generate_chromatic_melody(
 
     destination_notes = chord_array_destination[0], chord_array_destination[2]
 
-    if startnote + (len(meta_eighths) - 1) in destination_notes:
-        return range(startnote, startnote + len(meta_eighths))
-    elif startnote - (len(meta_eighths) - 1) in destination_notes:
-        return sorted(
-            range(startnote - (len(meta_eighths) - 1), startnote + 1),
+    if startnote + (length - 1) in destination_notes:
+        return [n for n in range(startnote, startnote + length)]
+    elif startnote - (length - 1) in destination_notes:
+        return sorted([
+            n for n in range(startnote - (length - 1), startnote + 1)],
             reverse=True)
     return None
 
 
 def generate_diatonic_melody(
-        reference_note, chord_array, chord_array_destination,
-        meta_eighths, tonality):
-
-    scale = generate_notearray_scale(
-        chord=meta_eighths[0]['chord'], tonality=tonality)
+        reference_note, chord_array, chord_array_destination, scale, length):
 
     startnote_index = scale.index(
         find_closer_number(
             reference=reference_note, array=chord_array, clamp=12))
 
     startnote_index_offsets = [
-        remap_number(startnote_index + (len(meta_eighths) - 1), value=7),
-        remap_number(startnote_index - (len(meta_eighths) - 1), value=7)]
+        remap_number(startnote_index + (length - 1), value=7),
+        remap_number(startnote_index - (length - 1), value=7)]
 
     for startnote_index_offset in startnote_index_offsets:
         if scale[startnote_index_offset] in chord_array_destination:
             return [
                 scale[remap_number(startnote_index + index, value=7)]
-                for index in range(len(meta_eighths))]
+                for index in range(length)]
 
     return None
 
 
-def unti_test_melody():
-    print("MELODY UNIT TEST -- > started")
-
-    print("###################")
-    print("#scales generation#")
-    print("###################")
-    def names(notearray):
-        ns = {v: k for k, v in NOTES.items()}
-        return [ns[n] for n in notearray]
-
-    # Major
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'Major'}, 3)) == ['C', 'D', 'E', 'F', 'G', 'A', 'B']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 3)) == ['C', 'D', 'E', 'F', 'G', 'A', 'Bb']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'M7b9'}, 3)) == ['C', 'Db', 'E', 'F', 'G', 'A', 'Bb']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'aug'}, 3)) == ['C', 'D', 'E', 'F', 'Ab', 'A', 'B']
-
-    # Minor
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'Minor'}, 3)) == ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'Bb']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'm6'}, 3)) == ['C', 'D', 'Eb', 'F', 'G', 'A', 'Bb'] 
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'm7M'}, 3)) == ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'B'] 
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'm7b9'}, 3)) == ['C', 'Db', 'Eb', 'F', 'G', 'Ab', 'Bb']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'dim'}, 3)) == ['C', 'D', 'Eb', 'F', 'Gb', 'Ab', 'Bb']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'qm'}, 3)) == ['C', 'D', 'Eb', 'F', 'Gb', 'Ab', 'Bb']
-
-    # same scale remaped
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 3)) == ['C', 'D', 'E', 'F', 'G', 'A', 'Bb']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 4)) == ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'B']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 5)) == ['D', 'E', 'Gb', 'G', 'A', 'B', 'C']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 6)) == ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'Db']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 7)) == ['E', 'Gb', 'Ab', 'A', 'B', 'Db', 'D']
-    assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 8)) == ['F', 'G', 'A', 'Bb', 'C', 'D', 'Eb']
-    print()
-
-    print("###################")
-    print("#Melody generation#")
-    print("###################")
-    # static
-    reference_note = 4
-    chord_array = [4, 7, 10, 0, 3]
-    chord_array_destination = [4, 7, 10, 0, 3]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 3) == [4, 4, 4]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 4) == [4, 4, 4, 4]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 7) == [4, 4, 4, 4, 4, 4, 4]
-
-    reference_note = 4
-    chord_array = [4, 7, 10, 0, 3]
-    chord_array_destination = [5, 7, 10, 0, 3]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 3) == [4, 4]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 4) == [4, 4, 4]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 7) == [4, 4, 4, 4, 4, 4]
-
-    reference_note = 4
-    chord_array = [2, 7, 10, 0, 3]
-    chord_array_destination = [5, 7, 10, 0, 3]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 3) == [2, 2]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 4) == [2, 2, 2]
-    assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 7) == [2, 2, 2, 2, 2, 2]
-
-    # arpegic
-
-    chord_array = [4, 7, 10, 0, 3]
-    chord_array_destination = [5, 7, 10, 0, 3]
-    assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 4, 3, 4, 3, 4, 5], [4, 3, 4, 3, 4, 3, 4, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
-    assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 4, 3, 4, 3, 4, 5], [4, 3, 4, 3, 4, 3, 4, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
-    assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 4, 3, 4, 3, 4, 5], [4, 3, 4, 3, 4, 3, 4, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
-    assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 4, 3, 4, 3, 4, 5], [4, 3, 4, 3, 4, 3, 4, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
-
-
-    print("MELODY UNIT TEST -- > finished")
 ##############################################################################
 #  GENERATORS / ITERATOR / CONVERTOR
 ##############################################################################
@@ -555,24 +458,13 @@ def pattern_iterator(pattern):
     relationship indice between the indexes definied in the sub patter dict:
     'relationship'
     '''
-    last_index = (4, random.randint(1, len(pattern[4]) - 1))
+    last_pindexes = (4, random.randint(1, len(pattern[4]) - 1))
     while True:
-        qpatterns = pattern['relationships'][last_index]
-        index = random.choice(
-            [t for k, v in qpatterns.items() for t in tuple([k] * v) if v])
-        yield index
-        last_index = index
+        qpatterns = pattern['relationships'][last_pindexes]
+        pindexes = choose(qpatterns)
+        yield pindexes
+        last_pindexes = pindexes
 
-
-def choose_favorite_behavior(pattern, index):
-    '''
-    this method pick a random comportement in the pattern subdict 'behavior'
-    using the indice of probabilty defined in the dict.
-    '''
-    behavior_prefs = pattern['behaviors'][index]
-    return random.choice([
-        t for k, v in behavior_prefs.items()
-        for t in tuple([k] * v) if v])
 
 
 def chord_iterator(chord_grid):
@@ -626,8 +518,7 @@ def meta_eighths_iterator(
         pattern_index = next(patterns_it)
         chords = next(chords_it)
         prefered_behavior = (
-            mandatory_behavior or
-            choose_favorite_behavior(pattern, pattern_index))
+            mandatory_behavior or choose(pattern['behaviors'][pattern_index]))
 
         yield create_meta_eighths (
             pattern_index, pattern, chords, prefered_behavior)
@@ -662,7 +553,6 @@ def convert_meta_eighths_to_fingersnotes(fingersnotes, meta_eighths, tonality):
             me for me in meta_eighths
             if get_fingersstate_type(me['fingersstate']) == 'melodic']
 
-    print ("reference note:", reference_note)
     melody = generate_melody_from_meta_eighths(
         reference_note=reference_note,
         meta_eighths=melodic_meta_eighths,
@@ -762,7 +652,6 @@ def montuno_generator(  # Find better name
 
 
 if __name__ == '__main__':
-    unit_test_math()
 
     print("\n##############\n### TEST 1 ###\n##############\nMeta Eighths Generation")
     gen = meta_eighths_iterator(
@@ -782,7 +671,6 @@ if __name__ == '__main__':
         {'degree': 5, 'name': 'Minor'}):
             print(generate_notearray_chord(chord, 0))
 
-    unti_test_melody()
 
 
     # print("\n##############\n### TEST 5 ###\n##############\nMelody Generation")
