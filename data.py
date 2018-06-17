@@ -254,11 +254,11 @@ nomenclature :
         list representing fingers in action on keyboard:
             0 = released,
             1 = pressed
-    fingersnote = [None, 2, 6, 8, None]
+    eighthnote = [None, 2, 6, 8, None]
         list representing note played by pressed fingers. None is
         for released fingers
     behavior = list of constant for algorythme, represention the melodic behavior
-    meta_eighth = 
+    eighthmeta = 
         {
             'chord': {'degree': 5, 'name': M7'},
             'fingersstate': (0, 0, 0, 0, 0),
@@ -306,19 +306,19 @@ def generate_notearray_scale(chord, tonality):
             return remap_array(array=scale, offset=tonality, value=12)
 
 
-def generate_melody_from_meta_eighths(reference_note, meta_eighths, tonality):
+def generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality):
     """
-    This method generate a melody as note array based on meta_eighths.
+    This method generate a melody as note array based on eighthmetas.
     """
-    melody_length = define_melody_length(meta_eighths)
-    meta_eighths = meta_eighths[:melody_length]
-    behavior = meta_eighths[0]['behavior']
-    fingersstates = [me['fingersstate'] for me in meta_eighths]
+    melody_length = define_melody_length(eighthmetas)
+    eighthmetas = eighthmetas[:melody_length]
+    behavior = eighthmetas[0]['behavior']
+    fingersstates = [em['fingersstate'] for em in eighthmetas]
 
     chord_array = generate_notearray_chord(
-        chord=meta_eighths[0]['chord'], tonality=tonality)
+        chord=eighthmetas[0]['chord'], tonality=tonality)
     chord_array_destination = generate_notearray_chord(
-        chord=meta_eighths[-1]['chord'], tonality=tonality)
+        chord=eighthmetas[-1]['chord'], tonality=tonality)
 
     if behavior == 'arpegic':
         return generate_arpegic_melody(
@@ -342,7 +342,7 @@ def generate_melody_from_meta_eighths(reference_note, meta_eighths, tonality):
 
     if melody is None:
         scale = generate_notearray_scale(
-            chord=meta_eighths[0]['chord'], tonality=tonality)
+            chord=eighthmetas[0]['chord'], tonality=tonality)
 
         melody = generate_diatonic_melody(
             reference_note=reference_note,
@@ -360,11 +360,11 @@ def generate_melody_from_meta_eighths(reference_note, meta_eighths, tonality):
     return melody
 
 
-def define_melody_length(meta_eighths):
+def define_melody_length(eighthmetas):
     length = min([
-        count_occurence_continuity([d['chord'] for d in meta_eighths]),
-        count_occurence_continuity([d['behavior'] for d in meta_eighths])])
-    if length < len(meta_eighths):
+        count_occurence_continuity([d['chord'] for d in eighthmetas]),
+        count_occurence_continuity([d['behavior'] for d in eighthmetas])])
+    if length < len(eighthmetas):
         length += 1
     return length
 
@@ -486,7 +486,7 @@ def chord_iterator(chord_grid):
         yield beat_1, beat_2, beat_3, beat_4
 
 
-def create_meta_eighths(
+def create_eighthmetas(
         pattern_index, pattern, chords, prefered_behavior):
     '''
     @pattern_index is a tuple containing the parttern index e.g. :(3, 2)
@@ -504,7 +504,7 @@ def create_meta_eighths(
         for c, hp in zip(chords, fingersstates_retrieved)]
 
 
-def meta_eighths_iterator(
+def eighthmetas_iterator(
         pattern, chord_grid, mandatory_behavior=None):
     '''
     this iterator iter synchronulsy on the chord grid and the rythmic pattern
@@ -520,93 +520,93 @@ def meta_eighths_iterator(
         prefered_behavior = (
             mandatory_behavior or choose(pattern['behaviors'][pattern_index]))
 
-        yield create_meta_eighths (
+        yield create_eighthmetas (
             pattern_index, pattern, chords, prefered_behavior)
 
 
-def convert_meta_eighths_to_fingersnotes(fingersnotes, meta_eighths, tonality):
+def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
     """
     this is the main conversion meta, it transform meta data to notes array
     by finger pressed.
-    The method need the last fingersnotes generated as reference to continue
+    The method need the last eighthnotes generated as reference to continue
     a cohenrent melody and chord progession. Firstly, it convert all mute
-    meta_eighth to MUTE_EIGHTH because it is not used for melody and chord
+    eighthmeta to MUTE_EIGHTH because it is not used for melody and chord
     generation. Secondly it generate a melody as notearray. And finally the
-    melody is used to convert the chords fingersnotes.
+    melody is used to convert the chords eighthnotes.
     """
     # To avoid immutable bad surprises
-    meta_eighths = meta_eighths[:]
+    wip_eighths = eighthmetas[:]
 
-    if get_fingersstate_type(meta_eighths[0]['fingersstate']) == 'mute':
+    if get_fingersstate_type(eighthmetas[0]['fingersstate']) == 'mute':
         return [MUTE_EIGHTH]
 
-    for i, eighth in enumerate(meta_eighths):
+    for i, eighth in enumerate(eighthmetas):
         if get_fingersstate_type(eighth['fingersstate']) == 'mute':
-            meta_eighths[i] = MUTE_EIGHTH
+            wip_eighths[i] = MUTE_EIGHTH
 
-    melodic_fingersnotes = [
-        fingersnote for fingersnote in fingersnotes
-        if get_fingersstate_type(fingersnote) == 'melodic']
+    melodic_eighthnotes = [
+        eighthnote for eighthnote in eighthnotes
+        if get_fingersstate_type(eighthnote) == 'melodic']
 
     reference_note = [
-        note for note in melodic_fingersnotes[-1] if note is not None][0]
+        note for note in melodic_eighthnotes[-1] if note is not None][0]
 
-    melodic_meta_eighths = [
-            me for me in meta_eighths
-            if get_fingersstate_type(me['fingersstate']) == 'melodic']
+    melodic_eighthmetas = [
+            em for em in eighthmetas
+            if get_fingersstate_type(em['fingersstate']) == 'melodic']
 
-    melody = generate_melody_from_meta_eighths(
+    melody = generate_melody_from_eighthmetas(
         reference_note=reference_note,
-        meta_eighths=melodic_meta_eighths,
+        eighthmetas=melodic_eighthmetas,
         tonality=tonality)
 
     indexes = [
-        i for i, me in enumerate(meta_eighths)
-        if get_fingersstate_type(me['fingersstate']) == 'melodic']
+        i for i, em in enumerate(eighthmetas)
+        if get_fingersstate_type(em['fingersstate']) == 'melodic']
 
-    wip_eighths = combine_eight_and_meta_eighths(
-        indexes, melody, meta_eighths)
+    wip_eighths = combine_eights_and_eighthmetas(
+        indexes, melody, wip_eighths)
 
     chord_fingernotes = [
-        fingersnote for fingersnote in fingersnotes
-        if get_fingersstate_type(fingersnote) == 'chord']
+        eighthnote for eighthnote in eighthnotes
+        if get_fingersstate_type(eighthnote) == 'chord']
     reference_chord = chord_fingernotes[-1] if chord_fingernotes else None
 
-    chord = generate_chords_from_meta_eights(
+    chord = generate_chords_from_eighthmetas(
         reference_chord=reference_chord,
         reference_note=reference_note,
         wip_eighths=wip_eighths,
         tonality=tonality)
 
     indexes = [
-        i for i, me in enumerate(meta_eighths)
-        if get_fingersstate_type(me['fingersstate']) == 'chord']
+        i for i, em in enumerate(eighthmetas)
+        if get_fingersstate_type(em['fingersstate']) == 'chord']
 
-    eighths = combine_eight_and_meta_eighths(
+    eighths = combine_eights_and_eighthmetas(
         indexes, chord, wip_eighths)
 
     return eighths
 
 
-def combine_eight_and_meta_eighths(indexes, eights, meta_eighths):
+def combine_eights_and_eighthmetas(indexes, eights, eighthmetas):
 
-    wip_meta_eighths = list(meta_eighths[:indexes[len(eights)] - 1][:])
+    wip_eighthmetas = eighthmetas[:]
     for i, eighth in enumerate(eights):
         # Combined with chord
-        if isinstance(eighth, int):
-            wip_meta_eighths[indexes[i]] = eighth
+        if isinstance(eighth, (tuple, list)):
+            wip_eighthmetas[indexes[i]] = eighth
             continue
         # Combined with melody
-        wip_meta_eighths[indexes[i]] = [
+        wip_eighthmetas[indexes[i]] = [
             eighth if state else None for state in
-            wip_meta_eighths[indexes[i]]['fingersstate']]
-    return wip_meta_eighths
+            wip_eighthmetas[indexes[i]]['fingersstate']]
+    return wip_eighthmetas
 
 
-def generate_chords_from_meta_eights(
+def generate_chords_from_eighthmetas(
         reference_chord, reference_note, wip_eighths, tonality):
 
-    chords_fingersnotes = []
+    chords_eighthnotes = []
     for eighth in wip_eighths:
         if eighth == MUTE_EIGHTH:
             continue
@@ -618,7 +618,7 @@ def generate_chords_from_meta_eights(
         fingersstate = eighth['fingersstate']
         len_current_chord = len([n for n in fingersstate if n])
         if len_current_chord == 5:
-            chords_fingersnotes.append(chord_array)
+            chords_eighthnotes.append(chord_array)
             reference_chord = chord_array
             continue
 
@@ -634,30 +634,30 @@ def generate_chords_from_meta_eights(
                 break
 
         i = 0
-        fingersnotes = []
+        eighthnotes = []
         for finger in fingersstate:
             if not finger:
-                fingersnotes.append(None)
+                eighthnotes.append(None)
             else:
-                fingersnotes.append(chord_notes_used[i])
+                eighthnotes.append(chord_notes_used[i])
                 i += 1
 
-        chords_fingersnotes.append(fingersnotes)
+        chords_eighthnotes.append(eighthnotes)
         reference_chord = chord_array
-    return chords_fingersnotes
+    return chords_eighthnotes
 
 
 def montuno_generator(  # Find better name
         pattern, chord_grid, tonality, mode, forced_behavior=None):
 
-    data_it = meta_eighths_iterator(
+    data_it = eighthmetas_iterator(
         pattern, chord_grid, forced_behavior)
 
     processed_datas = [None, None, None, None]
     to_process_datas = next(data_it) + next(data_it)
 
     while True:
-        datas = convert_meta_eighths_to_fingersnotes(
+        datas = convert_eighthmetas_to_eighthnotes(
             processed_datas, to_process_datas,
             tonality)
 
@@ -673,67 +673,67 @@ def montuno_generator(  # Find better name
 
 if __name__ == '__main__':
 
-    print("\n##############\n### TEST 1 ###\n##############\nMeta Eighths Generation")
-    gen = meta_eighths_iterator(
-        rythmic_patterns['basic'], chord_grids['example'])
+    # print("\n##############\n### TEST 1 ###\n##############\nMeta Eighths Generation")
+    # gen = eighthmetas_iterator(
+    #     rythmic_patterns['basic'], chord_grids['example'])
 
-    for _ in range(10):
-        for elt in next(gen):
-            print (elt)
+    # for _ in range(10):
+    #     for elt in next(gen):
+    #         print (elt)
 
-    print("\n##############\n### TEST 2 ###\n##############\nChord array generation")
-    for chord in (
-        {'degree': 0, 'name': 'Minor'},
-        {'degree': 1, 'name': 'Minor'},
-        {'degree': 2, 'name': 'Minor'},
-        {'degree': 3, 'name': 'Minor'},
-        {'degree': 4, 'name': 'Minor'},
-        {'degree': 5, 'name': 'Minor'}):
-            print(generate_notearray_chord(chord, 0))
+    # print("\n##############\n### TEST 2 ###\n##############\nChord array generation")
+    # for chord in (
+    #     {'degree': 0, 'name': 'Minor'},
+    #     {'degree': 1, 'name': 'Minor'},
+    #     {'degree': 2, 'name': 'Minor'},
+    #     {'degree': 3, 'name': 'Minor'},
+    #     {'degree': 4, 'name': 'Minor'},
+    #     {'degree': 5, 'name': 'Minor'}):
+    #         print(generate_notearray_chord(chord, 0))
 
 
 
     # print("\n##############\n### TEST 5 ###\n##############\nMelody Generation")
     # reference_note = 4
-    # meta_eighths = [
+    # eighthmetas = [
     #     {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (1, 0, 0, 0, 1), 'behavior': 'melodic'},
     #     {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (0, 1, 0, 0, 0), 'behavior': 'melodic'},
     #     {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (0, 0, 1, 0, 0), 'behavior': 'melodic'},
     #     {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (0, 0, 0, 1, 0), 'behavior': 'melodic'},
     #     {'chord': {'degree': 4, 'name': 'Major'}, 'fingersstate': (1, 0, 0, 0, 1), 'behavior': 'melodic'},
     # ]
-    # print((generate_melody_from_meta_eighths(reference_note, meta_eighths, tonality=3)))
+    # print((generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality=3)))
 
 
     # print("\n##############\n### TEST 6 ###\n##############\nRecompile Melody")
 
-    # fingernotes=(
-    #     [0, 3, 0, 0, 0],
-    #     [0, 0, 6, 0, 0],
-    #     [0, 0, 0, 0, 0],
-    #     [0, 5, 3, 8, 0],
-    #     [0, 0, 0, 9, 0],
-    #     [1, 0, 0, 0, 1])
+    fingernotes=(
+        [0, 3, 0, 0, 0],
+        [0, 0, 6, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 5, 0, 8, 0],
+        [0, 0, 0, 9, 0],
+        [1, 0, 0, 0, 1])
 
-    # meta_eighths=[
-    #     {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
-    #     {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
-    #     {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
-    #     {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
-    #     {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
-    #     {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'static', 'fingersstate': (0, 0, 0, 0, 0)},
-    #     {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'static', 'fingersstate': (0, 1, 0, 1, 0)},
-    #     {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'static', 'fingersstate': (0, 0, 0, 0, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (0, 1, 0, 1, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'diatonic', 'fingersstate': (0, 0, 0, 0, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'diatonic', 'fingersstate': (0, 1, 0, 0, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'diatonic', 'fingersstate': (0, 0, 1, 0, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 0, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 0, 0, 1, 0)},
-    #     {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)}]
-    # convert_meta_eighths_to_fingersnotes(fingernotes, meta_eighths, 0)
+    eighthmetas=[
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'static', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'static', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'static', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'diatonic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'diatonic', 'fingersstate': (0, 1, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'diatonic', 'fingersstate': (0, 0, 1, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 0, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)}]
+    convert_eighthmetas_to_eighthnotes(fingernotes, eighthmetas, 0)

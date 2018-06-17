@@ -166,6 +166,58 @@ def unit_test_melody():
         scale=scale[:],
         length=melody_length)
     assert melody is None
+    print()
+
+    print("#################################")
+    print("#Combine eighths and eighthmetas#")
+    print("#################################")
+    eighthmetas = [
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
+    melody = 3, 5, 5, 6, 1, 1
+    indexes = 0, 1, 2, 3, 5, 7
+    result = combine_eights_and_eighthmetas(indexes, melody, eighthmetas)
+    mustbe = (
+        [3, None, None, None, 3],
+        [None, 5, None, 5, None],
+        [None, 5, None, 5, None],
+        [6, None, None, None, 6],
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        [1, None, None, None, 1],
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        [1, None, None, None, 1])
+    for r, mb in zip(result, mustbe):
+        assert r == mb
+
+    eighthmetas = [
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
+    eighths = [3, None, None, None, 3], [None, 5, None, 5, None], [None, 5, None, 5, None], 6, 1, 1
+    indexes = 0, 1, 2, 3, 5, 7
+    result = combine_eights_and_eighthmetas(indexes, eighths, eighthmetas)
+    mustbe = (
+        [3, None, None, None, 3],
+        [None, 5, None, 5, None],
+        [None, 5, None, 5, None],
+        [6, None, None, None, 6],
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        [1, None, None, None, 1],
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        [1, None, None, None, 1])
+    for r, mb in zip(result, mustbe):
+        assert r == mb
 
     print("MELODY UNIT TEST -- > finished")
 
