@@ -1,15 +1,15 @@
 import sys
+import traceback
 sys.path.insert(0, r"D:\EclipseWorkspaces\csse120\myPyRessource\GitHub") # put you local repo
 
 from montunolito.data import *
 
 
-def unit_test_melody():
-    print("MELODY UNIT TEST -- > started")
+###############################################################################
+################################# MELODY TESTS ################################
+###############################################################################
 
-    print("###################")
-    print("#scales generation#")
-    print("###################")
+def test_generate_scale():
     def names(notearray):
         return [NOTES[n] for n in notearray]
 
@@ -34,12 +34,17 @@ def unit_test_melody():
     assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 6)) == ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'Db']
     assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 7)) == ['E', 'Gb', 'Ab', 'A', 'B', 'Db', 'D']
     assert names(generate_notearray_scale({'degree': 0, 'name': 'M7'}, 8)) == ['F', 'G', 'A', 'Bb', 'C', 'D', 'Eb']
-    print()
 
-    print("###################")
-    print("#Melody generation#")
-    print("###################")
-    # static
+    # same scale remaped with chord degree
+    assert names(generate_notearray_scale({'degree': 1, 'name': 'M7'}, 2)) == ['C', 'D', 'E', 'F', 'G', 'A', 'Bb']
+    assert names(generate_notearray_scale({'degree': 1, 'name': 'M7'}, 3)) == ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'B']
+    assert names(generate_notearray_scale({'degree': 1, 'name': 'M7'}, 4)) == ['D', 'E', 'Gb', 'G', 'A', 'B', 'C']
+    assert names(generate_notearray_scale({'degree': 1, 'name': 'M7'}, 5)) == ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'Db']
+    assert names(generate_notearray_scale({'degree': 1, 'name': 'M7'}, 6)) == ['E', 'Gb', 'Ab', 'A', 'B', 'Db', 'D']
+    assert names(generate_notearray_scale({'degree': 1, 'name': 'M7'}, 7)) == ['F', 'G', 'A', 'Bb', 'C', 'D', 'Eb']
+
+
+def test_generate_static_melody():
     reference_note = 4
     chord_array = [4, 7, 10, 0, 3]
     chord_array_destination = [4, 7, 10, 0, 3]
@@ -61,7 +66,8 @@ def unit_test_melody():
     assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 4) == [2, 2, 2]
     assert generate_static_melody(reference_note, chord_array[:], chord_array_destination[:], 7) == [2, 2, 2, 2, 2, 2]
 
-    # arpegic
+
+def test_generate_arpegic_melody():
     chord_array = [4, 7, 10, 0, 3]
     chord_array_destination = [5, 7, 10, 0, 3]
     assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 0, 10, 7, 4, 3, 5], [4, 3, 0, 10, 7, 4, 3, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
@@ -69,7 +75,8 @@ def unit_test_melody():
     assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 0, 10, 7, 4, 3, 5], [4, 3, 0, 10, 7, 4, 3, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
     assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 0, 10, 7, 4, 3, 5], [4, 3, 0, 10, 7, 4, 3, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
 
-    # chromatic
+
+def test_generate_chromatic_melody():
     chord_array = [4, 7, 10, 0, 3]
     chord_array_destination = [6, 9, 1, 0, 3]
 
@@ -101,7 +108,8 @@ def unit_test_melody():
         length=4)
     assert melody is None
 
-    # diatonic
+
+def test_generate_diatonic_melody():
     reference_note = 4
     chord_array = [4, 7, 10, 0, 3]
     chord_array_destination = [6, 9, 1, 0, 3]
@@ -166,11 +174,9 @@ def unit_test_melody():
         scale=scale[:],
         length=melody_length)
     assert melody is None
-    print()
 
-    print("#################################")
-    print("#Combine eighths and eighthmetas#")
-    print("#################################")
+
+def test_define_melody_lenghth():
     eighthmetas = [
         {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
@@ -180,54 +186,95 @@ def unit_test_melody():
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
         {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
-    melody = 3, 5, 5, 6, 1, 1
-    indexes = 0, 1, 2, 3, 5, 7
-    result = combine_eights_and_eighthmetas(indexes, melody, eighthmetas)
-    mustbe = (
-        [3, None, None, None, 3],
-        [None, 5, None, 5, None],
-        [None, 5, None, 5, None],
-        [6, None, None, None, 6],
-        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
-        [1, None, None, None, 1],
-        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
-        [1, None, None, None, 1])
-    for r, mb in zip(result, mustbe):
-        assert r == mb
+    assert define_melody_length(eighthmetas) == 4
 
+    eighthmetas = [
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'chromatic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
+    assert define_melody_length(eighthmetas) == 3
+
+    eighthmetas = [
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
+    assert define_melody_length(eighthmetas) == 6
+
+
+def test_generate_melody_from_eighthmetas():
+    reference_note = 4
+    tonality = 3
     eighthmetas = [
         {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
         {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
-        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
-        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
-        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
-    eighths = [3, None, None, None, 3], [None, 5, None, 5, None], [None, 5, None, 5, None], 6, 1, 1
-    indexes = 0, 1, 2, 3, 5, 7
-    result = combine_eights_and_eighthmetas(indexes, eighths, eighthmetas)
-    mustbe = (
-        [3, None, None, None, 3],
-        [None, 5, None, 5, None],
-        [None, 5, None, 5, None],
-        [6, None, None, None, 6],
-        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
-        [1, None, None, None, 1],
-        {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
-        [1, None, None, None, 1])
-    for r, mb in zip(result, mustbe):
-        assert r == mb
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
+    # result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
+    # assert result in ([4, 7, 11, 7], [4, 11, 4, 7], [4, 7, 11, 2], [4, 11, 4, 2])
 
-    print("MELODY UNIT TEST -- > finished")
+    reference_note = 4
+    tonality = 3
+    eighthmetas = [
+        {'chord': {'name': 'Major', 'degree': 2}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Major', 'degree': 2}, 'behavior': 'diatonic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Major', 'degree': 2}, 'behavior': 'diatonic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Major', 'degree': 2}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)}]
+    result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
+    assert result == [5, 7, 9, 10, 0] # diatonic solution goes up
+
+    reference_note = 4
+    tonality = 3
+    eighthmetas = [
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)}]
+    result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
+    assert result == [3, 4, 5, 6, 7] # chomatic solution goes up
+
+    reference_note = 0
+    tonality = 8
+    eighthmetas = [
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)}]
+    result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
+    assert result == [1, 1, 1, 1]  # static solution
+
+    reference_note = None
+    tonality = 8
+    eighthmetas = [
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)}]
+    result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
+    assert result == [1, 1, 1, 1]  # static solution
 
 
-def unit_test_math():
-    print("MATH UTILS UNIT TEST -- > started")
+###############################################################################
+################################# UTILS TESTS #################################
+###############################################################################
 
-    print("########")
-    print("#choose#")
-    print("########")
+
+def test_choose():
     assert choose({True: 3, False: 1}) in (False, True)
     assert choose({True: 3, False: 1}) in (False, True)
     assert choose({True: 3, False: 1}) in (False, True)
@@ -251,47 +298,91 @@ def unit_test_math():
         raise_ = True
     assert raise_ is True
     del raise_
-    print()
 
-    print("####################")
-    print("#find_closer_number#")
-    print("####################")
+
+def test_find_closer_number():
     assert find_closer_number(reference=8, array=(3, 6, 7, 8), clamp=12) == 8
     assert find_closer_number(reference=4, array=(3, 6, 7, 8), clamp=12) == 3
     assert find_closer_number(reference=14, array=(3, 6, 7, 8), clamp=12) == 3
     assert find_closer_number(reference=4, array=(3, 6, 7, 8), return_index=True) == 0
-    print()
 
 
-    print("############################")
-    print("#count_occurence_continuity#")
-    print("############################")
+def test_count_occurence_continuity():
     assert count_occurence_continuity(['salut', 'salut', 'salut', 'prout', 'salut']) == 3
     assert count_occurence_continuity(['salut', 'prout', 'salut', 'salut', 'salut']) == 1
     assert count_occurence_continuity([5, 4, 3, 2, 1]) == 1
     assert count_occurence_continuity(['a', 'a', 'a', 'a', 'a', 'a']) == 6
     assert count_occurence_continuity(['salut', 'salut', 'salut', 'salut', 'prout']) == 4
-    print()
 
-    print("##############")
-    print("#remap_number#")
-    print("##############")
+
+def test_remap_number():
     assert remap_number(-1, value=12) == 11
     assert remap_number(10, value=12) == 10
     assert remap_number(14, value=12) == 2
     assert remap_number(0, value=12) == 0
     assert remap_number(62, value=12) == 2
-    print()
 
-    print("##############")
-    print("#offset_array#")
-    print("##############")
+
+def test_offset_array():
     assert offset_array([6, 5, 4, 3, 1], 1) == [5, 4, 3, 1, 6]
     assert offset_array([6, 5, 4, 3, 1], 2) == [4, 3, 1, 6, 5]
-    print()
 
 
-    print("MATH UTILS UNIT TEST -- > finished")
+def test_replace_in_array():
+    eighthnotes = [None, 5, None, 9, None], [7, None, None, None, 7], [9, None, None, None, 9]
+    indexes = (2, 3, 5)
+    eighthmetas = [
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
+    finalarray = replace_in_array(indexes, eighthnotes, eighthmetas)
+    mustbe = [
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
+        {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (0, 1, 0, 1, 0)},
+        [None, 5, None, 9, None],
+        [7, None, None, None, 7],
+        {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
+        [9, None, None, None, 9]]
+    assert finalarray == mustbe
+
+
 if __name__ == '__main__':
-    unit_test_math()
-    unit_test_melody()
+    tests = [
+        test_choose,
+        test_find_closer_number,
+        test_count_occurence_continuity,
+        test_remap_number,
+        test_offset_array,
+        test_replace_in_array,
+        test_generate_scale,
+        test_generate_static_melody,
+        test_generate_arpegic_melody,
+        test_generate_chromatic_melody,
+        test_generate_diatonic_melody,
+        test_define_melody_lenghth,
+        test_generate_melody_from_eighthmetas
+    ]
+
+    test_failed = 0
+    test_succesful = 0
+    tracebacks = {}
+    for test in tests:
+        try:
+            test()
+            test_succesful += 1
+        except:
+            test_failed += 1
+            tracebacks[test.__name__] = traceback.format_exc()
+
+    print()
+    print('{} / {} methods tested succesfully.'.format(
+        test_succesful, test_failed + test_succesful))
+
+    if tracebacks:
+        print ("\nFailed test(s):")
+        for m, tb in tracebacks.items():
+            print(m + " :")
+            print(tb)
