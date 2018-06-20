@@ -1,8 +1,10 @@
 import sys
 import traceback
-sys.path.insert(0, r"D:\EclipseWorkspaces\csse120\myPyRessource\GitHub") # put you local repo
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from montunolito.data import *
+from montunolito.utils import *
 
 
 ###############################################################################
@@ -233,7 +235,8 @@ def test_generate_melody_from_eighthmetas():
         {'chord': {'name': 'Major', 'degree': 2}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)}]
     result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
-    assert result == [5, 7, 9, 10, 0] # diatonic solution goes up
+    mustbe = [[5, None, None, None, 5], [None, 7, None, 7, None], [None, 9, None, 9, None], [10, None, None, None, 10], [0, None, None, None, 0]]
+    assert result == mustbe # diatonic solution goes up
 
     reference_note = 4
     tonality = 3
@@ -244,7 +247,8 @@ def test_generate_melody_from_eighthmetas():
         {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)}]
     result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
-    assert result == [3, 4, 5, 6, 7] # chomatic solution goes up
+    mustbe = [[3, None, None, None, 3], [None, 4, None, 4, None], [None, 5, None, 5, None], [6, None, None, None, 6], [7, None, None, None, 7]]
+    assert result == mustbe # chomatic solution goes up
 
     reference_note = 0
     tonality = 8
@@ -255,7 +259,8 @@ def test_generate_melody_from_eighthmetas():
         {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)}]
     result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
-    assert result == [1, 1, 1, 1]  # static solution
+    mustbe = [[1, None, None, None, 1], [1, None, None, None, 1], [1, None, None, None, 1], [1, None, None, None, 1]]
+    assert result == mustbe  # static solution
 
     reference_note = None
     tonality = 8
@@ -266,7 +271,8 @@ def test_generate_melody_from_eighthmetas():
         {'chord': {'name': 'Major', 'degree': 5}, 'behavior': 'diatonic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'static', 'fingersstate': (1, 0, 0, 0, 1)}]
     result = generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality)
-    assert result == [1, 1, 1, 1]  # static solution
+    mustbe = [[1, None, None, None, 1], [1, None, None, None, 1], [1, None, None, None, 1], [1, None, None, None, 1]]
+    assert result == mustbe  # static solution
 
 
 ###############################################################################

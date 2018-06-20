@@ -1,0 +1,19 @@
+
+NAME = 'chacha'
+
+PATTERN = {
+    1: ((6, 1, 0, 1)),
+    2: ((6, 1, 0, 1)),
+    3: ((6, 1, 0, 1)),
+    4: ((6, 1, 0, 1)),
+    'relationships': {
+        (1, 0): {(2, 0): 5},
+        (2, 0): {(3, 0): 5},
+        (3, 0): {(4, 0): 5},
+        (4, 0): {(1, 0): 5}},
+    'behaviors': {
+        (1, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0},
+        (2, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0},
+        (3, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0},
+        (4, 0): {'static': 5, 'diatonic': 0, 'arpegic': 0, 'chromatic': 0}
+        }}
