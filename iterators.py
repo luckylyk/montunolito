@@ -9,34 +9,6 @@ from montunolito.solfege import FINGERSSTATES
 from montunolito.melody import convert_eighthmetas_to_eighthnotes
 from montunolito.patterns import PATTERNS
 
-##############################################################################
-#  DATA
-##############################################################################
-
-CHORDGRIDS = dict(
-    example = [
-        {'degree': 1, 'name': 'Minor'},
-        None,
-        None,
-        {'degree': 4, 'name': 'Minor'},
-        None,
-        None,
-        {'degree': 5, 'name': 'M7'},
-        None,
-        None,
-        None,
-        None,
-        {'degree': 4, 'name': 'Minor'},
-        None,
-        None, 
-        {'degree': 1, 'name': 'Minor'},
-        None])
-
-
-##############################################################################
-#  GENERATORS / ITERATOR / CONVERTOR
-##############################################################################
-
 
 def pattern_iterator(pattern):
     '''
@@ -114,34 +86,55 @@ def eighthmetas_iterator(
 
 def montuno_generator(
         pattern, chord_grid, tonality, forced_behavior=None):
+    '''
+    This iterator is the main iterator
+    It create a stream of 64byte array representing a 62 keyboard keys states.
+    The method receive a pattern a chord grid and a int between 0 and 11 as tonality.
+    TODO: the conversion to eighthnotes to eighth_kbstates
+    '''
 
-    data_it = eighthmetas_iterator(
+    eighthtmetas_it = eighthmetas_iterator(
         pattern, chord_grid, forced_behavior)
 
-    processed_datas = [None, None, None, None]
-    to_process_datas = next(data_it) + next(data_it)
+    previous_eighthnotes = [None, None, None, None]
+    eighthmetas = next(eighthtmetas_it) + next(eighthtmetas_it)
 
     while True:
-        datas = convert_eighthmetas_to_eighthnotes(
-            processed_datas, to_process_datas,
+        eighthnotes = convert_eighthmetas_to_eighthnotes(
+            previous_eighthnotes, eighthmetas,
             tonality)
 
-        for data in datas:
-            yield data
+        for eighthnote in eighthnotes:
+            yield eighthnote
 
-        processed_datas = processed_datas[-len(datas)+1:-1] + datas
-        to_process_datas = to_process_datas[len(datas):]
+        previous_eighthnotes = previous_eighthnotes[-len(datas)+1:-1] + datas
+        eighthmetas = eighthmetas[len(datas):]
 
         while len(to_process_datas) < 8:
-            to_process_datas += next(data_it)
+            eighthmetas += next(eighthtmetas_it)
 
 
 if __name__ == '__main__':
+    CHORDGRIDS = [
+        {'degree': 1, 'name': 'Minor'}, None, None, {'degree': 4, 'name': 'Minor'},
+        None,
+        None,
+        {'degree': 5, 'name': 'M7'},
+        None,
+        None,
+        None,
+        None,
+        {'degree': 4, 'name': 'Minor'},
+        None,
+        None, 
+        {'degree': 1, 'name': 'Minor'},
+        None]
+
     def test():
         import time
         montunos = montuno_generator(
             pattern=PATTERNS['basic'],
-            chord_grid=CHORDGRIDS['example'],
+            chord_grid=CHORDGRIDS,
             tonality=5)
         print (montunos)
 
