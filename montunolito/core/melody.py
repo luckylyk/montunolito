@@ -22,11 +22,11 @@ nomenclature :
 import random
 import itertools
 
-from montunolito.solfege import (
+from .solfege import (
     FINGERSSTATES, FINGERSSTATE_TYPES, CHORDS, SCALENAME_BY_CHORDNAME, SCALES,
     CHORD_SCALES_REMPLACEMENT_INDEXES, MUTE_EIGHTH, CHORD_INDEXES_PRIORITY_ORDER)
 
-from montunolito.utils import (
+from .utils import (
     remap_array, remap_number, find_closer_number, choose, offset_array,
     count_occurence_continuity, replace_in_array)
 
@@ -264,7 +264,7 @@ def generate_diatonic_melody(
 
 
 def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
-    """
+    '''
     this is the main conversion meta, it transform meta data to notes array
     by finger pressed.
     The method need the last eighthnotes generated as reference to continue
@@ -272,7 +272,7 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
     eighthmeta to MUTE_EIGHTH because it is not used for melody and chord
     generation. Secondly it generate a melody as notearray. And finally the
     melody is used to convert the chords eighthnotes.
-    """
+    '''
     # To avoid immutable bad surprises
     eighths = eighthmetas[:]
 

@@ -1,10 +1,12 @@
 import sys
 import traceback
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), 'montunolito'))
 
-from montunolito.data import *
-from montunolito.utils import *
+from montunolito.core.iterators import *
+from montunolito.core.melody import *
+from montunolito.core.solfege import *
+from montunolito.core.utils import *
 
 
 ###############################################################################
@@ -353,6 +355,37 @@ def test_replace_in_array():
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
         [9, None, None, None, 9]]
     assert finalarray == mustbe
+
+
+def test_iteration():
+    CHORDGRIDS = dict(
+        example = [
+            {'degree': 1, 'name': 'Minor'},
+            None,
+            None,
+            {'degree': 4, 'name': 'Minor'},
+            None,
+            None,
+            {'degree': 5, 'name': 'M7'},
+            None,
+            None,
+            None,
+            None,
+            {'degree': 4, 'name': 'Minor'},
+            None,
+            None, 
+            {'degree': 1, 'name': 'Minor'},
+            None])
+    import time
+    montunos = montuno_generator(
+        pattern=PATTERNS['basic'],
+        chord_grid=CHORDGRIDS['example'],
+        tonality=5)
+    print (montunos)
+
+    for _ in range(125):
+        time.sleep(.075)
+        print(next(montunos))
 
 
 if __name__ == '__main__':
