@@ -7,6 +7,7 @@ from montunolito.core.iterators import *
 from montunolito.core.melody import *
 from montunolito.core.solfege import *
 from montunolito.core.utils import *
+from montunolito.core.keyboard import *
 
 
 ###############################################################################
@@ -278,6 +279,126 @@ def test_generate_melody_from_eighthmetas():
 
 
 ###############################################################################
+################################# MELODY KEYBOARD #############################
+###############################################################################
+
+
+def test_is_melodic_keysstate():
+    keysstate = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0]
+    assert is_melodic_keysstate(keysstate) is False
+
+    keysstate = [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+        1, 0, 0, 1]
+    assert is_melodic_keysstate(keysstate) is False
+
+    keysstate = [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0]
+    assert is_melodic_keysstate(keysstate) is True
+
+
+def test_is_mute_keysstate():
+    keysstate = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0]
+    assert is_mute_keysstate(keysstate) is True
+
+    keysstate = [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+        1, 0, 0, 1]
+    assert is_mute_keysstate(keysstate) is False
+
+    keysstate = [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0]
+    assert is_mute_keysstate(keysstate) is False
+
+
+def test_is_chord_keysstate():
+    keysstate = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0]
+    assert is_chord_keysstate(keysstate) is False
+
+    keysstate = [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+        1, 0, 0, 1]
+    assert is_chord_keysstate(keysstate) is True
+
+    keysstate = [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0]
+    assert is_chord_keysstate(keysstate) is False
+
+
+def test_convert_keysstate_to_notearray():
+    keysstate = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0]
+    assert convert_keysstate_to_notearray(keysstate) == []
+
+    keysstate = [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+        1, 0, 0, 1]
+    assert convert_keysstate_to_notearray(keysstate) == [0, 6, 0, 4, 7, 0, 3]
+
+    keysstate = [
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0]
+    assert convert_keysstate_to_notearray(keysstate) == [0, 0, 0, 0, 0, 0]
+
+###############################################################################
 ################################# UTILS TESTS #################################
 ###############################################################################
 
@@ -402,7 +523,11 @@ if __name__ == '__main__':
         test_generate_chromatic_melody,
         test_generate_diatonic_melody,
         test_define_melody_lenghth,
-        test_generate_melody_from_eighthmetas
+        test_generate_melody_from_eighthmetas,
+        test_is_melodic_keysstate,
+        test_is_mute_keysstate,
+        test_is_chord_keysstate,
+        test_convert_keysstate_to_notearray
     ]
 
     test_failed = 0
@@ -425,3 +550,6 @@ if __name__ == '__main__':
         for m, tb in tracebacks.items():
             print(m + " :")
             print(tb)
+
+
+    print (get_corresponding_keyboard_indexes(18))

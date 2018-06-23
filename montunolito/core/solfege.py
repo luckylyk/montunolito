@@ -67,6 +67,7 @@ CHORD_INDEXES_PRIORITY_ORDER = dict(
     aug =   [1, 2, 3, 4, 0],
     qm =    [1, 2, 3, 4, 0])
 
+
 SCALENAME_BY_CHORDNAME = dict(
     major = ('Major', 'M6', 'M7', 'M7M', 'M7b9', 'M9', 'M11', 'Sus4', 'aug'),
     minor = ('Minor', 'm6', 'm7', 'm7M', 'm7b9', 'm9', 'm11', 'dim', 'qm'))

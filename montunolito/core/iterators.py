@@ -103,8 +103,9 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
         for eighthnote in eighthnotes:
             yield eighthnote
 
-        previous_eighthnotes = previous_eighthnotes[-len(datas)+1:-1] + datas
-        eighthmetas = eighthmetas[len(datas):]
+        offset = -len(eighthnotes) + 1
+        previous_eighthnotes = previous_eighthnotes[offset:-1] + eighthnotes
+        eighthmetas = eighthmetas[len(eighthnotes):]
 
-        while len(to_process_datas) < 8:
+        while len(eighthmetas) < 8:
             eighthmetas += next(eighthtmetas_it)

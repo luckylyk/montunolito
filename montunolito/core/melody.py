@@ -24,7 +24,8 @@ import itertools
 
 from .solfege import (
     FINGERSSTATES, FINGERSSTATE_TYPES, CHORDS, SCALENAME_BY_CHORDNAME, SCALES,
-    CHORD_SCALES_REMPLACEMENT_INDEXES, MUTE_EIGHTH, CHORD_INDEXES_PRIORITY_ORDER)
+    CHORD_SCALES_REMPLACEMENT_INDEXES, MUTE_EIGHTH,
+    CHORD_INDEXES_PRIORITY_ORDER)
 
 from .utils import (
     remap_array, remap_number, find_closer_number, choose, offset_array,
