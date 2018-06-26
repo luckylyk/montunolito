@@ -79,3 +79,15 @@ def replace_in_array(indexes, items, array):
     for index, item in zip(indexes, items):
         array[index] = item
     return array
+
+
+def get_number_multiples(number, base=None, maximum=20):
+    '''
+    return all possibles multiples between 0 and the maximum given.
+    '''
+    number = remap_number(number, value=base) if base else number
+    indexes = []
+    while number <= maximum:
+        indexes.append(number)
+        number += base
+    return indexes

@@ -5,6 +5,9 @@
 NOTES = ('A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab')
 
 
+SCALE_LENGHT = 12
+
+
 SCALES = dict(
     major = [0, 2, 4, 5, 7, 9, 11],
     minor = [0, 2, 3, 5, 7, 8, 10])
@@ -89,3 +92,14 @@ FINGERSSTATE_TYPES = {
 
 
 MUTE_EIGHTH = [None, None, None, None, None]
+
+
+def get_fingersstate_type(array):
+    if array is None:
+        return None
+    array = tuple([0 if v is None else v for v in array])
+    array = tuple([1 if value > 0 else 0 for value in array])
+    index = FINGERSSTATES.index(array)
+    for fingersstate_type, indexes in FINGERSSTATE_TYPES.items():
+        if index in indexes:
+            return fingersstate_type

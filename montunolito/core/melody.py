@@ -25,22 +25,11 @@ import itertools
 from .solfege import (
     FINGERSSTATES, FINGERSSTATE_TYPES, CHORDS, SCALENAME_BY_CHORDNAME, SCALES,
     CHORD_SCALES_REMPLACEMENT_INDEXES, MUTE_EIGHTH,
-    CHORD_INDEXES_PRIORITY_ORDER)
+    CHORD_INDEXES_PRIORITY_ORDER, SCALE_LENGHT, get_fingersstate_type)
 
 from .utils import (
     remap_array, remap_number, find_closer_number, choose, offset_array,
     count_occurence_continuity, replace_in_array)
-
-
-def get_fingersstate_type(fingersstate):
-    if fingersstate is None:
-        return None
-    fingersstate = tuple([0 if v is None else v for v in fingersstate])
-    fingersstate = tuple([1 if value > 0 else 0 for value in fingersstate])
-    index = FINGERSSTATES.index(fingersstate)
-    for fingersstate_type, indexes in FINGERSSTATE_TYPES.items():
-        if index in indexes:
-            return fingersstate_type
 
 
 def generate_notearray_chord(chord, tonality):
@@ -51,8 +40,12 @@ def generate_notearray_chord(chord, tonality):
         tonality = int >= 0 and int <=11
     '''
     concert_pitch_array = remap_array(
-        array=CHORDS[chord['name']], offset=chord['degree'], value=12)
-    return remap_array(array=concert_pitch_array, offset=tonality, value=12)
+        array=CHORDS[chord['name']],
+        offset=chord['degree'],
+        value=SCALE_LENGHT)
+
+    return remap_array(
+        array=concert_pitch_array, offset=tonality, value=SCALE_LENGHT)
 
 
 def generate_notearray_scale(chord, tonality):
@@ -68,7 +61,7 @@ def generate_notearray_scale(chord, tonality):
                     scale[scale_index] = CHORDS[chord['name']][chord_index]
 
             offset = chord['degree'] + tonality
-            return remap_array(array=scale, offset=offset, value=12)
+            return remap_array(array=scale, offset=offset, value=SCALE_LENGHT)
 
 
 def generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality):
@@ -195,7 +188,7 @@ def generate_static_melody(
         note = find_closer_number(
             reference=reference_note,
             array=(chord_array[0], chord_array[2]),
-            clamp=12)
+            clamp=SCALE_LENGHT)
     else:
         note = choose({chord_array[0]: 5, chord_array[0]: 1})
 
@@ -223,7 +216,7 @@ def generate_chromatic_melody(
         startnote = find_closer_number(
             reference=reference_note,
             array=(chord_array[0], chord_array[2]),
-            clamp=12)
+            clamp=SCALE_LENGHT)
     else:
         startnote = choose({chord_array[0]: 5, chord_array[0]: 1})
 
@@ -336,6 +329,7 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
 
 def generate_chords_from_eighthmetas(
         reference_chord, reference_note, wip_eighths, tonality):
+    # TEST THIS FUNCTION
 
     chords_eighthnotes = []
     for eighth in wip_eighths:

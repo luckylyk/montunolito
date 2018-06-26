@@ -398,6 +398,74 @@ def test_convert_keysstate_to_notearray():
         1, 0, 0, 0]
     assert convert_keysstate_to_notearray(keysstate) == [0, 0, 0, 0, 0, 0]
 
+
+def test_generate_melodic_keys():
+    raise_ = False
+    try:
+        generate_melodic_keys([None, 1, None, 1, None])
+    except AssertionError:
+        raise_ = True
+    assert raise_ is True
+    del raise_
+
+    raise_ = False
+    try:
+        generate_melodic_keys([5, None, 5, None, 5])
+    except ValueError:
+        raise_ = True
+    assert raise_ is True
+    del raise_
+
+    melodic_keys = generate_melodic_keys([5, None, None, None, 5])
+    remapped = ([remap_number(k, value=12) for k in melodic_keys])
+    assert len(set(remapped)) == 1
+
+    melodic_keys = generate_melodic_keys([5, None, None, None, 5])
+    assert len(melodic_keys) == 3
+
+    melodic_keys = generate_melodic_keys([None, None, 10, None, None])
+    assert len(melodic_keys) == 2
+
+    eightnote = ([8, None, None, None, 8])
+    reference_keysstate = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0]
+    melodic_keys = generate_melodic_keys(eightnote, reference_keysstate)
+    assert melodic_keys == [32, 44, 56]
+
+    eightnote = ([8, None, None, None, 8])
+    reference_keysstate = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0]
+    melodic_keys = generate_melodic_keys(eightnote, reference_keysstate)
+    assert melodic_keys == None
+
+
+def test_convert_keys_to_keystate():
+    melodic_keys = generate_melodic_keys([None, None, 10, None, None])
+    keysstate = convert_keys_to_keystate(melodic_keys)
+    assert len(keysstate) == KEYBOARD_LENGHT
+    assert set([remap_number(i, value=12) for i, s in enumerate(keysstate) if s]) == {10}
+
+    melodic_keys = generate_melodic_keys([5, None, None, None, 5])
+    keysstate = convert_keys_to_keystate(melodic_keys)
+    assert len(keysstate) == KEYBOARD_LENGHT
+    assert set([remap_number(i, value=12) for i, s in enumerate(keysstate) if s]) == {5}
+
+
+
 ###############################################################################
 ################################# UTILS TESTS #################################
 ###############################################################################
@@ -478,6 +546,14 @@ def test_replace_in_array():
     assert finalarray == mustbe
 
 
+def test_get_number_multiples():
+    assert get_number_multiples(number=0, base=12, maximum=64) == [0, 12, 24, 36, 48, 60]
+    assert get_number_multiples(number=0, base=12, maximum=64) == get_number_multiples(number=12, base=12, maximum=64)
+    assert get_number_multiples(number=1, base=12, maximum=64) == [1, 13, 25, 37, 49, 61]
+    assert get_number_multiples(number=1, base=12, maximum=64) == get_number_multiples(number=13, base=12, maximum=64)
+    assert get_number_multiples(number=6, base=12, maximum=64) == [6, 18, 30, 42, 54]
+
+
 def test_iteration():
     CHORDGRIDS = dict(
         example = [
@@ -527,7 +603,10 @@ if __name__ == '__main__':
         test_is_melodic_keysstate,
         test_is_mute_keysstate,
         test_is_chord_keysstate,
-        test_convert_keysstate_to_notearray
+        test_convert_keysstate_to_notearray,
+        test_get_number_multiples,
+        test_generate_melodic_keys,
+        test_convert_keys_to_keystate
     ]
 
     test_failed = 0
@@ -552,4 +631,3 @@ if __name__ == '__main__':
             print(tb)
 
 
-    print (get_corresponding_keyboard_indexes(18))
