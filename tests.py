@@ -450,7 +450,21 @@ def test_generate_melodic_keys():
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0]
     melodic_keys = generate_melodic_keys(eightnote, reference_keysstate)
-    assert melodic_keys == None
+    assert melodic_keys == [44, 56, 68]
+
+    eightnote = ([None, None, 8, None, None])
+    reference_keysstate = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0]
+    melodic_keys = generate_melodic_keys(eightnote, reference_keysstate)
+    assert melodic_keys == [44, 56]
+
 
 
 def test_convert_keys_to_keystate():

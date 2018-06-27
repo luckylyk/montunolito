@@ -48,13 +48,9 @@ def convert_keys_to_keystate(keys):
     return [1 if key in keys else 0 for key in range(KEYBOARD_LENGHT)]
 
 
-def generate_melodic_keys(eightnote, reference_keysstate=None):
-    assert get_fingersstate_type(eightnote) == 'melodic', \
-        '{} must be melodic'.format(eightnote)
-    if reference_keysstate is not None:
-        assert is_melodic_keysstate(reference_keysstate)
+def generate_melodic_keys(eighthnote, reference_keysstate=None):
 
-    notes = [note for note in eightnote if note]
+    notes = [note for note in eighthnote if note]
     pressed_fingers_number = len(notes) + 1
     notes = get_number_multiples(
         notes[0], base=SCALE_LENGHT, maximum=KEYBOARD_LENGHT)
@@ -69,9 +65,10 @@ def generate_melodic_keys(eightnote, reference_keysstate=None):
 
     reference_pressed_fingers_number = keysstate_pressed_fingers_lenght(
         reference_keysstate)
+    reference_indexes = keysstate_indexes(reference_keysstate)
 
     if pressed_fingers_number == reference_pressed_fingers_number:
-        for index in keysstate_indexes(reference_keysstate):
+        for index in reference_indexes:
             final_notes.append(
                 find_closer_number(
                     reference=index,
@@ -79,9 +76,28 @@ def generate_melodic_keys(eightnote, reference_keysstate=None):
                     clamp=KEYBOARD_LENGHT))
         return sorted(final_notes)
 
+    startindex = 0
+    for note in notes:
+        if notes[startindex] < reference_indexes[0]:
+            startindex += 1
+        else:
+            break
+
+    if pressed_fingers_number == 2 and reference_pressed_fingers_number == 3:
+        return notes[startindex:startindex+2]
+    else:
+        return notes[startindex-1:startindex+2]
 
 
+def eighthnote_lenght(eightnote):
+    return len([n for n in eightnotes if n is not None])
 
 
+def generate_harmonic_keys(
+        eighthnote, reference_melodic_keysstate=None,
+        reference_harmonic_keysstate=None):
 
-
+    notes = [note for note in eighthnote if note]
+    if not reference_melodic_keysstate and not reference_harmonic_keysstate:
+        if len(notes) == 2:
+            pass

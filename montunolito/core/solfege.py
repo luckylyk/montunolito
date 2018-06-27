@@ -88,7 +88,7 @@ FINGERSSTATES = (
 FINGERSSTATE_TYPES = {
     'mute': [0],
     'melodic': [1, 2, 3, 4, 5],
-    'chord': [6, 7]}
+    'harmonic': [6, 7]}
 
 
 MUTE_EIGHTH = [None, None, None, None, None]

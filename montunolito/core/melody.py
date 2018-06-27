@@ -307,7 +307,7 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
 
     chord_fingernotes = [
         eighthnote for eighthnote in eighthnotes
-        if get_fingersstate_type(eighthnote) == 'chord']
+        if get_fingersstate_type(eighthnote) == 'harmonic']
     reference_chord = chord_fingernotes[-1] if chord_fingernotes else None
 
     chords = generate_chords_from_eighthmetas(
@@ -316,9 +316,10 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
         wip_eighths=eighths,
         tonality=tonality)
 
+    lenght = len(chords)
     indexes = [
         i for i, em in enumerate(eighthmetas)
-        if get_fingersstate_type(em['fingersstate']) == 'chord'][:len(chords)]
+        if get_fingersstate_type(em['fingersstate']) == 'harmonic'][lenght]
 
     if indexes:
         eighths = replace_in_array(
@@ -330,6 +331,7 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
 def generate_chords_from_eighthmetas(
         reference_chord, reference_note, wip_eighths, tonality):
     # TEST THIS FUNCTION
+    # WRITE DOC
 
     chords_eighthnotes = []
     for eighth in wip_eighths:
