@@ -400,22 +400,6 @@ def test_convert_keysstate_to_notearray():
 
 
 def test_generate_melodic_keys():
-    raise_ = False
-    try:
-        generate_melodic_keys([None, 1, None, 1, None])
-    except AssertionError:
-        raise_ = True
-    assert raise_ is True
-    del raise_
-
-    raise_ = False
-    try:
-        generate_melodic_keys([5, None, 5, None, 5])
-    except ValueError:
-        raise_ = True
-    assert raise_ is True
-    del raise_
-
     melodic_keys = generate_melodic_keys([5, None, None, None, 5])
     remapped = ([remap_number(k, value=12) for k in melodic_keys])
     assert len(set(remapped)) == 1
@@ -466,7 +450,6 @@ def test_generate_melodic_keys():
     assert melodic_keys == [44, 56]
 
 
-
 def test_convert_keys_to_keystate():
     melodic_keys = generate_melodic_keys([None, None, 10, None, None])
     keysstate = convert_keys_to_keystate(melodic_keys)
@@ -479,6 +462,24 @@ def test_convert_keys_to_keystate():
     assert set([remap_number(i, value=12) for i, s in enumerate(keysstate) if s]) == {5}
 
 
+def test_generate_harmonic_keys():
+    eighthnote = [None, 5, None, 8, None]
+    keys = generate_harmonic_keys(
+        eighthnote=eighthnote,
+        reference_melodic_keysstate=None,
+        reference_harmonic_keysstate=None)
+    assert len(keys) == 4
+    for key in keys:
+        assert remap_number(key, value=12) in eighthnote
+
+    eighthnote = [0, 5, 7, 9, 11]
+    keys = generate_harmonic_keys(
+        eighthnote=eighthnote,
+        reference_melodic_keysstate=None,
+        reference_harmonic_keysstate=None)
+    assert len(keys) == 10
+    for key in keys:
+        assert remap_number(key, value=12) in eighthnote
 
 ###############################################################################
 ################################# UTILS TESTS #################################
@@ -620,7 +621,8 @@ if __name__ == '__main__':
         test_convert_keysstate_to_notearray,
         test_get_number_multiples,
         test_generate_melodic_keys,
-        test_convert_keys_to_keystate
+        test_convert_keys_to_keystate,
+        test_generate_harmonic_keys
     ]
 
     test_failed = 0

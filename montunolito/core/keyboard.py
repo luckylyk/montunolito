@@ -5,7 +5,8 @@ from .solfege import SCALE_LENGHT, get_fingersstate_type
 KEYBOARD_LENGHT = 88
 HIGHER_NOTE_USED = 71
 LOWER_NOTE_USED = 27
-
+REFERENCE_STARTNOTE = 35
+MUTE_KEYSSTATES = [0] * KEYBOARD_LENGHT
 
 def is_mute_keysstate(keysstate):
     return not sum(keysstate)
@@ -50,7 +51,7 @@ def convert_keys_to_keystate(keys):
 
 def generate_melodic_keys(eighthnote, reference_keysstate=None):
 
-    notes = [note for note in eighthnote if note]
+    notes = [note for note in eighthnote if note is not None]
     pressed_fingers_number = len(notes) + 1
     notes = get_number_multiples(
         notes[0], base=SCALE_LENGHT, maximum=KEYBOARD_LENGHT)
@@ -89,15 +90,26 @@ def generate_melodic_keys(eighthnote, reference_keysstate=None):
         return notes[startindex-1:startindex+2]
 
 
-def eighthnote_lenght(eightnote):
-    return len([n for n in eightnotes if n is not None])
+def eighthnote_lenght(eighthnote):
+    return len([n for n in eighthnote if n is not None])
 
 
 def generate_harmonic_keys(
         eighthnote, reference_melodic_keysstate=None,
         reference_harmonic_keysstate=None):
 
-    notes = [note for note in eighthnote if note]
+    notes = [note for note in eighthnote if note is not None]
+    final_notes = []
     if not reference_melodic_keysstate and not reference_harmonic_keysstate:
-        if len(notes) == 2:
-            pass
+        for note in notes:
+            multiples = get_number_multiples(
+                number=note, base=SCALE_LENGHT, maximum=KEYBOARD_LENGHT)
+            note = find_closer_number(
+                reference=REFERENCE_STARTNOTE,
+                array=multiples,
+                clamp=KEYBOARD_LENGHT)
+            final_notes.extend([note, note + 12])
+        return sorted(final_notes)
+
+
+
