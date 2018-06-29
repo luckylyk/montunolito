@@ -1,0 +1,11 @@
+      <note default-x={x}>
+        <pitch>
+          <step>{notename}</step>
+          <octave>{octave}</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-85">{stem}</stem>
+        <beam number="1">{beam}</beam>
+      </note>
