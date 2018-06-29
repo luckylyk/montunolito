@@ -5,6 +5,7 @@ import itertools
 from .utils import choose
 from .solfege import FINGERSSTATES
 from .melody import convert_eighthmetas_to_eighthnotes
+from .keyboard import convert_eighthnote_to_eighthkbstate
 
 
 def pattern_iterator(pattern):
@@ -15,7 +16,7 @@ def pattern_iterator(pattern):
     relationship indice between the indexes definied in the sub patter dict:
     'relationship'
     '''
-    last_pindexes = (4, random.randint(1, len(pattern[4]) - 1))
+    last_pindexes = (4, random.randint(1, len(pattern[4])) - 1)
     while True:
         qpatterns = pattern['relationships'][last_pindexes]
         pindexes = choose(qpatterns)
@@ -86,7 +87,7 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
     This iterator is the main iterator
     It create a stream of 64byte array representing a 62 keyboard keys states.
     The method receive a pattern a chord grid and a int between 0 and 11 as tonality.
-    TODO: the conversion to eighthnotes to eighth_kbstates
+    TODO: the conversion to eighthnotes to eighthkbstates
     '''
 
     eighthtmetas_it = eighthmetas_iterator(
@@ -94,6 +95,7 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
 
     previous_eighthnotes = [None, None, None, None]
     eighthmetas = next(eighthtmetas_it) + next(eighthtmetas_it)
+    eighthkbstates = []
 
     while True:
         eighthnotes = convert_eighthmetas_to_eighthnotes(
@@ -101,11 +103,18 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
             tonality)
 
         for eighthnote in eighthnotes:
-            yield eighthnote
+            eighthkbstate = convert_eighthnote_to_eighthkbstate(
+                eighthnote=eighthnote, 
+                eighthkbstates=eighthkbstates)
+            eighthkbstates.append(eighthkbstate)
+            yield eighthkbstate
 
         offset = -len(eighthnotes) + 1
         previous_eighthnotes = previous_eighthnotes[offset:-1] + eighthnotes
         eighthmetas = eighthmetas[len(eighthnotes):]
+
+        if len(eighthkbstates) > 8:
+            eighthkbstates = eighthkbstates[-8:]
 
         while len(eighthmetas) < 8:
             eighthmetas += next(eighthtmetas_it)

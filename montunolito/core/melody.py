@@ -319,7 +319,7 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
     lenght = len(chords)
     indexes = [
         i for i, em in enumerate(eighthmetas)
-        if get_fingersstate_type(em['fingersstate']) == 'harmonic'][lenght]
+        if get_fingersstate_type(em['fingersstate']) == 'harmonic'][:lenght]
 
     if indexes:
         eighths = replace_in_array(

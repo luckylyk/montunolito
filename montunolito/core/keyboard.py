@@ -6,85 +6,79 @@ KEYBOARD_LENGHT = 88
 HIGHER_NOTE_USED = 71
 LOWER_NOTE_USED = 27
 REFERENCE_STARTNOTE = 35
-MUTE_KEYSSTATES = [0] * KEYBOARD_LENGHT
-
-def is_mute_keysstate(keysstate):
-    return not sum(keysstate)
 
 
-def is_melodic_keysstate(keysstate):
-    return keysstate_lenght(keysstate) == 1
+def is_melodic_eighthkbstate(eighthkbstate):
+    return eighthkbstate_lenght(eighthkbstate) == 1
 
 
-def is_chord_keysstate(keysstate):
-    if is_mute_keysstate(keysstate) or is_melodic_keysstate(keysstate):
-        return False
-    return True
+def is_harmonic_eighthkbstate(eighthkbstate):
+    return eighthkbstate_lenght(eighthkbstate) > 1
 
 
-def keysstate_pressed_fingers_lenght(keysstate):
-    return len([s for s in keysstate if s == 1])
+def eighthkbstate_lenght(eighthkbstate):
+    return len(set(
+        [remap_number(n, value=SCALE_LENGHT) for n in eighthkbstate]))
 
 
-def convert_keysstate_to_notearray(keysstate):
-    return [
-        remap_number(i, value=SCALE_LENGHT)
-        for i in keysstate_indexes(keysstate)]
+def convert_eighthnote_to_eighthkbstate(eighthnote, eighthkbstates=None):
+    eighthkbstates = eighthkbstates or []
+    melodic_eighthkbstate = [
+        kbs for kbs in eighthkbstates if is_melodic_eighthkbstate(kbs)]
+    harmonic_eighthkbstate = [
+        kbs for kbs in eighthkbstates if is_harmonic_eighthkbstate(kbs)]
+
+    reference_melodic_eighthkbstate = (
+        melodic_eighthkbstate[0] if melodic_eighthkbstate else None)
+    reference_harmonic_eighthkbstate = (
+        harmonic_eighthkbstate[0] if harmonic_eighthkbstate else None)
+
+    if get_fingersstate_type(eighthnote) == 'melodic':
+        return generate_melodic_eighthkbstate(
+            eighthnote=eighthnote,
+            reference_eighthkbstate=reference_melodic_eighthkbstate)
+
+    elif get_fingersstate_type(eighthnote) == 'harmonic':
+        return generate_harmonic_eighthkbstate(
+            eighthnote=eighthnote,
+            reference_melodic_eighthkbstate=reference_melodic_eighthkbstate,
+            reference_harmonic_eighthkbstate=reference_harmonic_eighthkbstate)
+
+    else: # is mute
+        return []
 
 
-def keysstate_indexes(keysstate):
-    return [i for i, s in enumerate(keysstate) if s == 1]
-
-
-def keysstate_lenght(keysstate):
-    return len(set(convert_keysstate_to_notearray(keysstate)))
-
-
-def convert_eightnotes_to_keysstates(eightnotes, keysstates=None):
-    melodic_keysstates = [ks for ks in keysstates if is_melodic_keysstate(ks)]
-    chord_keysstates = [ks for ks in keysstates if is_chord_keysstate(ks)]
-
-
-def convert_keys_to_keystate(keys):
-    return [1 if key in keys else 0 for key in range(KEYBOARD_LENGHT)]
-
-
-def generate_melodic_keys(eighthnote, reference_keysstate=None):
-
+def generate_melodic_eighthkbstate(eighthnote, reference_eighthkbstate=None):
     notes = [note for note in eighthnote if note is not None]
     pressed_fingers_number = len(notes) + 1
     notes = get_number_multiples(
         notes[0], base=SCALE_LENGHT, maximum=KEYBOARD_LENGHT)
-    final_notes = []
+    keys = []
 
-    if not reference_keysstate:
+    if not reference_eighthkbstate:
         for note in sorted(notes, reverse=True):
             if note < HIGHER_NOTE_USED:
-                final_notes.append(note)
-            if len(final_notes) == pressed_fingers_number:
-                return sorted(final_notes)
+                keys.append(note)
+            if len(keys) == pressed_fingers_number:
+                return sorted(keys)
 
-    reference_pressed_fingers_number = keysstate_pressed_fingers_lenght(
-        reference_keysstate)
-    reference_indexes = keysstate_indexes(reference_keysstate)
-
-    if pressed_fingers_number == reference_pressed_fingers_number:
-        for index in reference_indexes:
-            final_notes.append(
+    if pressed_fingers_number == len(reference_eighthkbstate):
+        for key in reference_eighthkbstate:
+            keys.append(
                 find_closer_number(
-                    reference=index,
+                    reference=key,
                     array=notes,
                     clamp=KEYBOARD_LENGHT))
-        return sorted(final_notes)
+        return sorted(keys)
 
     startindex = 0
     for note in notes:
-        if notes[startindex] < reference_indexes[0]:
+        if notes[startindex] < reference_eighthkbstate[0]:
             startindex += 1
         else:
             break
 
-    if pressed_fingers_number == 2 and reference_pressed_fingers_number == 3:
+    if pressed_fingers_number == 2 and len(reference_eighthkbstate) == 3:
         return notes[startindex:startindex+2]
     else:
         return notes[startindex-1:startindex+2]
@@ -94,22 +88,62 @@ def eighthnote_lenght(eighthnote):
     return len([n for n in eighthnote if n is not None])
 
 
-def generate_harmonic_keys(
-        eighthnote, reference_melodic_keysstate=None,
-        reference_harmonic_keysstate=None):
+def generate_harmonic_eighthkbstate(
+        eighthnote, reference_melodic_eighthkbstate=None,
+        reference_harmonic_eighthkbstate=None):
 
     notes = [note for note in eighthnote if note is not None]
-    final_notes = []
-    if not reference_melodic_keysstate and not reference_harmonic_keysstate:
-        for note in notes:
-            multiples = get_number_multiples(
-                number=note, base=SCALE_LENGHT, maximum=KEYBOARD_LENGHT)
-            note = find_closer_number(
-                reference=REFERENCE_STARTNOTE,
-                array=multiples,
-                clamp=KEYBOARD_LENGHT)
-            final_notes.extend([note, note + 12])
-        return sorted(final_notes)
+
+    conditions = (
+        reference_melodic_eighthkbstate or reference_harmonic_eighthkbstate)
+    if not conditions:
+        return generate_first_harmonic_keys(notes)
+
+    keys = []
+    multiples = sorted([
+        number for note in notes for number in get_number_multiples(
+            number=note, base=SCALE_LENGHT, maximum=KEYBOARD_LENGHT)])
+
+    conditions = (
+        reference_melodic_eighthkbstate and
+        not reference_harmonic_eighthkbstate)
+    if conditions:
+        for number in multiples:
+            check_notes = [remap_number(k, value=12) for k in keys]
+            if number > reference_melodic_eighthkbstate[0]:
+                if remap_number(number, value=12) not in check_notes:
+                    keys.extend([number, number + 12])
+        return sorted(keys)
+
+    if reference_melodic_eighthkbstate:
+        multiples = [
+            n for n in multiples if n > reference_melodic_eighthkbstate[0]]
+
+    reference_lenght = len(set([
+        remap_number(n, value=12) for n in reference_harmonic_eighthkbstate]))
+    if len(notes) != reference_lenght:
+        return generate_first_harmonic_keys(notes)
+
+    for key in reference_harmonic_eighthkbstate:
+        array = [n for n in multiples if n not in keys]
+        keys.append(
+            find_closer_number(
+                reference=key,
+                array=array,
+                clamp=KEYBOARD_LENGHT))
+        if len(keys) == len(notes):
+            break
+    return sorted([n for key in keys for n in (key, key + 12)])
 
 
-
+def generate_first_harmonic_keys(notes):
+    keys = []
+    for note in notes:
+        multiples = get_number_multiples(
+            number=note, base=SCALE_LENGHT, maximum=KEYBOARD_LENGHT)
+        number = find_closer_number(
+            reference=REFERENCE_STARTNOTE,
+            array=multiples,
+            clamp=KEYBOARD_LENGHT)
+        keys.extend([number, number + 12])
+    return sorted(keys)
