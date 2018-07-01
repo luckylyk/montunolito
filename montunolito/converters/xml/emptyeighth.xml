@@ -1,4 +1,4 @@
-<note default-x="324">
+<note default-x={posx}>
   <rest/>
   <duration>1</duration>
   <voice>1</voice>

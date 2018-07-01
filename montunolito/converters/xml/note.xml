@@ -1,4 +1,4 @@
-      <note default-x={x}>
+      <note default-x={posx}>
         <pitch>
           <step>{notename}</step>
           <octave>{octave}</octave>

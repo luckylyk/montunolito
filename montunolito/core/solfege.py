@@ -5,7 +5,7 @@
 NOTES = ('A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab')
 
 
-SCALE_LENGHT = 12
+SCALE_LENGTH = 12
 
 
 SCALES = dict(

@@ -25,7 +25,7 @@ import itertools
 from .solfege import (
     FINGERSSTATES, FINGERSSTATE_TYPES, CHORDS, SCALENAME_BY_CHORDNAME, SCALES,
     CHORD_SCALES_REMPLACEMENT_INDEXES, MUTE_EIGHTH,
-    CHORD_INDEXES_PRIORITY_ORDER, SCALE_LENGHT, get_fingersstate_type)
+    CHORD_INDEXES_PRIORITY_ORDER, SCALE_LENGTH, get_fingersstate_type)
 
 from .utils import (
     remap_array, remap_number, find_closer_number, choose, offset_array,
@@ -42,10 +42,10 @@ def generate_notearray_chord(chord, tonality):
     concert_pitch_array = remap_array(
         array=CHORDS[chord['name']],
         offset=chord['degree'],
-        value=SCALE_LENGHT)
+        value=SCALE_LENGTH)
 
     return remap_array(
-        array=concert_pitch_array, offset=tonality, value=SCALE_LENGHT)
+        array=concert_pitch_array, offset=tonality, value=SCALE_LENGTH)
 
 
 def generate_notearray_scale(chord, tonality):
@@ -61,7 +61,7 @@ def generate_notearray_scale(chord, tonality):
                     scale[scale_index] = CHORDS[chord['name']][chord_index]
 
             offset = chord['degree'] + tonality
-            return remap_array(array=scale, offset=offset, value=SCALE_LENGHT)
+            return remap_array(array=scale, offset=offset, value=SCALE_LENGTH)
 
 
 def generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality):
@@ -188,7 +188,7 @@ def generate_static_melody(
         note = find_closer_number(
             reference=reference_note,
             array=(chord_array[0], chord_array[2]),
-            clamp=SCALE_LENGHT)
+            clamp=SCALE_LENGTH)
     else:
         note = choose({chord_array[0]: 5, chord_array[0]: 1})
 
@@ -216,7 +216,7 @@ def generate_chromatic_melody(
         startnote = find_closer_number(
             reference=reference_note,
             array=(chord_array[0], chord_array[2]),
-            clamp=SCALE_LENGHT)
+            clamp=SCALE_LENGTH)
     else:
         startnote = choose({chord_array[0]: 5, chord_array[0]: 1})
 
@@ -240,7 +240,8 @@ def generate_diatonic_melody(
     if reference_note:
         startnote_index = scale.index(
             find_closer_number(
-                reference=reference_note, array=chord_array, clamp=12))
+                reference=reference_note, array=chord_array,
+                clamp=SCALE_LENGTH))
     else:
         startnote_index = choose({chord_array[0]: 5, chord_array[0]: 1})
 
