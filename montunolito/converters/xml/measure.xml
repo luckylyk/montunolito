@@ -1,31 +1,4 @@
     <measure number="1" width="562">
-      <print>
-        <system-layout>
-          <system-margins>
-            <left-margin>12</left-margin>
-            <right-margin>0</right-margin>
-          </system-margins>
-          <top-system-distance>75</top-system-distance>
-        </system-layout>
-        <measure-numbering>system</measure-numbering>
-      </print>
-      <attributes>
-        <divisions>2</divisions>
-        <key>
-          <fifths>0</fifths>
-          <mode>major</mode>
-        </key>
-        <time>
-          <beats>4</beats>
-          <beat-type>4</beat-type>
-        </time>
-        <clef>
-          <sign>G</sign>
-          <line>2</line>
-        </clef>
-      </attributes>
-      <sound tempo={tempo}/>
-
+    {measureheader}
     {notes}
-
     </measure>

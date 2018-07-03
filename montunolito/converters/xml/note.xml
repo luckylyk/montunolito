@@ -1,4 +1,4 @@
-      <note default-x={posx}>
+      <note default-x="{posx}">
         <pitch>
           <step>{notename}</step>
           <octave>{octave}</octave>
@@ -6,6 +6,6 @@
         <duration>1</duration>
         <voice>1</voice>
         <type>eighth</type>
-        <stem default-y="-85">{stem}</stem>
-        <beam number="1">{beam}</beam>
+        {stem}
+        {beam}
       </note>
