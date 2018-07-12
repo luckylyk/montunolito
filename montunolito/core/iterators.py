@@ -86,8 +86,8 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
     '''
     This iterator is the main iterator
     It create a stream of 64byte array representing a 62 keyboard keys states.
-    The method receive a pattern a chord grid and a int between 0 and 11 as tonality.
-    TODO: the conversion to eighthnotes to eighthkbstates
+    The method receive a pattern a chord grid and a int between
+    0 and 11 as tonality.
     '''
 
     eighthtmetas_it = eighthmetas_iterator(
@@ -102,11 +102,14 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
             previous_eighthnotes, eighthmetas,
             tonality)
 
-        for eighthnote in eighthnotes:
+        for i, eighthnote in enumerate(eighthnotes):
             eighthkbstate = convert_eighthnote_to_eighthkbstate(
                 eighthnote=eighthnote, 
                 eighthkbstates=eighthkbstates)
             eighthkbstates.append(eighthkbstate)
+            print(eighthmetas[i])
+            print(eighthnote)
+            print(eighthkbstate)
             yield eighthkbstate
 
         offset = -len(eighthnotes) + 1

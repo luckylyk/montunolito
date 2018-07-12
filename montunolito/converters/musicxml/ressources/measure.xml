@@ -1,4 +1,4 @@
-    <measure number="1" width="562">
+    <measure number="{number}" width="562">
     {measureheader}
     {notes}
     </measure>

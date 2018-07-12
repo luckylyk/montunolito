@@ -1,7 +1,7 @@
 import sys
 import traceback
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), 'montunolito'))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from montunolito.core.iterators import *
 from montunolito.core.melody import *
@@ -471,6 +471,21 @@ def test_get_number_multiples():
     assert get_number_multiples(number=6, base=12, maximum=64) == [6, 18, 30, 42, 54]
 
 
+def test_split_array():
+    array = [3, 5, 8, 6, 8, 7, 4, 5, 6, 5, 4, 2, 3, 4, 8, 9]
+    arrays = split_array(array, lenght=4)
+    assert arrays == [[3, 5, 8, 6], [8, 7, 4, 5], [6, 5, 4, 2], [3, 4, 8, 9]]
+    array = [3, 5, 8, 6, 8, 7, 4, 5, 6, 5, 4, 2, 3, 4, 8, 9]
+    arrays = split_array(array, lenght=8)
+    assert arrays == [[3, 5, 8, 6, 8, 7, 4, 5], [6, 5, 4, 2, 3, 4, 8, 9]]
+
+
+def test_set_array_lenght_multiple():
+    array = [3, 5, 8, 6, 8]
+    final_array = set_array_lenght_multiple(array, multiple=3, default=5)
+    assert final_array == [3, 5, 8, 6, 8, 5]
+
+
 def test_iteration():
     CHORDGRIDS = dict(
         example = [
@@ -501,6 +516,13 @@ def test_iteration():
         time.sleep(.075)
         print(next(montunos))
 
+def test_get_fingerstate_type():
+    assert get_fingersstate_type([False, True, False, True, False]) == 'harmonic'
+    print (get_fingersstate_type([True, False, False, False, True]))
+    assert get_fingersstate_type([True, False, False, False, True]) == 'melodic'
+    assert get_fingersstate_type([1, None, None, None, 1]) == 'melodic'
+    assert get_fingersstate_type([0, None, None, None, 0]) == 'melodic'
+
 
 if __name__ == '__main__':
     tests = [
@@ -521,7 +543,10 @@ if __name__ == '__main__':
         test_generate_melodic_keys,
         test_is_melodic_eighthkbstates,
         test_is_harmonic_eighthkbstates,
-        test_generate_harmonic_keys
+        test_generate_harmonic_keys,
+        test_split_array,
+        test_set_array_lenght_multiple,
+        test_get_fingerstate_type
     ]
 
     test_failed = 0
@@ -545,4 +570,4 @@ if __name__ == '__main__':
             print(m + " :")
             print(tb)
 
-test_iteration()
+#test_iteration()

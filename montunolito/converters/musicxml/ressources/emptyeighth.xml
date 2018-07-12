@@ -1,0 +1,6 @@
+    <note default-x="{posx}">
+      <rest/>
+      <duration>1</duration>
+      <voice>1</voice>
+      <type>eighth</type>
+    </note>

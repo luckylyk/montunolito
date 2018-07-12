@@ -91,3 +91,20 @@ def get_number_multiples(number, base=None, maximum=20):
         indexes.append(number)
         number += base
     return indexes
+
+
+def split_array(array, lenght=10):
+    arrays = []
+    subarray = []
+    for item in array:
+        subarray.append(item)
+        if len(subarray) == lenght:
+            arrays.append(subarray)
+            subarray = []
+    return arrays
+
+
+def set_array_lenght_multiple(array, multiple=10, default=None):
+    while len(array) % multiple != 0:
+        array.append(default)
+    return array

@@ -81,8 +81,13 @@ SCALENAME_BY_CHORDNAME = dict(
 # 0 mean the finger is not pressing a key
 # 1, it's pressing a key.
 FINGERSSTATES = (
-    (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
-    (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 0, 1, 0), (1, 1, 1, 1, 1))
+    (False, False, False, False, False), (True, False, False, False, True),
+    (True, False, False, False, False), (False, True, False, False, False),
+    (False, False, True, False, False), (False, False, False, True, False),
+    (False, True, False, True, False), (True, True, True, True, True))
+    # (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
+    # (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 0, 1, 0), (1, 1, 1, 1, 1))
+
 
 
 FINGERSSTATE_TYPES = {
@@ -95,11 +100,18 @@ MUTE_EIGHTH = [None, None, None, None, None]
 
 
 def get_fingersstate_type(array):
+
     if array is None:
         return None
-    array = tuple([0 if v is None else v for v in array])
-    array = tuple([1 if value > 0 else 0 for value in array])
-    index = FINGERSSTATES.index(array)
+
+    conditions = (
+        any([isinstance(v, int) and not isinstance(v, bool) for v in array]) or
+        None in array)
+
+    if conditions:
+        array = [False if v is None else True for v in array]
+
+    index = FINGERSSTATES.index(tuple(array))
     for fingersstate_type, indexes in FINGERSSTATE_TYPES.items():
         if index in indexes:
             return fingersstate_type

@@ -70,6 +70,9 @@ def generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality):
     a list of melodic eightmetas. It decide which sort of melody has to be
     generated and generate it.
     """
+    if not eighthmetas: # when first eighth meta is mute
+        return []
+
     melody_length = define_melody_length(eighthmetas)
     eighthmetas = eighthmetas[:melody_length]
     behavior = eighthmetas[0]['behavior']

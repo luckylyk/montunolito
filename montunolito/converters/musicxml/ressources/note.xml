@@ -1,6 +1,9 @@
       <note default-x="{posx}">
+        {chord}
         <pitch>
           <step>{notename}</step>
+          
+          {alter}
           <octave>{octave}</octave>
         </pitch>
         <duration>1</duration>
@@ -9,3 +12,4 @@
         {stem}
         {beam}
       </note>
+

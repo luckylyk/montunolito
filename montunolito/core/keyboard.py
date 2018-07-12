@@ -3,8 +3,8 @@ from .solfege import SCALE_LENGTH, get_fingersstate_type
 
 
 KEYBOARD_LENGHT = 88
-HIGHER_NOTE_USED = 71
-LOWER_NOTE_USED = 27
+HIGHER_NOTE_USED = 75
+LOWER_NOTE_USED = 15
 REFERENCE_STARTNOTE = 35
 
 
@@ -34,18 +34,21 @@ def convert_eighthnote_to_eighthkbstate(eighthnote, eighthkbstates=None):
         harmonic_eighthkbstate[0] if harmonic_eighthkbstate else None)
 
     if get_fingersstate_type(eighthnote) == 'melodic':
-        return generate_melodic_eighthkbstate(
+        generated_kbnotes = generate_melodic_eighthkbstate(
             eighthnote=eighthnote,
             reference_eighthkbstate=reference_melodic_eighthkbstate)
 
     elif get_fingersstate_type(eighthnote) == 'harmonic':
-        return generate_harmonic_eighthkbstate(
+        generated_kbnotes = generate_harmonic_eighthkbstate(
             eighthnote=eighthnote,
             reference_melodic_eighthkbstate=reference_melodic_eighthkbstate,
             reference_harmonic_eighthkbstate=reference_harmonic_eighthkbstate)
 
     else: # is mute
-        return []
+        # print (eighthnote, 'IS MUTE')
+        generated_kbnotes = []
+
+    return list(set(generated_kbnotes))
 
 
 def generate_melodic_eighthkbstate(eighthnote, reference_eighthkbstate=None):

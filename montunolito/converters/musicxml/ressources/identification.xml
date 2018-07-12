@@ -2,7 +2,7 @@
     <encoding>
       <software>Montunolito</software>
       <software>Montunolito XML exporter</software>
-      <encoding-date>{encording_date}</encoding-date>
+      <encoding-date>{encoding_date}</encoding-date>
       <supports attribute="new-system" element="print" type="yes" value="yes"/>
       <supports attribute="new-page" element="print" type="yes" value="yes"/>
       <supports element="accidental" type="yes"/>

@@ -23,4 +23,4 @@
           <line>2</line>
         </clef>
       </attributes>
-      <sound tempo={tempo}/>
+      <sound tempo="{tempo}"/>

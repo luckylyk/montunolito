@@ -1,4 +1,4 @@
-NAME = 'basic'
+NAME = 'montuno'
 
 PATTERN = {
     1: [(1, 0, 6, 1), (1, 3, 5, 1), (2, 3, 5, 1)],
