@@ -334,8 +334,11 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
 
 def generate_chords_from_eighthmetas(
         reference_chord, reference_note, wip_eighths, tonality):
-    # TEST THIS FUNCTION
-    # WRITE DOC
+    """
+    This method receive and eighths list. It contains melodic eighthnotes
+    already generated and harmonic eighthmetas who have to be convert in
+    eighthnotes.
+    """
 
     chords_eighthnotes = []
     for eighth in wip_eighths:
