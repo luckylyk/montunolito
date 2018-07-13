@@ -1,6 +1,8 @@
-##############################################################################
-#  CORE / CONSTANTS
-##############################################################################
+"""
+This module contains all the constants and music rules used during the
+musical generation process: Chord, Scales, Fingerstates
+And also some utils.
+"""
 
 NOTES = ('A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab')
 
@@ -85,8 +87,6 @@ FINGERSSTATES = (
     (True, False, False, False, False), (False, True, False, False, False),
     (False, False, True, False, False), (False, False, False, True, False),
     (False, True, False, True, False), (True, True, True, True, True))
-    # (0, 0, 0, 0, 0), (1, 0, 0, 0, 1), (1, 0, 0, 0, 0), (0, 1, 0, 0, 0),
-    # (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 1, 0, 1, 0), (1, 1, 1, 1, 1))
 
 
 
