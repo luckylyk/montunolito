@@ -94,6 +94,12 @@ def get_number_multiples(number, base=None, maximum=20):
 
 
 def split_array(array, lenght=10):
+    '''
+    this common utils split an array in subarray with a lenght given.
+    e.g. :
+    split_array([1, 5, 65, 3, 4, 3], lenght=3)
+    returns: [[1, 5, 65], [3, 4, 3]]
+    '''
     arrays = []
     subarray = []
     for item in array:
@@ -105,6 +111,16 @@ def split_array(array, lenght=10):
 
 
 def set_array_lenght_multiple(array, multiple=10, default=None):
+    '''
+    this utils ensure that an array lenght is a multiple of a number given.
+    When it's not the case, it append the default value, until the array
+    lenght is a multiple of the multiple given.
+    
+    e.g.
+    array = [5, 3, 7, 8, 5]
+    set_array_lenght_multiple(array, multiple=9, default='salut')
+    returns [5, 3, 7, 8, 5, 'salut', 'salut', 'salut', 'salut']
+    '''
     while len(array) % multiple != 0:
         array.append(default)
     return array
