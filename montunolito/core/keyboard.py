@@ -44,11 +44,9 @@ def convert_eighthnote_to_eighthkbstate(eighthnote, eighthkbstates=None):
             reference_melodic_eighthkbstate=reference_melodic_eighthkbstate,
             reference_harmonic_eighthkbstate=reference_harmonic_eighthkbstate)
 
-    else: # is mute
-        # print (eighthnote, 'IS MUTE')
+    else:
         generated_kbnotes = []
-
-    return list(set(generated_kbnotes))
+    return sorted(list(set(generated_kbnotes)))
 
 
 def generate_melodic_eighthkbstate(eighthnote, reference_eighthkbstate=None):
@@ -82,9 +80,9 @@ def generate_melodic_eighthkbstate(eighthnote, reference_eighthkbstate=None):
             break
 
     if pressed_fingers_number == 2 and len(reference_eighthkbstate) == 3:
-        return notes[startindex:startindex+2]
+        return sorted(notes[startindex:startindex+2])
     else:
-        return notes[startindex-1:startindex+2]
+        return sorted(notes[startindex-1:startindex+2])
 
 
 def eighthnote_lenght(eighthnote):
@@ -118,7 +116,7 @@ def generate_harmonic_eighthkbstate(
                     keys.extend([number, number + SCALE_LENGTH])
         return sorted(keys)
 
-    if reference_melodic_eighthkbstate:
+    if reference_melodic_eighthkbstate is not None:
         multiples = [
             n for n in multiples if n > reference_melodic_eighthkbstate[0]]
 
