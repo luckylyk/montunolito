@@ -2,7 +2,8 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from montunolito.patterns.editor import (
+
+from montunolito.core.pattern import (
     get_new_pattern, append_fingerstates_indexes, append_quarter_row,
     delete_fingerstates_indexes, set_behavior_value, set_relationship_value)
 

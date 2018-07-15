@@ -1,3 +1,13 @@
+# every pattern contains 3 keys: quarters, relationships and behaviors
+# keys 'quarters' contains differents alternative array of hand pattern index.
+# the key number correspond the quarter of the pattern (1 = first quarter, etc)
+# the 'relationship' key contains a dict. His keys represent the pattern index
+# it contain the pattern index of the next quarter and a value
+# (between 0 and 5)
+# it's for generate random patterns.
+# this is data and will be moved in JSON files. Every pattern will be save as
+# different json file.
+
 
 EMPTY_PATTERN = {
     'quarters': [],
