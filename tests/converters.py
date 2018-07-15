@@ -64,6 +64,7 @@ CHORDS = {
         None, 
         None,
         None],
+
     '14541': [
         {'degree': 0, 'name': 'Minor'},
         None,
@@ -81,18 +82,37 @@ CHORDS = {
         None, 
         {'degree': 0, 'name': 'Minor'},
         None],
+
+    'lejourdupoisson': [
+        {'degree': 0, 'name': 'm6'},
+        None, None, None, None, None, 
+        {'degree': 10, 'name': 'M6'},
+        None, None, None, None, None, None, None, 
+        {'degree': 8, 'name': 'M6'},
+        None, None, None, None, None, None, None, 
+        {'degree': 7, 'name': 'M7'},
+        None, None, None, None, None, None, None, 
+        {'degree': 5, 'name': 'm6'},
+        None, None, None, None, None, None, None, 
+        {'degree': 0, 'name': 'm7'},
+        None, None, None, None, None, None, None, 
+        {'degree': 2, 'name': 'M7'},
+        None, None, None, None, None, None, None, 
+        {'degree': 7, 'name': 'M7'},
+        None, None, None, None, None, None, None, None, None],
 }
+
 
 
 def get_full_generated_eighthkbnotes():
 
     montunos = montuno_generator(
         pattern=PATTERNS['montuno'],
-        chord_grid=CHORDS['chacha'],
+        chord_grid=CHORDS['lejourdupoisson'],
         tonality=3)
 
     eighthkbnotes = []
-    for _ in range(64):
+    for _ in range(8*8*4):
         eighthkbnote = next(montunos)
         eighthkbnotes.append(eighthkbnote)
     return eighthkbnotes
@@ -106,7 +126,7 @@ if __name__ == "__main__":
     #     get_generated_eighthkbnotes() +
     #     get_full_generated_eighthkbnotes())
 
-    xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=250)
+    xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=600)
     fileoutput = r'C:\Users\zil\Desktop\xmltest\montuno.xml'
     with open(fileoutput, 'w') as myfile:
         myfile.write(xmlcontent)

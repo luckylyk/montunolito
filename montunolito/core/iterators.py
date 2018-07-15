@@ -16,7 +16,7 @@ def pattern_iterator(pattern):
     relationship indice between the indexes definied in the sub patter dict:
     'relationship'
     '''
-    last_pindexes = (4, random.randint(1, len(pattern[4])) - 1)
+    last_pindexes = (3, random.randint(1, len(pattern['quarters'][-1])) - 1)
     while True:
         qpatterns = pattern['relationships'][last_pindexes]
         pindexes = choose(qpatterns)
@@ -54,7 +54,7 @@ def create_eighthmetas(
     representing 4 eighth notes.
     '''
     fingersstates_retrieved = []
-    qpattern = pattern[pattern_index[0]][pattern_index[1]]
+    qpattern = pattern['quarters'][pattern_index[0]][pattern_index[1]]
     for index in qpattern:
         fingersstates_retrieved.append(FINGERSSTATES[index])
     return [
@@ -107,9 +107,10 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
                 eighthnote=eighthnote, 
                 eighthkbstates=eighthkbstates)
             eighthkbstates.append(eighthkbstate)
-            print(eighthmetas[i])
-            print(eighthnote)
-            print(eighthkbstate)
+            ## print for debug
+            # print(eighthmetas[i])
+            # print(eighthnote)
+            # print(eighthkbstate)
             yield eighthkbstate
 
         offset = -len(eighthnotes) + 1
