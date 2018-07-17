@@ -58,6 +58,7 @@ class Balloon(QtGui.QWidget):
         painter.end()
 
     def paint(self, painter):
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
         draw_ballon(painter, self.rect(), self.TITLE)
         draw_closer(painter, self._closer_rect, self._closer_state)
 
@@ -70,17 +71,7 @@ class BehaviorBalloon(Balloon):
 
     def paint(self, painter):
         super().paint(painter)
-
-        font = QtGui.QFont()
-        font.setBold(False)
-        font.setPointSize(11)
-        painter.setFont(font)
-
-        pen = QtGui.QPen(QtGui.QColor(110, 110, 110))
-        painter.setPen(pen)
-        top_offset = self.drawable_rect.top() + 5
-        for i, text in enumerate(BEHAVIOR_NAMES):
-            painter.drawText(27, (20 * i) + top_offset, text)
+        draw_texts(painter, self.drawable_rect, BEHAVIOR_NAMES)
 
 
 class FingerstatesBalloon(Balloon):
@@ -110,7 +101,8 @@ class FingerstatesBalloon(Balloon):
         super().paint(painter)
         for index, rect in enumerate(self._rects):
             border = index == self._hover_rect_index
-            draw_fingerstate(painter, self.fingerstates[index], rect, border=border)
+            draw_fingerstate(
+                painter, self.fingerstates[index], rect, border=border)
 
 
 def draw_fingerstate(painter, fingerstate, rect, border=False):
@@ -158,8 +150,6 @@ def draw_fingerstate(painter, fingerstate, rect, border=False):
 
 
 def draw_ballon(painter, rect, title):
-    painter.setRenderHint(QtGui.QPainter.Antialiasing)
-
     pen = QtGui.QPen(QtGui.QColor(0,0,0,0))
     pen.setWidth(0)
     pen.setJoinStyle(QtCore.Qt.MiterJoin)
@@ -209,6 +199,19 @@ def draw_closer(painter, rect, state):
             rect.left() + rect.width() - shrink, rect.top() + shrink),
         QtCore.QPoint(
             rect.left() + shrink, rect.top() + rect.height() - shrink))
+
+
+def draw_texts(painter, rect, texts):
+    font = QtGui.QFont()
+    font.setBold(False)
+    font.setPointSize(11)
+    painter.setFont(font)
+
+    pen = QtGui.QPen(QtGui.QColor(110, 110, 110))
+    painter.setPen(pen)
+    top_offset = rect.top() + 5
+    for i, text in enumerate(texts):
+        painter.drawText(27, (20 * i) + top_offset, text)
 
 
 if __name__ == "__main__":
