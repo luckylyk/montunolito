@@ -11,13 +11,14 @@ COLORS = {
             'column':
                 {
                     'background': '#5d5d5d',
-                    'number': '#998532'
+                    'number': '#225566'
                 },
             'index':
                 {
-                    'background': '#6e6e6e',
+                    'background_0': '#6e6e6e',
+                    'background_100': '#6eAA6e',
                     'border_highlight': '#449999',
-                    'plug_highlight': '#CCAA88',
+                    'plug_highlight': '#AA4455',
                     'item':
                         {
                             'background': '#7f7f7f',
@@ -81,7 +82,7 @@ def draw_index(painter, rect, occurence, hover=0):
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
 
-    background = QtGui.QColor(COLORS['graph']['index']['background'])
+    background = get_index_background_color(occurence)
     plug_highlight = QtGui.QColor(COLORS['graph']['index']['plug_highlight'])
     brush = QtGui.QBrush(plug_highlight if hover == 1 else background)
     painter.setBrush(brush)
@@ -105,6 +106,7 @@ def draw_index(painter, rect, occurence, hover=0):
     if hover == 4:
         color = COLORS['graph']['index']['item']['border_highlight']
         pen = QtGui.QPen(QtGui.QColor(color))
+        pen.setWidth(3)
     else:
         pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
@@ -112,6 +114,7 @@ def draw_index(painter, rect, occurence, hover=0):
     if hover == 5:
         color = COLORS['graph']['index']['item']['border_highlight']
         pen = QtGui.QPen(QtGui.QColor(color))
+        pen.setWidth(3)
     else:
         pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
@@ -156,6 +159,18 @@ def get_behavior_rect(rect):
     return QtCore.QRect(left, rect.top() + offset, width, width)
 
 
+def get_index_background_color(percent):
+    zero = QtGui.QColor(COLORS['graph']['index']['background_0'])
+    hundred = QtGui.QColor(COLORS['graph']['index']['background_100'])
+    zr, zg, zb, _ = zero.getRgb()
+    hr, hg, hb, _ = hundred.getRgb()
+
+    r = abs(zr - hr) * (percent / 100) + min(zr, hr)
+    g = abs(zg - hg) * (percent / 100) + min(zg, hg)
+    b = abs(zb - hb) * (percent / 100) + min(zb, hb)
+    return QtGui.QColor(r, g, b)
+
+
 if __name__ == '__main__':
     class MainTest(QtGui.QMainWindow):
         def __init__(self, parent=None):
@@ -183,13 +198,13 @@ if __name__ == '__main__':
             index = QtCore.QRect(60, 100, 130, 25)
             draw_index(painter, index, 0, hover=0)
             index = QtCore.QRect(60, 140, 130, 25)
-            draw_index(painter, index, 0, hover=3)
+            draw_index(painter, index, 25, hover=3)
             index = QtCore.QRect(60, 180, 130, 25)
-            draw_index(painter, index, 0, hover=2)
+            draw_index(painter, index, 50, hover=2)
             index = QtCore.QRect(60, 220, 130, 25)
-            draw_index(painter, index, 0, hover=4)
+            draw_index(painter, index, 75, hover=4)
             index = QtCore.QRect(60, 260, 130, 25)
-            draw_index(painter, index, 0, hover=5)
+            draw_index(painter, index, 100, hover=5)
 
     import sys
     application = QtGui.QApplication(sys.argv)
