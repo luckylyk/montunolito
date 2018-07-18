@@ -137,3 +137,20 @@ def set_behavior_value(pattern, index, behavior, value):
     if not index_exists(pattern, index):
         raise IndexError("pattern doesn't contain index {}".format(index))
     pattern['behaviors'][index][behavior] = value
+
+
+def get_index_occurence_probablity(pattern, index):
+    if not index_exists(pattern, index):
+        raise IndexError("pattern doesn't contain index {}".format(index))
+
+    row, _ = index
+    row_to_check = get_previous_row(pattern, row)
+    indexes_to_check = get_existing_indexes_in_row(pattern, row_to_check)
+    total = 0
+    index_score = 0
+    for index_to_check in indexes_to_check:
+        for i, v in pattern['relationships'][index_to_check].items():
+            total += v
+            if i == index:
+                index_score += v
+    return round((float(index_score) / total) * 100)

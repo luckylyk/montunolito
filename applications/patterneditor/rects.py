@@ -48,5 +48,4 @@ def get_row_rect(row_number, row_len):
         ROWS_HEADER_SPACE +
         ((INDEX_WIDTH + INDEX_SPACING) * row_len) +
         ROWS_BOTTOM_SPACE)
-
     return QtCore.QRect(left, ROWS_TOP, ROWS_WIDTH, height)

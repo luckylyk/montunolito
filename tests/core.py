@@ -8,6 +8,7 @@ from montunolito.core.melody import *
 from montunolito.core.solfege import *
 from montunolito.core.utils import *
 from montunolito.core.keyboard import *
+from montunolito.core.pattern import *
 
 from montunolito.patterns import PATTERNS
 
@@ -486,6 +487,57 @@ def test_set_array_lenght_multiple():
     assert final_array == [3, 5, 8, 6, 8, 5]
 
 
+###############################################################################
+################################# pattern editor# #############################
+###############################################################################
+
+
+def test_get_index_occurence_probablity():
+    pattern_test = {
+        'quarters': 
+        [
+            [(1, 1, 1, 1), (1, 0, 1, 1)],
+            [(1, 1, 1, 1)],
+            [(1, 0, 1, 1)],
+            [(1, 0, 0, 1), (1, 0, 1, 1), (1, 1, 1, 1)]
+        ],
+        'relationships':
+        {
+            (0, 0): {(1, 0): 5},
+            (0, 1): {(1, 0): 5},
+            (1, 0): {(2, 0): 5},
+            (2, 0): {(3, 0): 5, (3, 1): 5, (3, 2): 5},
+            (3, 0): {(0, 0): 4, (0, 1): 1},
+            (3, 1): {(0, 0): 4, (0, 1): 1},
+            (3, 2): {(0, 0): 4, (0, 1): 1}
+        },
+        'behaviors': {
+            (0, 0): {'static': 1, 'melodic': 2, 'arpegic': 0},
+            (0, 1): {'static': 0, 'melodic': 2, 'arpegic': 0},
+            (1, 0): {'static': 1, 'melodic': 2, 'arpegic': 0},
+            (2, 0): {'static': 1, 'melodic': 2, 'arpegic': 0},
+            (3, 0): {'static': 1, 'melodic': 2, 'arpegic': 0},
+            (3, 1): {'static': 0, 'melodic': 2, 'arpegic': 1},
+            (3, 2): {'static': 0, 'melodic': 2, 'arpegic': 1}
+        }
+    }
+    assert get_index_occurence_probablity(pattern_test, (0, 1)) == 20
+    assert get_index_occurence_probablity(pattern_test, (0, 0)) == 80
+    assert get_index_occurence_probablity(pattern_test, (1, 0)) == 100
+    raise_ = False
+    try:
+        assert get_index_occurence_probablity(pattern_test, (1, 1)) == 100
+    except IndexError:
+        raise_ = True
+    assert raise_ is True
+
+
+
+###############################################################################
+################################### iteration #################################
+###############################################################################
+
+
 def test_iteration():
     CHORDGRIDS = dict(
         example = [
@@ -546,7 +598,8 @@ if __name__ == '__main__':
         test_generate_harmonic_keys,
         test_split_array,
         test_set_array_lenght_multiple,
-        test_get_fingerstate_type
+        test_get_fingerstate_type,
+        test_get_index_occurence_probablity
     ]
 
     test_failed = 0
