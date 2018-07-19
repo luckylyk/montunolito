@@ -1,8 +1,9 @@
 from PyQt4 import QtGui, QtCore
+from montunolito.core.pattern import get_index_occurence_probablity
 from config import COLORS, GRID_SPACING
 from rects import (
     get_behavior_rect, get_fingerstate_rect, get_index_inplug_rect,
-    get_index_outplug_rect, get_index_rect)
+    get_index_outplug_rect, get_index_body_rect, get_row_rect, get_index_rect)
 
 
 def draw_fingerstate(painter, fingerstate, rect, border=False):
@@ -140,11 +141,15 @@ def draw_background(painter, rect):
             QtCore.QPoint(rect.width(), top))
 
 
-def draw_row_background(painter, rect, number):
+def draw_row_background(painter, rect, number, cursor):
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
-
-    brush = QtGui.QBrush(QtGui.QColor(COLORS['graph']['row']['background']))
+    hover = rect.contains(cursor)
+    if hover:
+        color = COLORS['graph']['row']['background_highlight']
+    else:
+        color = COLORS['graph']['row']['background']
+    brush = QtGui.QBrush(QtGui.QColor(color))
     painter.setBrush(brush)
     painter.drawRoundedRect(
         rect.left(), rect.top() + 20, rect.width(), rect.height() - 5, 10, 10)
@@ -161,9 +166,23 @@ def draw_row_background(painter, rect, number):
     painter.setFont(font)
     painter.drawText(
         rect.left() + rect.width() - 20, rect.top() + 20, str(number))
+    return hover
 
 
-def draw_index(painter, rect, occurence, hover=0):
+def draw_index(painter, rect, occurence, cursor):
+    inplug_rect = get_index_inplug_rect(rect)
+    outplug_rect = get_index_outplug_rect(rect)
+    body_rect = get_index_body_rect(rect)
+    fingerstate_rect = get_fingerstate_rect(rect)
+    behavior_rect = get_behavior_rect(rect)
+    rects = (
+        inplug_rect, outplug_rect, body_rect, fingerstate_rect, behavior_rect)
+    hover = 0
+
+    for i, r in enumerate(rects):
+        if r.contains(cursor):
+            hover = i + 1
+
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
 
@@ -171,11 +190,11 @@ def draw_index(painter, rect, occurence, hover=0):
     plug_highlight = QtGui.QColor(COLORS['graph']['index']['plug_highlight'])
     brush = QtGui.QBrush(plug_highlight if hover == 1 else background)
     painter.setBrush(brush)
-    painter.drawEllipse(get_index_inplug_rect(rect))
+    painter.drawEllipse(inplug_rect)
 
     brush = QtGui.QBrush(plug_highlight if hover == 2 else background)
     painter.setBrush(brush)
-    painter.drawEllipse(get_index_outplug_rect(rect))
+    painter.drawEllipse(outplug_rect)
 
     painter.setBrush(background)
     if hover == 3:
@@ -183,7 +202,7 @@ def draw_index(painter, rect, occurence, hover=0):
         pen = QtGui.QPen(QtGui.QColor(color))
         pen.setWidth(3)
         painter.setPen(pen)
-    painter.drawRoundedRect(get_index_rect(rect), 3, 3)
+    painter.drawRoundedRect(body_rect, 3, 3)
 
     color = COLORS['graph']['index']['item']['background']
     brush = QtGui.QBrush(QtGui.QColor(color))
@@ -195,7 +214,7 @@ def draw_index(painter, rect, occurence, hover=0):
     else:
         pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
-    painter.drawEllipse(get_fingerstate_rect(rect))
+    painter.drawEllipse(fingerstate_rect)
     if hover == 5:
         color = COLORS['graph']['index']['item']['border_highlight']
         pen = QtGui.QPen(QtGui.QColor(color))
@@ -203,7 +222,31 @@ def draw_index(painter, rect, occurence, hover=0):
     else:
         pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
-    painter.drawEllipse(get_behavior_rect(rect))
+    painter.drawEllipse(behavior_rect)
+    return hover
+
+
+def draw_pattern(painter, pattern, cursor):
+    cursor_hover_row = None
+    cursor_hover_column = None
+    cursor_hover = False
+
+    for row_number, row in enumerate(pattern['quarters']):
+        row_rect = get_row_rect(row_number, len(row))
+        cursor_hover = draw_row_background(
+            painter, row_rect, row_number + 1, cursor)
+        if cursor_hover:
+            cursor_hover_row = row_number
+
+        for column in range(len(row)):
+            index = row_number, column
+            rect = get_index_rect(*index)
+            probabilty = get_index_occurence_probablity(pattern, index)
+            cursor_hover = draw_index(painter, rect, probabilty, cursor)
+            if cursor_hover:
+                cursor_hover_column = column
+
+    return cursor_hover_row, cursor_hover_column
 
 
 def get_index_background_color(percent):

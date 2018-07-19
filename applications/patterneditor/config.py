@@ -4,10 +4,11 @@ INDEX_SPACING = 15
 
 ROWS_TOP = 25
 ROWS_LEFT = 35
-ROWS_SPACING = 30
-ROWS_WIDTH = INDEX_WIDTH + 20
+ROWS_SPACING = 50
+ROWS_PADDING = 10
+ROWS_WIDTH = INDEX_WIDTH + (ROWS_PADDING * 2)
 ROWS_HEADER_SPACE = 50
-ROWS_BOTTOM_SPACE = 20
+ROWS_BOTTOM_SPACE = 0
 
 GRID_SPACING = 33
 PATTERN_WIDTH = 120
@@ -32,12 +33,13 @@ COLORS = {
         },
     'graph':
         {
-            'background': '#4b4b4b',
-            'grid':  '#555555',
+            'background': '#292929',
+            'grid':  '#343434',
             'row':
                 {
-                    'background': '#5d5d5d',
-                    'number': '#225566'
+                    'background': '#4a4a4a',
+                    'background_highlight': '#535353',
+                    'number': 'white'
                 },
             'index':
                 {

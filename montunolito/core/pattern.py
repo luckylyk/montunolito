@@ -153,4 +153,6 @@ def get_index_occurence_probablity(pattern, index):
             total += v
             if i == index:
                 index_score += v
+    if total == 0:
+        return 0
     return round((float(index_score) / total) * 100)
