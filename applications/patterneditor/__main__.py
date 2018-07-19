@@ -18,15 +18,16 @@ from montunolito.core.pattern import (
 from balloons import *
 from graph import *
 from draws import *
-from config import ROWS_SPACING
+from config import (
+    ROWS_TOP, ROWS_LEFT, ROWS_SPACING, ROWS_WIDTH, ROWS_BOTTOM_SPACE,
+    ROWS_HEADER_SPACE, INDEX_HEIGHT, INDEX_WIDTH, INDEX_SPACING, ROWS_PADDING)
 
 
 class MainTest(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(800, 500)
         self.setMouseTracking(True)
-        self._pattern = get_new_pattern()
+        self._pattern = PATTERNS['chacha'].copy()
         self._row = None
 
     def mouseMoveEvent(self, event):
@@ -37,6 +38,7 @@ class MainTest(QtGui.QMainWindow):
         if event.button() == QtCore.Qt.LeftButton:
             append_quarter_row(self._pattern)
             self.repaint()
+            self.setMinimumSize(self.sizeHint())
             return
 
         if self._row is None:
@@ -47,6 +49,7 @@ class MainTest(QtGui.QMainWindow):
         elif event.button() == QtCore.Qt.MiddleButton:
             index = self._row, self._column
             delete_fingerstates_indexes(self._pattern, index)
+        self.setMinimumSize(self.sizeHint())
         self.repaint()
 
     def paintEvent(self, event):
@@ -60,6 +63,20 @@ class MainTest(QtGui.QMainWindow):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         draw_background(painter, self.rect())
         self._row, self._column = draw_pattern(painter, self._pattern, cursor)
+
+    def sizeHint(self):
+        width = (
+            ((ROWS_WIDTH + ROWS_SPACING) * len(self._pattern['quarters'])) + 
+            (ROWS_LEFT * 2))
+
+        rows = self._pattern['quarters']
+        longer_row_len = max([len(row) for row in rows]) if rows else 0
+        height = (
+            (ROWS_TOP * 2) +
+            ROWS_HEADER_SPACE +
+            ROWS_BOTTOM_SPACE +
+            ((INDEX_HEIGHT + INDEX_SPACING) * longer_row_len))
+        return QtCore.QSize(width, height)
 
 import sys
 application = QtGui.QApplication(sys.argv)
