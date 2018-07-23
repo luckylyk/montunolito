@@ -10,6 +10,8 @@ ROWS_WIDTH = INDEX_WIDTH + (ROWS_PADDING * 2)
 ROWS_HEADER_SPACE = 50
 ROWS_BOTTOM_SPACE = 0
 
+CONNECTION_HANDLER_SIZE = 10
+
 GRID_SPACING = 33
 PATTERN_WIDTH = 120
 
@@ -23,7 +25,7 @@ COLORS = {
         {
             'closer':
                 {
-                    'over': '#d0a895',
+                    'hover': '#d0a895',
                     'free': "#B3B3B3",
                     'cross': "#4b4b4b"
                 },
@@ -46,12 +48,20 @@ COLORS = {
                     'background_0': '#6e6e6e',
                     'background_100': '#6eAA6e',
                     'border_highlight': '#449999',
+                    'border_selected': '#dfdfdf',
                     'plug_highlight': '#AA4455',
                     'item':
                         {
                             'background': '#7f7f7f',
-                            'border_highlight': '#449999'
-                        }
+                            'border_highlight': '#449999',
+                            'border_selected': '#dfdfdf'
+                        },
+                    'path':
+                        {
+                            'normal': '#AA4455',
+                            'highlight': '#DDDD55',
+                        },
+  
                 }
         },
 }

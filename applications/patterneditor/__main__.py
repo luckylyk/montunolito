@@ -16,8 +16,8 @@ from montunolito.core.pattern import (
     delete_fingerstates_indexes)
 
 from balloons import *
-from graph import *
-from draws import *
+from graph import Pattern
+from draws import draw_background
 from config import (
     ROWS_TOP, ROWS_LEFT, ROWS_SPACING, ROWS_WIDTH, ROWS_BOTTOM_SPACE,
     ROWS_HEADER_SPACE, INDEX_HEIGHT, INDEX_WIDTH, INDEX_SPACING, ROWS_PADDING)
@@ -27,7 +27,7 @@ class MainTest(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMouseTracking(True)
-        self._pattern = PATTERNS['chacha'].copy()
+        self._pattern = Pattern(PATTERNS['montuno'].copy())
         self._row = None
 
     def mouseMoveEvent(self, event):
@@ -36,21 +36,24 @@ class MainTest(QtGui.QMainWindow):
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            append_quarter_row(self._pattern)
+            self._pattern.set_selected_states(self.cursor())
             self.repaint()
-            self.setMinimumSize(self.sizeHint())
-            return
+    #     if event.button() == QtCore.Qt.LeftButton:
+    #         append_quarter_row(self._pattern)
+    #         self.repaint()
+    #         self.setMinimumSize(self.sizeHint())
+    #         return
 
-        if self._row is None:
-            return
+    #     if self._row is None:
+    #         return
 
-        if event.button() == QtCore.Qt.RightButton:
-            append_fingerstates_indexes(self._pattern, (1, 3, 5, 7), self._row)
-        elif event.button() == QtCore.Qt.MiddleButton:
-            index = self._row, self._column
-            delete_fingerstates_indexes(self._pattern, index)
-        self.setMinimumSize(self.sizeHint())
-        self.repaint()
+    #     if event.button() == QtCore.Qt.RightButton:
+    #         append_fingerstates_indexes(self._pattern, (1, 3, 5, 7), self._row)
+    #     elif event.button() == QtCore.Qt.MiddleButton:
+    #         index = self._row, self._column
+    #         delete_fingerstates_indexes(self._pattern, index)
+    #     self.setMinimumSize(self.sizeHint())
+    #     self.repaint()
 
     def paintEvent(self, event):
         painter = QtGui.QPainter()
@@ -58,18 +61,20 @@ class MainTest(QtGui.QMainWindow):
         self.paint(painter)
         painter.end()
 
+    def cursor(self):
+        return self.mapFromGlobal(QtGui.QCursor.pos())
+
     def paint(self, painter):
-        cursor = self.mapFromGlobal(QtGui.QCursor.pos())
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         draw_background(painter, self.rect())
-        self._row, self._column = draw_pattern(painter, self._pattern, cursor)
+        self._pattern.draw(painter, self.cursor())
 
     def sizeHint(self):
         width = (
-            ((ROWS_WIDTH + ROWS_SPACING) * len(self._pattern['quarters'])) + 
+            ((ROWS_WIDTH + ROWS_SPACING) * len(self._pattern.rows)) + 
             (ROWS_LEFT * 2))
 
-        rows = self._pattern['quarters']
+        rows = self._pattern.rows
         longer_row_len = max([len(row) for row in rows]) if rows else 0
         height = (
             (ROWS_TOP * 2) +

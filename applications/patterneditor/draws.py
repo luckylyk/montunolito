@@ -1,9 +1,5 @@
 from PyQt4 import QtGui, QtCore
-from montunolito.core.pattern import get_index_occurence_probablity
 from config import COLORS, GRID_SPACING
-from rects import (
-    get_behavior_rect, get_fingerstate_rect, get_index_inplug_rect,
-    get_index_outplug_rect, get_index_body_rect, get_row_rect, get_index_rect)
 
 
 def draw_fingerstate(painter, fingerstate, rect, border=False):
@@ -79,7 +75,7 @@ def draw_ballon(painter, rect, title):
 
 
 def draw_closer(painter, rect, state):
-    state = 'over' if state is True else 'free'
+    state = 'hover' if state is True else 'free'
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
 
@@ -141,11 +137,10 @@ def draw_background(painter, rect):
             QtCore.QPoint(rect.width(), top))
 
 
-def draw_row_background(painter, rect, number, cursor):
+def draw_row_background(painter, rect, number, hover=False):
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
-    hover = rect.contains(cursor)
-    if hover:
+    if hover is True:
         color = COLORS['graph']['row']['background_highlight']
     else:
         color = COLORS['graph']['row']['background']
@@ -166,94 +161,117 @@ def draw_row_background(painter, rect, number, cursor):
     painter.setFont(font)
     painter.drawText(
         rect.left() + rect.width() - 20, rect.top() + 20, str(number))
-    return hover
 
 
-def draw_index(painter, rect, occurence, cursor):
-    inplug_rect = get_index_inplug_rect(rect)
-    outplug_rect = get_index_outplug_rect(rect)
-    body_rect = get_index_body_rect(rect)
-    fingerstate_rect = get_fingerstate_rect(rect)
-    behavior_rect = get_behavior_rect(rect)
-    rects = (
-        inplug_rect, outplug_rect, body_rect, fingerstate_rect, behavior_rect)
-    hover = 0
+def draw_index(
+        painter, occurence, inplug_rect, outplug_rect, body_rect,
+        fingerstate_rect, behavior_rect, selected=False, highlight_rects=None):
+    highlight_rects = highlight_rects or []
 
-    for i, r in enumerate(rects):
-        if r.contains(cursor):
-            hover = i + 1
+    background = mix_colors(
+        QtGui.QColor(COLORS['graph']['index']['background_0']),
+        QtGui.QColor(COLORS['graph']['index']['background_100']),
+        occurence)
 
+    draw_index_plug(
+        painter,
+        inplug_rect,
+        bgcolor=background,
+        hover=inplug_rect in highlight_rects)
+
+    draw_index_plug(
+        painter,
+        outplug_rect,
+        bgcolor=background,
+        hover=outplug_rect in highlight_rects)
+
+    draw_index_body(
+        painter,
+        body_rect,
+        bgcolor=background,
+        selected=selected,
+        hover=body_rect in highlight_rects)
+
+    draw_index_button(
+        painter,
+        fingerstate_rect,
+        selected=selected,
+        hover=fingerstate_rect in highlight_rects)
+
+    draw_index_button(
+        painter,
+        behavior_rect,
+        selected=selected,
+        hover=behavior_rect in highlight_rects)
+
+
+def draw_index_plug(painter, rect, bgcolor=None, hover=False):
+    if hover is True:
+        color = QtGui.QColor(COLORS['graph']['index']['plug_highlight'])
+    else:
+        color = QtGui.QColor(bgcolor)
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
-
-    background = get_index_background_color(occurence)
-    plug_highlight = QtGui.QColor(COLORS['graph']['index']['plug_highlight'])
-    brush = QtGui.QBrush(plug_highlight if hover == 1 else background)
+    brush = QtGui.QBrush(color)
     painter.setBrush(brush)
-    painter.drawEllipse(inplug_rect)
+    painter.drawEllipse(rect)
 
-    brush = QtGui.QBrush(plug_highlight if hover == 2 else background)
-    painter.setBrush(brush)
-    painter.drawEllipse(outplug_rect)
 
-    painter.setBrush(background)
-    if hover == 3:
-        color = COLORS['graph']['index']['border_highlight']
-        pen = QtGui.QPen(QtGui.QColor(color))
-        pen.setWidth(3)
-        painter.setPen(pen)
-    painter.drawRoundedRect(body_rect, 3, 3)
-
-    color = COLORS['graph']['index']['item']['background']
-    brush = QtGui.QBrush(QtGui.QColor(color))
-    painter.setBrush(brush)
-    if hover == 4:
-        color = COLORS['graph']['index']['item']['border_highlight']
-        pen = QtGui.QPen(QtGui.QColor(color))
-        pen.setWidth(3)
+def draw_index_body(painter, rect, bgcolor=None, selected=False, hover=False):
+    painter.setBrush(bgcolor)
+    if selected is True:
+        color = QtGui.QColor(COLORS['graph']['index']['border_selected'])
+    elif hover is True:
+        color = QtGui.QColor(COLORS['graph']['index']['border_highlight'])
     else:
-        pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
+        color = QtGui.QColor(0, 0, 0, 0)
+    pen = QtGui.QPen(QtGui.QColor(color))
+    pen.setWidth(3)
     painter.setPen(pen)
-    painter.drawEllipse(fingerstate_rect)
-    if hover == 5:
-        color = COLORS['graph']['index']['item']['border_highlight']
-        pen = QtGui.QPen(QtGui.QColor(color))
-        pen.setWidth(3)
+    painter.drawRoundedRect(rect, 3, 3)
+
+
+def draw_index_button(painter, rect, selected=False, hover=False):
+    if selected is True:
+        color = QtGui.QColor(
+            COLORS['graph']['index']['item']['border_selected'])
+    elif hover is True:
+        color = QtGui.QColor(
+            COLORS['graph']['index']['item']['border_highlight'])
     else:
-        pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
+        color = QtGui.QColor(0, 0, 0, 0)
+
+    pen = QtGui.QPen(color)
+    pen.setWidth(3)
     painter.setPen(pen)
-    painter.drawEllipse(behavior_rect)
-    return hover
+    background_color = COLORS['graph']['index']['item']['background']
+    brush = QtGui.QBrush(QtGui.QColor(background_color))
+    painter.setBrush(brush)
+    painter.drawEllipse(rect)
 
 
-def draw_pattern(painter, pattern, cursor):
-    cursor_hover_row = None
-    cursor_hover_column = None
-    cursor_hover = False
+def draw_connection(painter, path, handler_rect, hover=False):
+    if hover:
+        color = QtGui.QColor(COLORS['graph']['index']['path']['highlight'])
+    else:
+        color = QtGui.QColor(COLORS['graph']['index']['path']['normal'])
+    pen = QtGui.QPen(color)
+    pen.setWidth(2)
+    painter.setPen(pen)
 
-    for row_number, row in enumerate(pattern['quarters']):
-        row_rect = get_row_rect(row_number, len(row))
-        cursor_hover = draw_row_background(
-            painter, row_rect, row_number + 1, cursor)
-        if cursor_hover:
-            cursor_hover_row = row_number
+    brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 0))
+    painter.setBrush(brush)
 
-        for column in range(len(row)):
-            index = row_number, column
-            rect = get_index_rect(*index)
-            probabilty = get_index_occurence_probablity(pattern, index)
-            cursor_hover = draw_index(painter, rect, probabilty, cursor)
-            if cursor_hover:
-                cursor_hover_column = column
+    painter.drawPath(path)
 
-    return cursor_hover_row, cursor_hover_column
+    brush = QtGui.QBrush(color)
+    painter.setBrush(brush)
+    painter.drawEllipse(handler_rect)
 
 
-def get_index_background_color(percent):
-    zero = QtGui.QColor(COLORS['graph']['index']['background_0'])
-    hundred = QtGui.QColor(COLORS['graph']['index']['background_100'])
-    zr, zg, zb, _ = zero.getRgb()
-    hr, hg, hb, _ = hundred.getRgb()
+def mix_colors(color_min, color_max, percent):
+    zr, zg, zb, _ = color_min.getRgb()
+    hr, hg, hb, _ = color_max.getRgb()
 
     r = abs(zr - hr) * (percent / 100) + min(zr, hr)
     g = abs(zg - hg) * (percent / 100) + min(zg, hg)

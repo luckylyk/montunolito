@@ -156,3 +156,18 @@ def get_index_occurence_probablity(pattern, index):
     if total == 0:
         return 0
     return round((float(index_score) / total) * 100)
+
+
+def get_out_connected_indexes(pattern, index):
+    relationships = pattern['relationships'].get(index, {})
+    return [index for index, value in relationships.items() if value]
+
+
+def get_in_connected_indexes(pattern, index):
+    indexes = []
+    previous_row = get_previous_row(pattern, index[0])
+    in_indexes = get_existing_indexes_in_row(pattern, previous_row)
+    for in_index in in_indexes:
+        if pattern['relationships'].get(in_index, {}).get(index):
+            indexes.append(in_index)
+    return indexes

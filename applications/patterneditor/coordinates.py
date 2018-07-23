@@ -1,8 +1,8 @@
 from PyQt4 import QtCore, QtGui
 from config import (
     COLORS, ROWS_TOP, ROWS_LEFT, ROWS_SPACING, ROWS_WIDTH, ROWS_BOTTOM_SPACE,
-    ROWS_HEADER_SPACE, INDEX_HEIGHT, INDEX_WIDTH, INDEX_SPACING, ROWS_PADDING)
-
+    ROWS_HEADER_SPACE, INDEX_HEIGHT, INDEX_WIDTH, INDEX_SPACING, ROWS_PADDING,
+    CONNECTION_HANDLER_SIZE)
 
 def get_fingerstate_rect(rect):
     offset = 3
@@ -62,3 +62,30 @@ def get_row_rect(row_number, row_len):
         ((INDEX_HEIGHT + INDEX_SPACING) * row_len) +
         ROWS_BOTTOM_SPACE)
     return QtCore.QRect(left, ROWS_TOP, ROWS_WIDTH, height)
+
+
+def get_connection_path(start_point, end_point):
+    path = QtGui.QPainterPath(start_point)
+    control_point_1 = QtCore.QPoint(
+        (
+            start_point.x() + 
+            round((end_point.x() - start_point.x()) / 2)
+        ),
+        start_point.y())
+
+    control_point_2 = QtCore.QPoint(
+        (
+            end_point.x() -
+            round((end_point.x() - start_point.x()) / 2)
+        ),
+        end_point.y())
+    path.cubicTo(control_point_1, control_point_2, end_point)
+    return path
+
+
+def get_connection_handler_rect(path):
+    center = path.pointAtPercent(0.5).toPoint()
+    top = center.y() - (CONNECTION_HANDLER_SIZE // 2)
+    left = center.x() - (CONNECTION_HANDLER_SIZE // 2)
+    return QtCore.QRect(
+        left, top, CONNECTION_HANDLER_SIZE, CONNECTION_HANDLER_SIZE)
