@@ -2,50 +2,6 @@ from PyQt4 import QtGui, QtCore
 from config import COLORS, GRID_SPACING
 
 
-def draw_fingerstate(painter, fingerstate, rect, border=False):
-    pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
-    pen.setWidth(0)
-    painter.setPen(pen)
-    width = round(rect.width() / 5.0)
-
-    rects = [
-        QtCore.QRect(
-            rect.left() + (i * width),
-            rect.top(), width, rect.height()) for i in range(5)]
-
-    brush_pressed = QtGui.QBrush(
-        QtGui.QColor(COLORS['fingerstates']['pressed']))
-    brush_released = QtGui.QBrush(
-        QtGui.QColor(COLORS['fingerstates']['released']))
-
-    for r, s in zip(rects, fingerstate):
-        painter.setBrush(brush_pressed if s is True else brush_released)
-        painter.drawRect(r)
-
-    if border is False:
-        return
-
-    brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 0))
-    pen = QtGui.QPen(QtGui.QColor(COLORS['bubble']['border']))
-    painter.setPen(pen)
-    painter.setBrush(brush)
-    painter.drawRect(rect)
-
-    brush = QtGui.QBrush(QtGui.QColor(COLORS['bubble']['border']))
-    painter.setBrush(brush)
-    comborect = QtCore.QRect(
-        rect.width() + rect.left(), rect.top(), 20, rect.height())
-    painter.drawRect(comborect)
-
-    brush = QtGui.QBrush(QtGui.QColor(COLORS['bubble']['background']))
-    painter.setBrush(brush)
-    polygon = QtGui.QPolygon([
-        QtCore.QPoint(rect.width() + rect.left() + 5, rect.top() + 7),
-        QtCore.QPoint(rect.width() + rect.left() + 15, rect.top() + 7),
-        QtCore.QPoint(rect.width() + rect.left() + 10, rect.top() + 12)])
-    painter.drawPolygon(polygon)
-
-
 def draw_ballon(painter, rect, title):
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     pen.setWidth(0)
@@ -169,8 +125,8 @@ def draw_index(
     highlight_rects = highlight_rects or []
 
     background = mix_colors(
-        QtGui.QColor(COLORS['graph']['index']['background_0']),
-        QtGui.QColor(COLORS['graph']['index']['background_100']),
+        QtGui.QColor(COLORS['graph']['index']['background']['min']),
+        QtGui.QColor(COLORS['graph']['index']['background']['max']),
         occurence)
 
     draw_index_plug(
@@ -220,9 +176,9 @@ def draw_index_plug(painter, rect, bgcolor=None, hover=False):
 def draw_index_body(painter, rect, bgcolor=None, selected=False, hover=False):
     painter.setBrush(bgcolor)
     if selected is True:
-        color = QtGui.QColor(COLORS['graph']['index']['border_selected'])
+        color = QtGui.QColor(COLORS['graph']['index']['border']['selected'])
     elif hover is True:
-        color = QtGui.QColor(COLORS['graph']['index']['border_highlight'])
+        color = QtGui.QColor(COLORS['graph']['index']['border']['highlight'])
     else:
         color = QtGui.QColor(0, 0, 0, 0)
     pen = QtGui.QPen(QtGui.QColor(color))
@@ -234,10 +190,10 @@ def draw_index_body(painter, rect, bgcolor=None, selected=False, hover=False):
 def draw_index_button(painter, rect, selected=False, hover=False):
     if selected is True:
         color = QtGui.QColor(
-            COLORS['graph']['index']['item']['border_selected'])
+            COLORS['graph']['index']['item']['border']['selected'])
     elif hover is True:
         color = QtGui.QColor(
-            COLORS['graph']['index']['item']['border_highlight'])
+            COLORS['graph']['index']['item']['border']['selected'])
     else:
         color = QtGui.QColor(0, 0, 0, 0)
 
@@ -277,3 +233,15 @@ def mix_colors(color_min, color_max, percent):
     g = abs(zg - hg) * (percent / 100) + min(zg, hg)
     b = abs(zb - hb) * (percent / 100) + min(zb, hb)
     return QtGui.QColor(r, g, b)
+
+
+def draw_note_path(painter, path, selected=False, hover=False):
+    if selected is True:
+        color = QtGui.QColor(COLORS['note']['selected'])
+    elif hover is True:
+        color = QtGui.QColor(COLORS['note']['highlight'])
+    else:
+        color = QtGui.QColor(COLORS['note']['normal'])
+    painter.setPen(QtGui.QPen(color))
+    painter.setBrush(QtGui.QBrush(color))
+    painter.drawPath(path)

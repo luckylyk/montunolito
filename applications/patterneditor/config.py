@@ -12,10 +12,18 @@ ROWS_BOTTOM_SPACE = 0
 
 CONNECTION_HANDLER_SIZE = 10
 
+BEAM_CONNECTION_WIDTH = 5
+
 GRID_SPACING = 33
 PATTERN_WIDTH = 120
 
 COLORS = {
+    'note': 
+        {
+            'normal': 'black',
+            'highlight': 'yellow',
+            'selected': 'red'
+        },
     'fingerstates':
         {
             'pressed': '#AADDBB',
@@ -45,23 +53,32 @@ COLORS = {
                 },
             'index':
                 {
-                    'background_0': '#6e6e6e',
-                    'background_100': '#6eAA6e',
-                    'border_highlight': '#449999',
-                    'border_selected': '#dfdfdf',
+                    'background': 
+                        {
+                            'min': '#6e6e6e',
+                            'max':'#6eAA6e'
+                        },
+                    'border':
+                        {
+                            'highlight':  '#449999',
+                            'selected': '#dfdfdf',
+                        },
                     'plug_highlight': '#AA4455',
                     'item':
                         {
                             'background': '#7f7f7f',
-                            'border_highlight': '#449999',
-                            'border_selected': '#dfdfdf'
+
+                            'border':
+                                {
+                                    'highlight':  '#449999',
+                                    'selected': '#dfdfdf',
+                                },
                         },
                     'path':
                         {
                             'normal': '#AA4455',
                             'highlight': '#DDDD55',
                         },
-  
                 }
         },
 }

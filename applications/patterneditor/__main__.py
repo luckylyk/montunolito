@@ -17,7 +17,9 @@ from montunolito.core.pattern import (
 
 from balloons import *
 from graph import Pattern
-from draws import draw_background
+from fingerstates import Fingerstates
+from draws import draw_background, draw_note_path
+from coordinates import get_note_path, get_beam_tail_path, get_beams_connection_path, get_eighth_rest_path
 from config import (
     ROWS_TOP, ROWS_LEFT, ROWS_SPACING, ROWS_WIDTH, ROWS_BOTTOM_SPACE,
     ROWS_HEADER_SPACE, INDEX_HEIGHT, INDEX_WIDTH, INDEX_SPACING, ROWS_PADDING)
@@ -54,6 +56,13 @@ class MainTest(QtGui.QMainWindow):
     #         delete_fingerstates_indexes(self._pattern, index)
     #     self.setMinimumSize(self.sizeHint())
     #     self.repaint()
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Space:
+            balloon = FingerstatesBalloon((3, 0, 6, 2), parent=self)
+            pos = self.cursor()
+            balloon.move(pos.x() - 100, pos.y() - 200)
+            balloon.show()
 
     def paintEvent(self, event):
         painter = QtGui.QPainter()
