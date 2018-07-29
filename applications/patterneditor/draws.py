@@ -1,26 +1,101 @@
 from PyQt4 import QtGui, QtCore
-from config import COLORS, GRID_SPACING
 
 
-def draw_ballon(painter, rect, title):
+COLORS = {
+    'note':
+        {
+            'normal': 'black',
+            'highlight': 'yellow',
+            'selected': 'red'
+        },
+    'fingerstates':
+        {
+            'pressed': '#AADDBB',
+            'released': '#ABABAB',
+        },
+    'balloon':
+        {
+            'closer':
+                {
+                    'hover': '#d0a895',
+                    'free': "#B3B3B3",
+                    'cross': "#4b4b4b"
+                },
+            'border': '#4b4b4b',
+            'title': '#4b4b4b',
+            'background': '#c8c8c8'
+        },
+    'slider':
+        {
+            'normal': '#343434',
+            'highlight': 'yellow',
+            'pressed': 'red'
+        },
+    'graph':
+        {
+            'background': '#292929',
+            'grid':  '#343434',
+            'row':
+                {
+                    'background': '#4a4a4a',
+                    'background_highlight': '#535353',
+                    'number': 'white'
+                },
+            'index':
+                {
+                    'background':
+                        {
+                            'min': '#6e6e6e',
+                            'max':'#6eAA6e'
+                        },
+                    'border':
+                        {
+                            'highlight':  '#449999',
+                            'selected': '#dfdfdf',
+                        },
+                    'plug_highlight': '#AA4455',
+                    'item':
+                        {
+                            'background': '#7f7f7f',
+
+                            'border':
+                                {
+                                    'highlight':  '#449999',
+                                    'selected': '#dfdfdf',
+                                },
+                        },
+                    'path':
+                        {
+                            'normal': '#AA4455',
+                            'highlight': '#DDDD55',
+                        },
+                }
+        },
+}
+
+
+def mix_colors(color_min, color_max, percent):
+    zr, zg, zb, _ = color_min.getRgb()
+    hr, hg, hb, _ = color_max.getRgb()
+
+    r = abs(zr - hr) * (percent / 100) + min(zr, hr)
+    g = abs(zg - hg) * (percent / 100) + min(zg, hg)
+    b = abs(zb - hb) * (percent / 100) + min(zb, hb)
+    return QtGui.QColor(r, g, b)
+
+
+def draw_balloon(painter, path, title):
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     pen.setWidth(0)
     pen.setJoinStyle(QtCore.Qt.MiterJoin)
 
     painter.setBrush(
-        QtGui.QBrush(QtGui.QColor(COLORS['bubble']['background'])))
+        QtGui.QBrush(QtGui.QColor(COLORS['balloon']['background'])))
     painter.setPen(pen)
 
-    polygon = QtGui.QPolygon([
-        QtCore.QPoint(28, rect.height() - 30),
-        QtCore.QPoint(20, rect.height()),
-        QtCore.QPoint(50, rect.height() - 30)])
+    painter.drawPath(path)
 
-    painter.drawPolygon(polygon)
-    painter.drawRoundedRect(
-        2, 2, rect.width() - 4, rect.height() - 29, 22, 22)
-
-    pen = QtGui.QPen(QtGui.QColor(COLORS['bubble']['title']))
+    pen = QtGui.QPen(QtGui.QColor(COLORS['balloon']['title']))
     painter.setPen(pen)
 
     font = QtGui.QFont()
@@ -30,29 +105,20 @@ def draw_ballon(painter, rect, title):
     painter.drawText(20, 25, title)
 
 
-def draw_closer(painter, rect, state):
+def draw_balloon_header_button(painter, rect, path, state):
     state = 'hover' if state is True else 'free'
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
 
-    brush = QtGui.QBrush(QtGui.QColor(COLORS['bubble']['closer'][state]))
+    brush = QtGui.QBrush(QtGui.QColor(COLORS['balloon']['closer'][state]))
     painter.setBrush(brush)
 
     painter.drawRoundedRect(rect, 5, 5)
-    pen = QtGui.QPen(QtGui.QColor(COLORS['bubble']['closer']['cross']))
+    pen = QtGui.QPen(QtGui.QColor(COLORS['balloon']['closer']['cross']))
     pen.setWidth(2)
     painter.setPen(pen)
-    shrink = 5
-    painter.drawLine(
-        QtCore.QPoint(rect.left() + shrink, rect.top() + shrink),
-        QtCore.QPoint(
-            rect.left() + rect.width() - shrink,
-            rect.top() + rect.height() - shrink))
-    painter.drawLine(
-        QtCore.QPoint(
-            rect.left() + rect.width() - shrink, rect.top() + shrink),
-        QtCore.QPoint(
-            rect.left() + shrink, rect.top() + rect.height() - shrink))
+
+    painter.drawPath(path)
 
 
 def draw_texts(painter, rect, texts):
@@ -68,7 +134,7 @@ def draw_texts(painter, rect, texts):
         painter.drawText(27, (20 * i) + top_offset, text)
 
 
-def draw_background(painter, rect):
+def draw_background(painter, spacing, rect):
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
 
@@ -80,14 +146,14 @@ def draw_background(painter, rect):
     painter.setPen(pen)
     left = 0
     while left < rect.width():
-        left += GRID_SPACING
+        left += spacing
         painter.drawLine(
             QtCore.QPoint(left, 0),
             QtCore.QPoint(left, rect.height()))
 
     top = 0
     while top < rect.height():
-        top += GRID_SPACING
+        top += spacing
         painter.drawLine(
             QtCore.QPoint(0, top),
             QtCore.QPoint(rect.width(), top))
@@ -225,16 +291,6 @@ def draw_connection(painter, path, handler_rect, hover=False):
     painter.drawEllipse(handler_rect)
 
 
-def mix_colors(color_min, color_max, percent):
-    zr, zg, zb, _ = color_min.getRgb()
-    hr, hg, hb, _ = color_max.getRgb()
-
-    r = abs(zr - hr) * (percent / 100) + min(zr, hr)
-    g = abs(zg - hg) * (percent / 100) + min(zg, hg)
-    b = abs(zb - hb) * (percent / 100) + min(zb, hb)
-    return QtGui.QColor(r, g, b)
-
-
 def draw_note_path(painter, path, selected=False, hover=False):
     if selected is True:
         color = QtGui.QColor(COLORS['note']['selected'])
@@ -244,4 +300,20 @@ def draw_note_path(painter, path, selected=False, hover=False):
         color = QtGui.QColor(COLORS['note']['normal'])
     painter.setPen(QtGui.QPen(color))
     painter.setBrush(QtGui.QBrush(color))
+    painter.drawPath(path)
+
+
+def draw_slider_path(
+        painter, path, background=False, hover=False, pressed=False):
+    if pressed is True:
+        color = QtGui.QColor(COLORS['slider']['pressed'])
+    elif hover is True:
+        color = QtGui.QColor(COLORS['slider']['highlight'])
+    else:
+        color = QtGui.QColor(COLORS['slider']['normal'])
+    if background is True:
+        painter.setBrush(QtGui.QBrush(color))
+    else:
+        painter.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0, 0)))
+    painter.setPen(QtGui.QPen(color))
     painter.drawPath(path)

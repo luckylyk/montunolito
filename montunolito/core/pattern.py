@@ -171,3 +171,12 @@ def get_in_connected_indexes(pattern, index):
         if pattern['relationships'].get(in_index, {}).get(index):
             indexes.append(in_index)
     return indexes
+
+
+def get_connection_strongness(pattern, in_index, out_index):
+    return pattern['relationships'][out_index][in_index]
+
+
+def get_figure_at(pattern, index):
+    row, col = index
+    return pattern['quarters'][row][col]

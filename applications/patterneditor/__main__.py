@@ -11,25 +11,21 @@ sys.path.insert(0, MONTUNOLITO_FOLDER)
 from PyQt4 import QtGui, QtCore
 
 from montunolito.patterns import PATTERNS
-from montunolito.core.pattern import (
-    get_new_pattern, append_quarter_row, append_fingerstates_indexes,
-    delete_fingerstates_indexes)
 
-from balloons import *
-from graph import Pattern
-from fingerstates import Fingerstates
-from draws import draw_background, draw_note_path
-from coordinates import get_note_path, get_beam_tail_path, get_beams_connection_path, get_eighth_rest_path
-from config import (
+from balloons import FigureBalloon, BehaviorBalloon, ConnectionBalloon
+from graph import IGPattern
+from draws import draw_background
+from coordinates import (
+    get_balloon_spike_point, GRID_SPACING,
     ROWS_TOP, ROWS_LEFT, ROWS_SPACING, ROWS_WIDTH, ROWS_BOTTOM_SPACE,
-    ROWS_HEADER_SPACE, INDEX_HEIGHT, INDEX_WIDTH, INDEX_SPACING, ROWS_PADDING)
+    ROWS_HEADER_SPACE, INDEX_HEIGHT, INDEX_SPACING)
 
 
 class MainTest(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMouseTracking(True)
-        self._pattern = Pattern(PATTERNS['montuno'].copy())
+        self._pattern = IGPattern(PATTERNS['montuno'].copy())
         self._row = None
 
     def mouseMoveEvent(self, event):
@@ -40,29 +36,23 @@ class MainTest(QtGui.QMainWindow):
         if event.button() == QtCore.Qt.LeftButton:
             self._pattern.set_selected_states(self.cursor())
             self.repaint()
-    #     if event.button() == QtCore.Qt.LeftButton:
-    #         append_quarter_row(self._pattern)
-    #         self.repaint()
-    #         self.setMinimumSize(self.sizeHint())
-    #         return
+        action, item = self._pattern.get_index_action_hovered(self.cursor())
+        if action is None:
+            return
 
-    #     if self._row is None:
-    #         return
+        if action == 'fingerstate':
+            balloon = FigureBalloon(item.figure(), parent=None)
+            pos = item._figure_rect.center()
+        elif action == 'behavior':
+            balloon = BehaviorBalloon(parent=None)
+            pos = item._behavior_rect.center()
+        elif action == 'connection':
+            balloon = ConnectionBalloon(item, parent=None)
+            pos = item._handler_rect.center()
+        spike_tip = get_balloon_spike_point(balloon.rect())
+        balloon.move(pos - self.mapFromGlobal(spike_tip))
+        balloon.exec_()
 
-    #     if event.button() == QtCore.Qt.RightButton:
-    #         append_fingerstates_indexes(self._pattern, (1, 3, 5, 7), self._row)
-    #     elif event.button() == QtCore.Qt.MiddleButton:
-    #         index = self._row, self._column
-    #         delete_fingerstates_indexes(self._pattern, index)
-    #     self.setMinimumSize(self.sizeHint())
-    #     self.repaint()
-
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Space:
-            balloon = FingerstatesBalloon((3, 0, 6, 2), parent=self)
-            pos = self.cursor()
-            balloon.move(pos.x() - 100, pos.y() - 200)
-            balloon.show()
 
     def paintEvent(self, event):
         painter = QtGui.QPainter()
@@ -75,7 +65,7 @@ class MainTest(QtGui.QMainWindow):
 
     def paint(self, painter):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        draw_background(painter, self.rect())
+        draw_background(painter,GRID_SPACING, self.rect())
         self._pattern.draw(painter, self.cursor())
 
     def sizeHint(self):
