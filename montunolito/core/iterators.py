@@ -29,7 +29,7 @@ def chord_iterator(chord_grid):
     '''
     this iterator cycle on a given chord grid.
     Chord grid len must be multiple of 16.
-    Each chord grid element represent an eighth note. 
+    Each chord grid element represent an eighth note.
     '''
     assert len(chord_grid) % 16 == 0, 'chord grid len must be multiple of 16'
     assert chord_grid[0] is not None, 'the first chord grid element cannot be None'
@@ -66,7 +66,7 @@ def eighthmetas_iterator(
         pattern, chord_grid, mandatory_behavior=None):
     '''
     this iterator iter synchronulsy on the chord grid and the rythmic pattern
-    it generate the hand poses and return a zipped list of all eighth and the 
+    it generate the hand poses and return a zipped list of all eighth and the
     picked prefered behavior.
     '''
     patterns_it = pattern_iterator(pattern)
@@ -78,7 +78,7 @@ def eighthmetas_iterator(
         prefered_behavior = (
             mandatory_behavior or choose(pattern['behaviors'][pattern_index]))
 
-        yield create_eighthmetas (
+        yield create_eighthmetas(
             pattern_index, pattern, chords, prefered_behavior)
 
 

@@ -1,5 +1,5 @@
 """
-nomenclature : 
+nomenclature:
     chord = {'degree': 0, 'name': 'Minor'}
     tonality = int (factor to offset all values)
     fingersstate = (0, 1, 0, 1, 0)
@@ -10,7 +10,7 @@ nomenclature :
         list representing note played by pressed fingers. None is
         for released fingers
     behavior = list of constant for algorythme, represention the melodic behavior
-    eighthmeta = 
+    eighthmeta =
         {
             'chord': {'degree': 5, 'name': M7'},
             'fingersstate': (0, 0, 0, 0, 0),
@@ -19,11 +19,10 @@ nomenclature :
         dict of meta data representing eighth note, used by the generator
         to be transformed in final_eighth
 """
-import random
 import itertools
 
 from .solfege import (
-    FINGERSSTATES, FINGERSSTATE_TYPES, CHORDS, SCALENAME_BY_CHORDNAME, SCALES,
+    CHORDS, SCALENAME_BY_CHORDNAME, SCALES,
     CHORD_SCALES_REMPLACEMENT_INDEXES, MUTE_EIGHTH,
     CHORD_INDEXES_PRIORITY_ORDER, SCALE_LENGTH, get_fingersstate_type)
 
@@ -123,7 +122,7 @@ def generate_melody_from_eighthmetas(reference_note, eighthmetas, tonality):
             length=melody_length)
 
     eighthnotes = convert_melody_to_eighthnotes(
-            melody=melody, fingersstates=fingersstates)
+        melody=melody, fingersstates=fingersstates)
 
     return eighthnotes
 
@@ -157,7 +156,7 @@ def define_melody_length(eighthmetas):
 def generate_arpegic_melody(
         chord_array, chord_array_destination, length):
     '''
-    this method return and number array. The method iter the chord array and 
+    this method return and number array. The method iter the chord array and
     select a destination note in the destination chord array.
     There iteration sens (normal or reverted) is random
     '''
@@ -228,8 +227,8 @@ def generate_chromatic_melody(
     if startnote + (length - 1) in destination_notes:
         return [n for n in range(startnote, startnote + length)]
     elif startnote - (length - 1) in destination_notes:
-        return sorted([
-            n for n in range(startnote - (length - 1), startnote + 1)],
+        return sorted(
+            [n for n in range(startnote - (length - 1), startnote + 1)],
             reverse=True)
     return None
 
@@ -292,8 +291,8 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
         reference_note = None
 
     melodic_eighthmetas = [
-            em for em in eighthmetas
-            if get_fingersstate_type(em['fingersstate']) == 'melodic']
+        em for em in eighthmetas
+        if get_fingersstate_type(em['fingersstate']) == 'melodic']
 
     melodic_eighthnotes = generate_melody_from_eighthmetas(
         reference_note=reference_note,
@@ -309,13 +308,7 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
         eighths = replace_in_array(indexes, melodic_eighthnotes, eighths)
         eighths = eighths[:indexes[-1] + 1]
 
-    chord_fingernotes = [
-        eighthnote for eighthnote in eighthnotes
-        if get_fingersstate_type(eighthnote) == 'harmonic']
-    reference_chord = chord_fingernotes[-1] if chord_fingernotes else None
-
     chords = generate_chords_from_eighthmetas(
-        reference_chord=reference_chord,
         reference_note=reference_note,
         wip_eighths=eighths,
         tonality=tonality)
@@ -332,8 +325,7 @@ def convert_eighthmetas_to_eighthnotes(eighthnotes, eighthmetas, tonality):
     return eighths
 
 
-def generate_chords_from_eighthmetas(
-        reference_chord, reference_note, wip_eighths, tonality):
+def generate_chords_from_eighthmetas(reference_note, wip_eighths, tonality):
     """
     This method receive and eighths list. It contains melodic eighthnotes
     already generated and harmonic eighthmetas who have to be convert in
@@ -353,7 +345,6 @@ def generate_chords_from_eighthmetas(
         len_current_chord = len([n for n in fingersstate if n])
         if len_current_chord == 5:
             chords_eighthnotes.append(chord_array)
-            reference_chord = chord_array
             continue
 
         indexes_priority = CHORD_INDEXES_PRIORITY_ORDER.get(
@@ -377,5 +368,4 @@ def generate_chords_from_eighthmetas(
                 i += 1
 
         chords_eighthnotes.append(eighthnotes)
-        reference_chord = chord_array
     return chords_eighthnotes

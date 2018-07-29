@@ -3,7 +3,6 @@ This module contains all generic utils for the montunolito
 It's mainly containing utils for array and number offset.
 But also utils to choose random elements
 """
-
 import random
 
 
@@ -115,7 +114,6 @@ def set_array_lenght_multiple(array, multiple=10, default=None):
     this utils ensure that an array lenght is a multiple of a number given.
     When it's not the case, it append the default value, until the array
     lenght is a multiple of the multiple given.
-    
     e.g.
     array = [5, 3, 7, 8, 5]
     set_array_lenght_multiple(array, multiple=9, default='salut')
