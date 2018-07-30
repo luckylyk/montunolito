@@ -1,7 +1,7 @@
 # montunolito
 WIP : tool to generate procedural montuno (salsa music)
 
-dependencies: python 3.5 (or more recent) and PyQt4 (for the applications only)
+dependencies: python 3.5 (or more recent) and PyQt5 (for the applications only)
 
 - montunolito:
 is a python librairy. It contains 3 packages

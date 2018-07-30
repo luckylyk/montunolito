@@ -8,7 +8,7 @@ sys.path.insert(0, APPLICATIONS_FOLDER)
 sys.path.insert(0, MONTUNOLITO_FOLDER)
 
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore
 
 from montunolito.patterns import PATTERNS
 
@@ -21,7 +21,7 @@ from coordinates import (
     ROWS_HEADER_SPACE, INDEX_HEIGHT, INDEX_SPACING)
 
 
-class MainTest(QtGui.QMainWindow):
+class MainTest(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMouseTracking(True)
@@ -82,7 +82,7 @@ class MainTest(QtGui.QMainWindow):
         return QtCore.QSize(width, height)
 
 import sys
-application = QtGui.QApplication(sys.argv)
+application = QtWidgets.QApplication(sys.argv)
 windows = MainTest()
 windows.show()
 application.exec_()

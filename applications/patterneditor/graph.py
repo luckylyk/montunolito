@@ -1,12 +1,13 @@
 
+from montunolito.core.pattern import (
+    get_index_occurence_probablity, get_existing_indexes, get_figure_at,
+    get_out_connected_indexes, get_connection_strongness)
+
 from coordinates import (
     get_index_behavior_rect, get_index_figure_rect, get_index_inplug_rect,
     get_index_outplug_rect, get_index_body_rect, get_row_rect, get_index_rect,
     get_connection_path, get_connection_handler_rect, shrink_rect)
 from draws import draw_index, draw_row_background, draw_connection
-from montunolito.core.pattern import (
-    get_index_occurence_probablity, get_existing_indexes, get_figure_at,
-    get_out_connected_indexes, get_connection_strongness)
 from figure import Figure
 
 

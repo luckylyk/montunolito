@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore
 from draws import draw_balloon, draw_texts, draw_balloon_header_button
 from coordinates import (
     get_balloon_background_path, get_balloon_drawable_rect,
@@ -9,7 +9,7 @@ from figure import Figure, FingerstateSelecter
 from slider import Slider
 
 
-class Balloon(QtGui.QDialog):
+class Balloon(QtWidgets.QDialog):
     TITLE = "Ballon Title"
 
     def __init__(self, size=None, parent=None):
