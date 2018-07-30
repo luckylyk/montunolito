@@ -1,10 +1,13 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
-from draws import draw_balloon, draw_texts, draw_balloon_header_button
-from coordinates import (
+from painting import (
+    draw_balloon, draw_balloon_header_button, draw_balloon_text)
+from context import DrawContext
+from geometries import (
     get_balloon_background_path, get_balloon_drawable_rect,
     get_balloon_figure_rect, get_balloon_fingerstateselecter_rect,
-    get_ballon_validator_rect, get_balloon_rejecter_path,
-    get_balloon_approver_path, get_balloon_behavior_slider_rect)
+    get_balloon_validator_rect, get_balloon_rejecter_path,
+    get_balloon_approver_path, get_balloon_behavior_slider_rect,
+    get_balloon_behavior_text_point)
 from figure import Figure, FingerstateSelecter
 from slider import Slider
 
@@ -12,9 +15,10 @@ from slider import Slider
 class Balloon(QtWidgets.QDialog):
     TITLE = "Ballon Title"
 
-    def __init__(self, size=None, parent=None):
+    def __init__(self, size=None, drawcontext=DrawContext(), parent=None):
         super().__init__(parent, QtCore.Qt.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.drawcontext = drawcontext
         self._rejecter_state = False
         self._approver_state = False
         if size:
@@ -23,12 +27,16 @@ class Balloon(QtWidgets.QDialog):
                 QtGui.QCursor().pos().x() - 20,
                 QtGui.QCursor().pos().y() - self.height())
 
-        self.drawable_rect = get_balloon_drawable_rect(self.rect())
-        self._rejecter_rect = get_ballon_validator_rect(self.rect(), index=0)
+        self.drawable_rect = get_balloon_drawable_rect(
+            self.drawcontext, self.rect())
+        self._rejecter_rect = get_balloon_validator_rect(
+            self.drawcontext, self.rect(), index=0)
         self._rejecter_path = get_balloon_rejecter_path(self._rejecter_rect)
-        self._approver_rect = get_ballon_validator_rect(self.rect(), index=1)
+        self._approver_rect = get_balloon_validator_rect(
+            self.drawcontext, self.rect(), index=1)
         self._approver_path = get_balloon_approver_path(self._approver_rect)
-        self._background_path = get_balloon_background_path(self.rect())
+        self._background_path = get_balloon_background_path(
+            self.drawcontext, self.rect())
         self.setMouseTracking(True)
 
     def cursor(self):
@@ -65,7 +73,10 @@ class Balloon(QtWidgets.QDialog):
 
     def paint(self, painter):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        draw_balloon(painter, self._background_path, self.TITLE)
+        draw_balloon(
+            painter,
+            self._background_path,
+            self.TITLE)
         draw_balloon_header_button(
             painter,
             self._rejecter_rect,
@@ -78,25 +89,36 @@ class Balloon(QtWidgets.QDialog):
             self._approver_state)
 
 
+BEHAVIOR_NAMES = 'Melodic', 'Arpegic', 'Static'
+
+
 class BehaviorBalloon(Balloon):
     TITLE = 'Behaviors'
 
-    def __init__(self, parent=None):
-        super().__init__(size=QtCore.QSize(200, 150), parent=parent)
+    def __init__(self, index, parent=None):
+        super().__init__(size=QtCore.QSize(210, 150), parent=parent)
+        self._index = index
         self._mousepressed = False
         self._melodic_slider = Slider(
-            get_balloon_behavior_slider_rect(
-                self.drawable_rect, 0), value=2, max=6)
+            get_balloon_behavior_slider_rect(self.drawable_rect, 0),
+            value=index.behaviors['melodic'],
+            maxvalue=6)
         self._arpegic_slider = Slider(
-            get_balloon_behavior_slider_rect(
-                self.drawable_rect, 1), value=4, max=6)
+            get_balloon_behavior_slider_rect(self.drawable_rect, 1),
+            value=index.behaviors['arpegic'],
+            maxvalue=6)
         self._static_slider = Slider(
-            get_balloon_behavior_slider_rect(
-                self.drawable_rect, 2), value=1, max=6)
+            get_balloon_behavior_slider_rect(self.drawable_rect, 2),
+            value=index.behaviors['static'],
+            maxvalue=6)
         self._sliders = (
             self._melodic_slider,
             self._arpegic_slider,
             self._static_slider)
+        self._text_points = [
+            get_balloon_behavior_text_point(
+                self.drawcontext, self.drawable_rect, index)
+            for index in range(3)]
 
     def hovered_slider(self):
         for slider in self._sliders:
@@ -125,6 +147,9 @@ class BehaviorBalloon(Balloon):
 
     def paint(self, painter):
         super().paint(painter)
+        for i, point in enumerate(self._text_points):
+            draw_balloon_text(painter, point, BEHAVIOR_NAMES[i])
+
         slider = self.hovered_slider()
         self._melodic_slider.draw(
             painter,
@@ -147,7 +172,10 @@ class ConnectionBalloon(Balloon):
         super().__init__(size=QtCore.QSize(200, 115), parent=parent)
         self._connection = connection
         self._slider = Slider(
-            self.drawable_rect, value=connection.strongness(), max=10)
+            self.drawable_rect,
+            value=connection.strongness(),
+            maxvalue=10,
+            drawcontext=self.drawcontext)
         self._mousepressed = False
 
     def mouseMoveEvent(self, event):
@@ -174,13 +202,15 @@ class ConnectionBalloon(Balloon):
 class FigureBalloon(Balloon):
     TITLE = 'Figure'
 
-    def __init__(self, figure, parent=None):
+    def __init__(self, index, parent=None):
         size = QtCore.QSize(180, 220)
         super().__init__(size=size, parent=parent)
+        self._index = index
         self.figure = Figure(
-            figure, get_balloon_figure_rect(self.drawable_rect))
-        self.fingerstate_selecter = FingerstateSelecter(
-            get_balloon_fingerstateselecter_rect(self.drawable_rect))
+            index.figure,
+            get_balloon_figure_rect(self.drawcontext, self.drawable_rect))
+        selected_rect = get_balloon_fingerstateselecter_rect(self.drawable_rect)
+        self.fingerstate_selecter = FingerstateSelecter(selected_rect)
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)

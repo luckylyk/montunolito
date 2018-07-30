@@ -32,6 +32,7 @@ BALLOON_HEADER_VALIDATOR_SIZE = 20
 BALLOON_HEADER_VALIDATOR_LEFT_PADDING = 30
 BALLOON_HEADER_VALIDATOR_TOP_PADDING = 10
 BALLOON_HEADER_VALIDATOR_SPACING = 3
+BALLOON_BEHAVIORS_TEXTS_TOP_PADDING = 18
 
 FIGURE_BALLON_SPACING = 10
 
@@ -39,50 +40,76 @@ GRID_SPACING = 33
 PATTERN_WIDTH = 120
 
 
-def get_balloon_drawable_rect(rect):
+def get_pattern_size(drawcontext, pattern):
+    width = (
+        ((drawcontext.size(ROWS_WIDTH) + drawcontext.size(ROWS_SPACING)) *
+         len(pattern.rows)) +
+        (drawcontext.size(ROWS_LEFT) * 2))
+
+    rows = pattern.rows
+    longer_row_len = max([len(row) for row in rows]) if rows else 0
+    height = (
+        (drawcontext.size(ROWS_TOP) * 2) +
+        drawcontext.size(ROWS_HEADER_SPACE) +
+        drawcontext.size(ROWS_BOTTOM_SPACE) +
+        ((drawcontext.size(INDEX_HEIGHT) + drawcontext.size(INDEX_SPACING)) *
+         longer_row_len))
+    return QtCore.QSize(width, height)
+
+
+def get_balloon_drawable_rect(drawcontext, rect):
     return QtCore.QRect(
-        BALLOON_DRAWABLE_LEFT_PADDING,
-        BALLOON_DRAWABLE_TOP_PADDING,
-        rect.width() - BALLOON_DRAWABLE_LEFT_PADDING -
-        BALLOON_DRAWABLE_RIGHT_PADDING,
-        rect.height() - BALLOON_DRAWABLE_TOP_PADDING -
-        BALLOON_DRAWABLE_BOTTOM_PADDING)
+        drawcontext.size(BALLOON_DRAWABLE_LEFT_PADDING),
+        drawcontext.size(BALLOON_DRAWABLE_TOP_PADDING),
+        rect.width() - drawcontext.size(BALLOON_DRAWABLE_LEFT_PADDING) -
+        drawcontext.size(BALLOON_DRAWABLE_RIGHT_PADDING),
+        rect.height() - drawcontext.size(BALLOON_DRAWABLE_TOP_PADDING) -
+        drawcontext.size(BALLOON_DRAWABLE_BOTTOM_PADDING))
 
 
-def get_balloon_background_path(rect):
+def get_balloon_background_path(drawcontext, rect):
     path = QtGui.QPainterPath(rect.topLeft())
     path.addRoundedRect(
         rect.top(), rect.left(), rect.width(),
-        rect.height() - BALLOON_SPIKE_HEIGHT,
-        BALLOON_ROUNDNESS, BALLOON_ROUNDNESS)
+        rect.height() - drawcontext.size(BALLOON_SPIKE_HEIGHT),
+        drawcontext.size(BALLOON_ROUNDNESS),
+        drawcontext.size(BALLOON_ROUNDNESS))
 
     spike_point_1 = QtCore.QPoint(
-        BALLOON_SPIKE_BASE_LEFT,
-        rect.height() - BALLOON_SPIKE_HEIGHT)
-    spike_point_2 = QtCore.QPoint(BALLOON_SPIKE_TIP_LEFT, rect.height())
+        drawcontext.size(BALLOON_SPIKE_BASE_LEFT),
+        rect.height() - drawcontext.size(BALLOON_SPIKE_HEIGHT))
+    spike_point_2 = QtCore.QPoint(
+        drawcontext.size(BALLOON_SPIKE_TIP_LEFT), rect.height())
     spike_point_3 = QtCore.QPoint(
-        BALLOON_SPIKE_BASE_RIGHT,
-        rect.height() - BALLOON_SPIKE_HEIGHT)
+        drawcontext.size(BALLOON_SPIKE_BASE_RIGHT),
+        rect.height() - drawcontext.size(BALLOON_SPIKE_HEIGHT))
     spike = QtGui.QPolygonF([spike_point_1, spike_point_2, spike_point_3])
     path.addPolygon(spike)
     return path
 
 
-def get_ballon_validator_rect(balloonrect, index=0):
+def get_balloon_validator_rect(drawcontext, balloonrect, index=0):
     offset = (
-        (BALLOON_HEADER_VALIDATOR_SIZE + BALLOON_HEADER_VALIDATOR_SPACING) *
+        (drawcontext.size(BALLOON_HEADER_VALIDATOR_SIZE) +
+         drawcontext.size(BALLOON_HEADER_VALIDATOR_SPACING)) *
         index)
+    left = (
+        balloonrect.right() -
+        drawcontext.size(BALLOON_HEADER_VALIDATOR_LEFT_PADDING) -
+        offset)
     return QtCore.QRect(
-        balloonrect.right() - BALLOON_HEADER_VALIDATOR_LEFT_PADDING - offset,
-        BALLOON_HEADER_VALIDATOR_TOP_PADDING,
-        BALLOON_HEADER_VALIDATOR_SIZE,
-        BALLOON_HEADER_VALIDATOR_SIZE)
+        left,
+        drawcontext.size(BALLOON_HEADER_VALIDATOR_TOP_PADDING),
+        drawcontext.size(BALLOON_HEADER_VALIDATOR_SIZE),
+        drawcontext.size(BALLOON_HEADER_VALIDATOR_SIZE))
 
 
 def get_balloon_rejecter_path(rejecterrect):
-    shrink = 5 # move in constant
+    shrink = rejecterrect.width() / 4
     path = QtGui.QPainterPath(
-        QtCore.QPoint(rejecterrect.left() + shrink, rejecterrect.top() + shrink))
+        QtCore.QPoint(
+            rejecterrect.left() + shrink,
+            rejecterrect.top() + shrink))
     path.lineTo(
         QtCore.QPoint(
             rejecterrect.right() - shrink,
@@ -99,7 +126,7 @@ def get_balloon_rejecter_path(rejecterrect):
 
 
 def get_balloon_approver_path(approverrect):
-    shrink = 5 # move in constant
+    shrink = approverrect.width() / 4
     left, right = approverrect.left(), approverrect.right()
     top, bottom = approverrect.top(), approverrect.bottom()
 
@@ -118,16 +145,20 @@ def get_balloon_approver_path(approverrect):
     return path
 
 
-def get_balloon_spike_point(balloonrect):
-    return QtCore.QPoint(BALLOON_SPIKE_TIP_LEFT, balloonrect.height())
+def get_balloon_spike_point(drawcontext, balloonrect):
+    return QtCore.QPoint(
+        drawcontext.size(BALLOON_SPIKE_TIP_LEFT), balloonrect.height())
 
 
-def get_balloon_figure_rect(drawablerect):
+def get_balloon_figure_rect(drawcontext, drawablerect):
+    height = (
+        (drawablerect.height() / 3 * 2) -
+        drawcontext.size(FIGURE_BALLON_SPACING))
     return QtCore.QRect(
         drawablerect.left(),
         drawablerect.top(),
         drawablerect.width(),
-        (drawablerect.height() / 3 * 2) - FIGURE_BALLON_SPACING)
+        height)
 
 
 def get_balloon_fingerstateselecter_rect(drawablerect):
@@ -148,79 +179,90 @@ def get_balloon_behavior_slider_rect(rect, index):
     return QtCore.QRect(left, top, width, height)
 
 
-def get_index_figure_rect(rect):
+def get_balloon_behavior_text_point(drawcontext, rect, index):
+    left = rect.left()
+    top = (
+        rect.top() + ((rect.height() / 3) * index) +
+        drawcontext.size(BALLOON_BEHAVIORS_TEXTS_TOP_PADDING))
+    return QtCore.QPoint(left, top)
+
+
+def get_index_figure_rect(drawcontext, rect):
     shrinked = shrink_rect(rect, 8)
     return QtCore.QRect(
         shrinked.left(),
         shrinked.top(),
-        (shrinked.width() / 2) - (INDEX_BUTTON_SPACING / 2),
+        (shrinked.width() / 2) - (drawcontext.size(INDEX_BUTTON_SPACING) / 2),
         shrinked.height())
 
 
-def get_index_behavior_rect(rect):
+def get_index_behavior_rect(drawcontext, rect):
     shrinked = shrink_rect(rect, 8)
+    left = (
+        shrinked.left() + (shrinked.width() / 2) +
+        (drawcontext.size(INDEX_BUTTON_SPACING) / 2))
+
     return QtCore.QRect(
-        shrinked.left() + (shrinked.width() / 2) + (INDEX_BUTTON_SPACING / 2),
+        left,
         shrinked.top(),
-        (shrinked.width() / 2) - (INDEX_BUTTON_SPACING / 2),
+        (shrinked.width() / 2) - (drawcontext.size(INDEX_BUTTON_SPACING) / 2),
         shrinked.height())
 
 
-# def get_index_figure_rect(rect):
-#     offset = 3
-#     width = rect.height() - (offset * 2)
-#     left = rect.left() + ((rect.width() / 6) * 2)
-#     return QtCore.QRect(left, rect.top() + offset, width, width)
-
-
-# def get_index_behavior_rect(rect):
-#     offset = 3
-#     width = rect.height() - (offset * 2)
-#     left = rect.left() + ((rect.width() / 6) * 3)
-#     return QtCore.QRect(left, rect.top() + offset, width, width)
-
-
-def get_index_body_rect(rect):
+def get_index_body_rect(drawcontext, rect):
     return QtCore.QRect(
-        rect.left() + INDEX_BODY_RIGHTLEFT_PADDING,
+        rect.left() + drawcontext.size(INDEX_BODY_RIGHTLEFT_PADDING),
         rect.top(),
-        rect.width() - (INDEX_BODY_RIGHTLEFT_PADDING * 2),
+        rect.width() - (drawcontext.size(INDEX_BODY_RIGHTLEFT_PADDING) * 2),
         rect.height())
 
 
-def get_index_inplug_rect(rect):
+def get_index_inplug_rect(drawcontext, rect):
+    plug_width = drawcontext.size(INDEX_PLUG_WIDTH)
     return QtCore.QRect(
-        rect.left(), rect.top() + (rect.height() / 2) - (INDEX_PLUG_WIDTH / 2),
-        INDEX_PLUG_WIDTH, INDEX_PLUG_WIDTH)
+        rect.left(), rect.top() + (rect.height() / 2) - (plug_width / 2),
+        plug_width, plug_width)
 
 
-def get_index_outplug_rect(rect):
+def get_index_outplug_rect(drawcontext, rect):
+    plug_width = drawcontext.size(INDEX_PLUG_WIDTH)
     return QtCore.QRect(
-        rect.left() + rect.width() - INDEX_PLUG_WIDTH,
-        rect.top() + (rect.height() / 2) - (INDEX_PLUG_WIDTH / 2),
-        INDEX_PLUG_WIDTH, INDEX_PLUG_WIDTH)
+        rect.left() + rect.width() - plug_width,
+        rect.top() + (rect.height() / 2) - (plug_width / 2),
+        plug_width, plug_width)
 
 
-def get_index_rect(row, column):
-    left = ROWS_LEFT + (row * (ROWS_SPACING + ROWS_WIDTH)) + ROWS_PADDING
+def get_index_rect(drawcontext, row, column):
+    left = (
+        drawcontext.size(ROWS_LEFT) +
+        (row * (drawcontext.size(ROWS_SPACING) + drawcontext.size(ROWS_WIDTH))+
+         drawcontext.size(ROWS_PADDING)))
     top = (
-        ROWS_TOP + ROWS_HEADER_SPACE +
-        (column * (INDEX_HEIGHT + INDEX_SPACING)))
+        drawcontext.size(ROWS_TOP) + drawcontext.size(ROWS_HEADER_SPACE) +
+        (column * (
+            drawcontext.size(INDEX_HEIGHT) +
+            drawcontext.size(INDEX_SPACING))))
 
     return QtCore.QRect(
         left,
         top,
-        INDEX_WIDTH,
-        INDEX_HEIGHT)
+        drawcontext.size(INDEX_WIDTH),
+        drawcontext.size(INDEX_HEIGHT))
 
 
-def get_row_rect(row_number, row_len):
-    left = ROWS_LEFT + ((ROWS_WIDTH + ROWS_SPACING) * row_number)
+def get_row_rect(drawcontext, row_number, row_len):
+    left = (
+        drawcontext.size(ROWS_LEFT) +
+        ((drawcontext.size(ROWS_WIDTH) + drawcontext.size(ROWS_SPACING)) *
+         row_number))
     height = (
-        ROWS_HEADER_SPACE +
-        ((INDEX_HEIGHT + INDEX_SPACING) * row_len) +
-        ROWS_BOTTOM_SPACE)
-    return QtCore.QRect(left, ROWS_TOP, ROWS_WIDTH, height)
+        drawcontext.size(ROWS_HEADER_SPACE) +
+        ((drawcontext.size(INDEX_HEIGHT) + drawcontext.size(INDEX_SPACING)) *
+         row_len) + ROWS_BOTTOM_SPACE)
+    return QtCore.QRect(
+        left,
+        drawcontext.size(ROWS_TOP),
+        drawcontext.size(ROWS_WIDTH), height)
 
 
 def get_connection_path(start_point, end_point):
@@ -242,12 +284,15 @@ def get_connection_path(start_point, end_point):
     return path
 
 
-def get_connection_handler_rect(path):
+def get_connection_handler_rect(drawcontext, path):
     center = path.pointAtPercent(0.5).toPoint()
-    top = center.y() - (CONNECTION_HANDLER_SIZE // 2)
-    left = center.x() - (CONNECTION_HANDLER_SIZE // 2)
+    top = center.y() - (drawcontext.size(CONNECTION_HANDLER_SIZE) // 2)
+    left = center.x() - (drawcontext.size(CONNECTION_HANDLER_SIZE) // 2)
     return QtCore.QRect(
-        left, top, CONNECTION_HANDLER_SIZE, CONNECTION_HANDLER_SIZE)
+        left,
+        top,
+        drawcontext.size(CONNECTION_HANDLER_SIZE),
+        drawcontext.size(CONNECTION_HANDLER_SIZE))
 
 
 def get_note_path(
@@ -381,9 +426,9 @@ def get_eighth_rest_path(noterect):
     return path
 
 
-def get_slider_segmented_line_path(rect, segment_count=11):
+def get_slider_segmented_line_path(drawcontext, rect, segment_count=11):
     top = rect.top() + (rect.height() * .75)
-    seg_top = top - SLIDER_SEGMENT_HEIGHT
+    seg_top = top - drawcontext.size(SLIDER_SEGMENT_HEIGHT)
     path = QtGui.QPainterPath(QtCore.QPoint(rect.left(), top))
     path.lineTo(QtCore.QPoint(rect.right(), top))
     for i in range(segment_count):
@@ -433,6 +478,14 @@ def extract_noterects(rect, number=4):
             width,
             rect.height())
         for i in range(number)]
+
+
+def get_button_menu_rect(rect, index=0):
+    return QtCore.QRect(
+        rect.left() + (rect.height() * index),
+        rect.top(),
+        rect.height(),
+        rect.height())
 
 
 def shrink_rect(rect, value):

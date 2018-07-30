@@ -1,38 +1,53 @@
 
 from montunolito.core.pattern import (
     get_index_occurence_probablity, get_existing_indexes, get_figure_at,
-    get_out_connected_indexes, get_connection_strongness)
-
-from coordinates import (
+    get_out_connected_indexes, get_connection_strongness, get_behaviors_at)
+from context import DrawContext
+from geometries import (
     get_index_behavior_rect, get_index_figure_rect, get_index_inplug_rect,
     get_index_outplug_rect, get_index_body_rect, get_row_rect, get_index_rect,
     get_connection_path, get_connection_handler_rect, shrink_rect)
-from draws import draw_index, draw_row_background, draw_connection
+from painting import draw_index, draw_row_background, draw_connection
 from figure import Figure
 
 
 class IGIndex(object):
-    def __init__(self, index, pattern):
+    def __init__(self, index, pattern, drawcontext=None):
+        self._drawcontext = drawcontext or DrawContext()
         self.pattern = pattern
         self.index = index
 
-        self._rect = get_index_rect(*index)
-        self._inplug_rect = get_index_inplug_rect(self._rect)
-        self._outplug_rect = get_index_outplug_rect(self._rect)
-        self._body_rect = get_index_body_rect(self._rect)
-        self._figure_rect = get_index_figure_rect(self._body_rect)
-        self._behavior_rect = get_index_behavior_rect(self._body_rect)
+        self._rect = None
+        self._inplug_rect = None
+        self._outplug_rect = None
+        self._body_rect = None
+        self._figure_rect = None
+        self._behavior_rect = None
+        self._figure = Figure(self.figure)
+        self._rects = []
+        self.update_geometries()
 
-        self._figure = Figure(self.figure(), shrink_rect(self._figure_rect,5))
 
+        self.selected = False
+
+    def update_geometries(self):
+        self._rect = get_index_rect(self._drawcontext, *self.index)
+        self._inplug_rect = get_index_inplug_rect(
+            self._drawcontext, self._rect)
+        self._outplug_rect = get_index_outplug_rect(
+            self._drawcontext, self._rect)
+        self._body_rect = get_index_body_rect(self._drawcontext, self._rect)
+        self._figure_rect = get_index_figure_rect(
+            self._drawcontext, self._body_rect)
+        self._behavior_rect = get_index_behavior_rect(
+            self._drawcontext, self._body_rect)
+        self._figure.set_rect(shrink_rect(self._figure_rect, 5))
         self._rects = [
             self._inplug_rect,
             self._outplug_rect,
             self._body_rect,
             self._figure_rect,
             self._behavior_rect]
-
-        self.selected = False
 
     @property
     def occurence(self):
@@ -53,8 +68,13 @@ class IGIndex(object):
     def highlight_rects(self, cursor):
         return [rect for rect in self._rects if rect.contains(cursor)]
 
+    @property
     def figure(self):
         return get_figure_at(self.pattern, self.index)
+
+    @property
+    def behaviors(self):
+        return get_behaviors_at(self.pattern, self.index)
 
     def figure_hovered(self, cursor):
         return self._figure_rect.contains(cursor)
@@ -86,13 +106,22 @@ class IGIndex(object):
 
 
 class IGConnection(object):
-    def __init__(self, pattern, in_index, out_index):
+    def __init__(
+            self, pattern, in_index, out_index, drawcontext=None):
+        self._drawcontext = drawcontext or DrawContext()
         self.pattern = pattern
         self.in_index = in_index
         self.out_index = out_index
+        self._path = None
+        self._handler_rect = None
+        self.update_geometries()
+
+    def update_geometries(self):
         self._path = get_connection_path(
-            in_index.in_plug_center, out_index.out_plug_center)
-        self._handler_rect = get_connection_handler_rect(self._path)
+            self.in_index.in_plug_center, self.out_index.out_plug_center)
+        self._handler_rect = get_connection_handler_rect(
+            self._drawcontext,
+            self._path)
 
     def is_hovered(self, cursor):
         return self._handler_rect.contains(cursor)
@@ -111,15 +140,26 @@ class IGConnection(object):
 
 
 class IGPattern(object):
-    def __init__(self, pattern):
+    def __init__(self, pattern, drawcontext=None):
+        self._drawcontext = drawcontext or DrawContext()
         self._pattern = pattern
         self._indexes = [
-            IGIndex(index, pattern) for index in get_existing_indexes(pattern)]
+            IGIndex(index, pattern, self._drawcontext)
+            for index in get_existing_indexes(pattern)]
         self._connections = [
-            IGConnection(self, self.index(in_index), out_index)
+            IGConnection(
+                self, self.index(in_index),
+                out_index,
+                self._drawcontext)
             for out_index in self._indexes
             for in_index in
             get_out_connected_indexes(pattern, out_index.index)]
+
+    def update_geometries(self):
+        for index in self._indexes:
+            index.update_geometries()
+        for connection in self._connections:
+            connection.update_geometries()
 
     @property
     def pattern(self):
@@ -131,7 +171,7 @@ class IGPattern(object):
 
     def draw(self, painter, cursor):
         for row_number, row in enumerate(self.rows):
-            row_rect = get_row_rect(row_number, len(row))
+            row_rect = get_row_rect(self._drawcontext, row_number, len(row))
             hover = row_rect.contains(cursor)
             draw_row_background(painter, row_rect, row_number + 1, hover)
 
@@ -168,3 +208,6 @@ class IGPattern(object):
         for i in self._indexes:
             if i.index == index:
                 return i
+
+    def selected_indexes(self):
+        return [index for index in self._indexes if index.selected]

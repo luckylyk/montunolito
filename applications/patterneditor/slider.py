@@ -1,18 +1,24 @@
 
-from coordinates import (
+from context import DrawContext
+from geometries import (
     get_slider_segmented_line_path, get_slider_handler_path,
     get_slider_handler_rect)
-from draws import draw_slider_path
+from painting import draw_slider_path
 
 
 class Slider(object):
-    def __init__(self, rect, value=5, max=10):
+    def __init__(self, rect, drawcontext=None, value=5, maxvalue=10):
         self.rect = rect
+        self._drawcontext = drawcontext or DrawContext()
         self.value = value
         self._segmented_line_path = \
-            get_slider_segmented_line_path(rect, max+1)
+            get_slider_segmented_line_path(
+                self._drawcontext,
+                rect,
+                maxvalue + 1)
         self._value_rects = [
-            get_slider_handler_rect(rect, v, max) for v in range(max + 1)]
+            get_slider_handler_rect(rect, v, maxvalue)
+            for v in range(maxvalue + 1)]
         self._value_path = get_slider_handler_path(self._value_rects[value])
 
     def hovered_value(self, cursor):

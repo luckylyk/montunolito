@@ -1,7 +1,7 @@
 from montunolito.core.solfege import FINGERSSTATES
-
-from draws import draw_note_path
-from coordinates import (
+from painting import draw_note_path
+from context import DrawContext
+from geometries import (
     get_note_path, get_beam_tail_path, get_beams_connection_path,
     get_eighth_rest_path, extract_noterects)
 
@@ -88,10 +88,10 @@ class FingerstateSelecter(object):
 
 
 class Figure(object):
-    def __init__(self, figure, rect):
+    def __init__(self, figure, rect=None):
         self._figure = list(figure)
         self._rect = rect
-        self._noterects = extract_noterects(rect)
+        self._noterects = extract_noterects(rect) if rect else None
         self.selected = None
 
     def set_selected_state(self, cursor):
@@ -105,10 +105,17 @@ class Figure(object):
         else:
             self.selected = None
 
+    def set_rect(self, rect):
+        self._rect = rect
+        self._noterects = extract_noterects(rect)
+
     def set_fingerstate(self, eighth_index, fingerstate_index):
         self._figure[eighth_index] = fingerstate_index
 
     def draw(self, painter, cursor, hoverable=True):
+        if self._rect is None:
+            return
+
         previous_fingerstate_index = None
         previous_kwargs = None
 

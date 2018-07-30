@@ -10,7 +10,7 @@
 
 
 EMPTY_PATTERN = {
-    'quarters': [],
+    'quarters': [[], [], [], []],
     'relationships': {},
     'behaviors': {}
 }
@@ -18,16 +18,16 @@ EMPTY_BEHAVIORS = {'static': 0, 'melodic': 0, 'arpegic': 0}
 
 
 def get_new_pattern():
-    return EMPTY_PATTERN.copy()
+    return deepcopy(EMPTY_PATTERN)
 
 
 def append_quarter_row(pattern):
     pattern['quarters'].append([])
 
 
-def append_fingerstates_indexes(pattern, fingerstates_indexes, row):
+def append_figure_at_row(pattern, figure, row):
     # add fingerstates indexes
-    pattern['quarters'][row].append(fingerstates_indexes)
+    pattern['quarters'][row].append(figure)
 
     # add behabiors
     index = row, len(pattern['quarters'][row]) - 1
@@ -45,7 +45,7 @@ def append_fingerstates_indexes(pattern, fingerstates_indexes, row):
         pattern['relationships'][relationships_index].update({index: 0})
 
 
-def delete_fingerstates_indexes(pattern, index):
+def delete_figure_at(pattern, index):
     row, column = index
     indexes_to_offset = sorted([
         (r, c) for (r, c) in get_existing_indexes_in_row(pattern, row)
@@ -180,3 +180,19 @@ def get_connection_strongness(pattern, in_index, out_index):
 def get_figure_at(pattern, index):
     row, col = index
     return pattern['quarters'][row][col]
+
+
+def get_behaviors_at(pattern, index):
+    return pattern['behaviors'][index]
+
+
+def deepcopy(pattern):
+    cpattern = {}
+    cpattern['quarters'] = [row[:] for row in pattern['quarters']]
+    cpattern['relationships'] = {
+        k: {l: w for l, w in v.items()}
+        for k, v in pattern['relationships'].items()}
+    cpattern['behaviors'] = {
+        k: {l: w for l, w in v.items()}
+        for k, v in pattern['behaviors'].items()}
+    return cpattern

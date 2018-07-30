@@ -2,15 +2,16 @@ from PyQt5 import QtGui, QtCore
 
 
 COLORS = {
+    'menu': '#202020',
     'note':
         {
             'normal': 'black',
-            'highlight': 'yellow',
+            'highlight': '#DDDD55',
             'selected': 'red'
         },
     'fingerstates':
         {
-            'pressed': '#AADDBB',
+            'pressed': '#AA4455',
             'released': '#ABABAB',
         },
     'balloon':
@@ -23,13 +24,14 @@ COLORS = {
                 },
             'border': '#4b4b4b',
             'title': '#4b4b4b',
-            'background': '#c8c8c8'
+            'background': '#c8c8c8',
+            'text': '#6E6E6E'
         },
     'slider':
         {
             'normal': '#343434',
-            'highlight': 'yellow',
-            'pressed': 'red'
+            'highlight': '#DDDD55',
+            'pressed': '#AA4455'
         },
     'graph':
         {
@@ -45,8 +47,8 @@ COLORS = {
                 {
                     'background':
                         {
-                            'min': '#6e6e6e',
-                            'max':'#6eAA6e'
+                            'min': 'red',
+                            'max': 'green'
                         },
                     'border':
                         {
@@ -121,17 +123,15 @@ def draw_balloon_header_button(painter, rect, path, state):
     painter.drawPath(path)
 
 
-def draw_texts(painter, rect, texts):
+def draw_balloon_text(painter, point, text):
     font = QtGui.QFont()
     font.setBold(False)
     font.setPointSize(11)
     painter.setFont(font)
 
-    pen = QtGui.QPen(QtGui.QColor(110, 110, 110))
+    pen = QtGui.QPen(QtGui.QColor(COLORS['balloon']['text']))
     painter.setPen(pen)
-    top_offset = rect.top() + 5
-    for i, text in enumerate(texts):
-        painter.drawText(27, (20 * i) + top_offset, text)
+    painter.drawText(point, text)
 
 
 def draw_background(painter, spacing, rect):
@@ -317,3 +317,49 @@ def draw_slider_path(
         painter.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0, 0)))
     painter.setPen(QtGui.QPen(color))
     painter.drawPath(path)
+
+
+def draw_menu_background(painter, rect):
+    painter.setBrush(QtGui.QBrush(QtGui.QColor(COLORS['menu'])))
+    painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 0)))
+    painter.drawRect(rect)
+
+
+def draw_icon(painter, icon, rect, hover=False, clicked=False):
+    if clicked is True:
+        mode = QtGui.QIcon.Selected
+    elif hover is True:
+        mode = QtGui.QIcon.Active
+    else:
+        mode = QtGui.QIcon.Normal
+    icon.paint(painter, rect, mode=mode)
+
+
+def get_icon(pixmappath=None, mirrored=False):
+    pixmap = QtGui.QPixmap(pixmappath)
+    if mirrored:
+        pixmap = pixmap.transformed(QtGui.QTransform().scale(-1, 1))
+
+    image = QtGui.QImage(pixmap)
+    active_image = QtGui.QImage(
+        image.width(), image.height(), image.format())
+    selected_image = QtGui.QImage(
+        image.width(), image.height(), image.format())
+
+    for i in range(image.width()):
+        for j in range(image.height()):
+            color = image.pixelColor(i, j)
+            active_image.setPixelColor(i, j, color.lighter(120))
+            selected_image.setPixelColor(i, j, color.lighter(80))
+
+    icon = QtGui.QIcon(pixmap)
+
+    active_pixmap = QtGui.QPixmap()
+    active_pixmap.convertFromImage(active_image)
+    icon.addPixmap(active_pixmap, icon.Active)
+
+    selected_pixmap = QtGui.QPixmap()
+    selected_pixmap.convertFromImage(selected_image)
+    icon.addPixmap(selected_pixmap, icon.Selected)
+
+    return icon
