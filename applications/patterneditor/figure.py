@@ -108,13 +108,13 @@ class Figure(object):
     def set_fingerstate(self, eighth_index, fingerstate_index):
         self._figure[eighth_index] = fingerstate_index
 
-    def draw(self, painter, cursor):
+    def draw(self, painter, cursor, hoverable=True):
         previous_fingerstate_index = None
         previous_kwargs = None
 
         for i, fingerstate_index in enumerate(self._figure):
             noterect = self._noterects[i]
-            hover = noterect.contains(cursor)
+            hover = noterect.contains(cursor) and hoverable
             selected = self.selected == i
             kwargs = FINGERSTATES_PATH_KWARGS[fingerstate_index]
 

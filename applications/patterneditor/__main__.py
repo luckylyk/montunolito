@@ -53,7 +53,6 @@ class MainTest(QtGui.QMainWindow):
         balloon.move(pos - self.mapFromGlobal(spike_tip))
         balloon.exec_()
 
-
     def paintEvent(self, event):
         painter = QtGui.QPainter()
         painter.begin(self)

@@ -2,11 +2,12 @@
 from coordinates import (
     get_index_behavior_rect, get_index_figure_rect, get_index_inplug_rect,
     get_index_outplug_rect, get_index_body_rect, get_row_rect, get_index_rect,
-    get_connection_path, get_connection_handler_rect)
+    get_connection_path, get_connection_handler_rect, shrink_rect)
 from draws import draw_index, draw_row_background, draw_connection
 from montunolito.core.pattern import (
     get_index_occurence_probablity, get_existing_indexes, get_figure_at,
     get_out_connected_indexes, get_connection_strongness)
+from figure import Figure
 
 
 class IGIndex(object):
@@ -18,8 +19,10 @@ class IGIndex(object):
         self._inplug_rect = get_index_inplug_rect(self._rect)
         self._outplug_rect = get_index_outplug_rect(self._rect)
         self._body_rect = get_index_body_rect(self._rect)
-        self._figure_rect = get_index_figure_rect(self._rect)
-        self._behavior_rect = get_index_behavior_rect(self._rect)
+        self._figure_rect = get_index_figure_rect(self._body_rect)
+        self._behavior_rect = get_index_behavior_rect(self._body_rect)
+
+        self._figure = Figure(self.figure(), shrink_rect(self._figure_rect,5))
 
         self._rects = [
             self._inplug_rect,
@@ -78,6 +81,7 @@ class IGIndex(object):
             self._behavior_rect,
             selected=self.selected,
             highlight_rects=self.highlight_rects(cursor))
+        self._figure.draw(painter, cursor, hoverable=False)
 
 
 class IGConnection(object):

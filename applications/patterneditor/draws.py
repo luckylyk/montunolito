@@ -56,7 +56,7 @@ COLORS = {
                     'plug_highlight': '#AA4455',
                     'item':
                         {
-                            'background': '#7f7f7f',
+                            'background': '#9f9f9f',
 
                             'border':
                                 {
@@ -269,7 +269,7 @@ def draw_index_button(painter, rect, selected=False, hover=False):
     background_color = COLORS['graph']['index']['item']['background']
     brush = QtGui.QBrush(QtGui.QColor(background_color))
     painter.setBrush(brush)
-    painter.drawEllipse(rect)
+    painter.drawRoundedRect(rect, 5, 5)
 
 
 def draw_connection(painter, path, handler_rect, hover=False):

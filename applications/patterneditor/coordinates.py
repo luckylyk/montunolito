@@ -2,11 +2,12 @@ from PyQt4 import QtCore, QtGui
 
 SLIDER_SEGMENT_HEIGHT = 3
 
-INDEX_HEIGHT = 25
+INDEX_HEIGHT = 40
 INDEX_WIDTH = 130
 INDEX_SPACING = 15
 INDEX_PLUG_WIDTH = 10
 INDEX_BODY_RIGHTLEFT_PADDING = 15
+INDEX_BUTTON_SPACING = 5
 
 ROWS_TOP = 25
 ROWS_LEFT = 35
@@ -17,7 +18,6 @@ ROWS_HEADER_SPACE = 50
 ROWS_BOTTOM_SPACE = 0
 
 CONNECTION_HANDLER_SIZE = 10
-BEAM_CONNECTION_WIDTH = 5
 
 BALLOON_SPIKE_HEIGHT = 29
 BALLOON_SPIKE_BASE_LEFT = 30
@@ -148,19 +148,36 @@ def get_balloon_behavior_slider_rect(rect, index):
     return QtCore.QRect(left, top, width, height)
 
 
-
 def get_index_figure_rect(rect):
-    offset = 3
-    width = rect.height() - (offset * 2)
-    left = rect.left() + ((rect.width() / 6) * 2)
-    return QtCore.QRect(left, rect.top() + offset, width, width)
+    shrinked = shrink_rect(rect, 8)
+    return QtCore.QRect(
+        shrinked.left(),
+        shrinked.top(),
+        (shrinked.width() / 2) - (INDEX_BUTTON_SPACING / 2),
+        shrinked.height())
 
 
 def get_index_behavior_rect(rect):
-    offset = 3
-    width = rect.height() - (offset * 2)
-    left = rect.left() + ((rect.width() / 6) * 3)
-    return QtCore.QRect(left, rect.top() + offset, width, width)
+    shrinked = shrink_rect(rect, 8)
+    return QtCore.QRect(
+        shrinked.left() + (shrinked.width() / 2) + (INDEX_BUTTON_SPACING / 2),
+        shrinked.top(),
+        (shrinked.width() / 2) - (INDEX_BUTTON_SPACING / 2),
+        shrinked.height())
+
+
+# def get_index_figure_rect(rect):
+#     offset = 3
+#     width = rect.height() - (offset * 2)
+#     left = rect.left() + ((rect.width() / 6) * 2)
+#     return QtCore.QRect(left, rect.top() + offset, width, width)
+
+
+# def get_index_behavior_rect(rect):
+#     offset = 3
+#     width = rect.height() - (offset * 2)
+#     left = rect.left() + ((rect.width() / 6) * 3)
+#     return QtCore.QRect(left, rect.top() + offset, width, width)
 
 
 def get_index_body_rect(rect):
@@ -304,11 +321,12 @@ def get_beam_tail_path(noterect):
 
 
 def get_beams_connection_path(noterect1, noterect2):
+    beam_connection_width = noterect1.height() / 12
     rect = QtCore.QRectF(
         noterect1.topRight(),
         QtCore.QPoint(
             noterect2.topRight().x(),
-            noterect2.topRight().y() + BEAM_CONNECTION_WIDTH))
+            noterect2.topRight().y() + beam_connection_width))
     path = QtGui.QPainterPath()
     path.addRect(rect)
     return path
@@ -415,3 +433,11 @@ def extract_noterects(rect, number=4):
             width,
             rect.height())
         for i in range(number)]
+
+
+def shrink_rect(rect, value):
+    return QtCore.QRect(
+        rect.left() + value,
+        rect.top() + value,
+        rect.width() - (value * 2),
+        rect.height() - (value * 2))
