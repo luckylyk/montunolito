@@ -1,78 +1,61 @@
 from PyQt5 import QtGui, QtCore
+import math
 
 
 COLORS = {
     'menu': '#202020',
-    'note':
-        {
-            'normal': 'black',
-            'highlight': '#DDDD55',
-            'selected': 'red'
-        },
-    'fingerstates':
-        {
-            'pressed': '#AA4455',
-            'released': '#ABABAB',
-        },
-    'balloon':
-        {
-            'closer':
-                {
-                    'hover': '#d0a895',
-                    'free': "#B3B3B3",
-                    'cross': "#4b4b4b"
-                },
-            'border': '#4b4b4b',
-            'title': '#4b4b4b',
-            'background': '#c8c8c8',
-            'text': '#6E6E6E'
-        },
-    'slider':
-        {
-            'normal': '#343434',
-            'highlight': '#DDDD55',
-            'pressed': '#AA4455'
-        },
-    'graph':
-        {
-            'background': '#292929',
-            'grid':  '#343434',
-            'row':
-                {
-                    'background': '#4a4a4a',
-                    'background_highlight': '#535353',
-                    'number': 'white'
-                },
-            'index':
-                {
-                    'background':
-                        {
-                            'min': 'red',
-                            'max': 'green'
-                        },
-                    'border':
-                        {
-                            'highlight':  '#449999',
-                            'selected': '#dfdfdf',
-                        },
-                    'plug_highlight': '#AA4455',
-                    'item':
-                        {
-                            'background': '#9f9f9f',
-
-                            'border':
-                                {
-                                    'highlight':  '#449999',
-                                    'selected': '#dfdfdf',
-                                },
-                        },
-                    'path':
-                        {
-                            'normal': '#AA4455',
-                            'highlight': '#DDDD55',
-                        },
-                }
-        },
+    'note': {
+        'normal': 'black',
+        'highlight': '#DDDD55',
+        'selected': 'red'},
+    'fingerstates': {
+        'pressed': '#AA4455',
+        'released': '#ABABAB'},
+    'balloon': {
+        'closer':{
+            'hover': '#d0a895',
+            'free': "#B3B3B3",
+            'cross': "#4b4b4b"},
+        'border': '#4b4b4b',
+        'title': '#4b4b4b',
+        'background': '#c8c8c8',
+        'text': '#6E6E6E'},
+    'slider': {
+        'normal': '#343434',
+        'highlight': '#DDDD55',
+        'pressed': '#AA4455'},
+    'graph': {
+        'background': '#292929',
+        'grid':  '#343434',
+        'row': {
+            'number':{
+                'highlight': 'yellow',
+                'normal': 'white'},
+            'background': {
+                'highlight': '#535353',
+                'normal': '#4a4a4a'}},
+        'connection': {
+            'dead': '#333333',
+            'min': '#440715',
+            'max': '#AA4455',
+            'highlight': '#DDDD55'},
+        'index':{
+            'mas': {
+                'min': '#313100',
+                'max': '#858565'},
+            'background': {
+                'dead': '#333333',
+                'min': '#302512',
+                'max': 'orange'},
+            'border': {
+                'highlight':  '#449999',
+                'selected': '#dfdfdf'},
+            'plug_highlight': '#AA4455',
+            'item': {
+                'background': '#9f9f9f',
+                'border': {
+                    'highlight':  '#449999',
+                    'selected': '#dfdfdf'}}}}
 }
 
 
@@ -80,9 +63,15 @@ def mix_colors(color_min, color_max, percent):
     zr, zg, zb, _ = color_min.getRgb()
     hr, hg, hb, _ = color_max.getRgb()
 
-    r = abs(zr - hr) * (percent / 100) + min(zr, hr)
-    g = abs(zg - hg) * (percent / 100) + min(zg, hg)
-    b = abs(zb - hb) * (percent / 100) + min(zb, hb)
+    percent = (100 - percent) / 100.0
+    ro = (abs(zr - hr) * percent)
+    go = (abs(zg - hg) * percent)
+    bo = (abs(zb - hb) * percent)
+
+    r = hr - ro if zr < hr else hr + ro
+    g = hg - go if zg < hg else hg + go
+    b = hb - bo if zb < hb else hb + bo
+
     return QtGui.QColor(r, g, b)
 
 
@@ -159,72 +148,78 @@ def draw_background(painter, spacing, rect):
             QtCore.QPoint(rect.width(), top))
 
 
-def draw_row_background(painter, rect, number, hover=False):
+def draw_row_background(painter, path, hover=False):
     pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0))
     painter.setPen(pen)
     if hover is True:
-        color = COLORS['graph']['row']['background_highlight']
+        color = COLORS['graph']['row']['background']['highlight']
     else:
-        color = COLORS['graph']['row']['background']
+        color = COLORS['graph']['row']['background']['normal']
+
     brush = QtGui.QBrush(QtGui.QColor(color))
     painter.setBrush(brush)
-    painter.drawRoundedRect(
-        rect.left(), rect.top() + 20, rect.width(), rect.height() - 5, 10, 10)
+    painter.drawPath(path)
 
-    painter.drawRoundedRect(
-        rect.left() + rect.width() - 30, rect.top(), 30, 40, 10, 10)
 
-    pen = QtGui.QPen(QtGui.QColor(COLORS['graph']['row']['number']))
+def draw_row_plus(painter, rect, hover=False):
+    if hover is True:
+        color = COLORS['graph']['row']['number']['highlight']
+    else:
+        color = COLORS['graph']['row']['number']['normal']
+
+    text_option = QtGui.QTextOption()
+    text_option.setAlignment(QtCore.Qt.AlignCenter)
+    pen = QtGui.QPen(QtGui.QColor(color))
     painter.setPen(pen)
-
     font = QtGui.QFont()
     font.setBold(True)
-    font.setPointSize(12)
+    font.setPointSize(rect.width() * 0.6)
     painter.setFont(font)
-    painter.drawText(
-        rect.left() + rect.width() - 20, rect.top() + 20, str(number))
+    painter.drawText(QtCore.QRectF(rect), '+', text_option)
 
 
-def draw_index(
-        painter, occurence, inplug_rect, outplug_rect, body_rect,
-        fingerstate_rect, behavior_rect, selected=False, highlight_rects=None):
+def draw_index(painter, index, highlight_rects=None):
     highlight_rects = highlight_rects or []
-
-    background = mix_colors(
-        QtGui.QColor(COLORS['graph']['index']['background']['min']),
-        QtGui.QColor(COLORS['graph']['index']['background']['max']),
-        occurence)
-
-    draw_index_plug(
-        painter,
-        inplug_rect,
-        bgcolor=background,
-        hover=inplug_rect in highlight_rects)
+    occurence = index.occurence
+    if occurence:
+        background = mix_colors(
+            QtGui.QColor(COLORS['graph']['index']['background']['min']),
+            QtGui.QColor(COLORS['graph']['index']['background']['max']),
+            occurence)
+    else:
+        background = QtGui.QColor(
+            COLORS['graph']['index']['background']['dead'])
 
     draw_index_plug(
         painter,
-        outplug_rect,
+        index.inplug_rect,
         bgcolor=background,
-        hover=outplug_rect in highlight_rects)
+        hover=index.inplug_rect in highlight_rects)
+
+    draw_index_plug(
+        painter,
+        index.outplug_rect,
+        bgcolor=background,
+        hover=index.outplug_rect in highlight_rects)
 
     draw_index_body(
         painter,
-        body_rect,
+        index.body_rect,
         bgcolor=background,
-        selected=selected,
-        hover=body_rect in highlight_rects)
+        selected=index.selected,
+        hover=index.body_rect in highlight_rects)
 
     draw_index_button(
         painter,
-        fingerstate_rect,
-        selected=selected,
-        hover=fingerstate_rect in highlight_rects)
+        index.figure_rect,
+        selected=index.selected,
+        hover=index.figure_rect in highlight_rects)
 
     draw_index_button(
         painter,
-        behavior_rect,
-        selected=selected,
-        hover=behavior_rect in highlight_rects)
+        index.behavior_rect,
+        selected=index.selected,
+        hover=index.behavior_rect in highlight_rects)
 
 
 def draw_index_plug(painter, rect, bgcolor=None, hover=False):
@@ -272,11 +267,16 @@ def draw_index_button(painter, rect, selected=False, hover=False):
     painter.drawRoundedRect(rect, 5, 5)
 
 
-def draw_connection(painter, path, handler_rect, hover=False):
+def draw_connection(painter, connection, hover=False):
     if hover:
-        color = QtGui.QColor(COLORS['graph']['index']['path']['highlight'])
+        color = QtGui.QColor(COLORS['graph']['connection']['highlight'])
+    elif not connection.strongness:
+        color = QtGui.QColor(COLORS['graph']['connection']['dead'])
     else:
-        color = QtGui.QColor(COLORS['graph']['index']['path']['normal'])
+        color = mix_colors(
+            QtGui.QColor(COLORS['graph']['connection']['min']),
+            QtGui.QColor(COLORS['graph']['connection']['max']),
+            (connection.strongness / 10) * 100)
     pen = QtGui.QPen(color)
     pen.setWidth(2)
     painter.setPen(pen)
@@ -284,11 +284,11 @@ def draw_connection(painter, path, handler_rect, hover=False):
     brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 0))
     painter.setBrush(brush)
 
-    painter.drawPath(path)
+    painter.drawPath(connection.path)
 
     brush = QtGui.QBrush(color)
     painter.setBrush(brush)
-    painter.drawEllipse(handler_rect)
+    painter.drawEllipse(connection.handler_rect)
 
 
 def draw_note_path(painter, path, selected=False, hover=False):
@@ -363,3 +363,26 @@ def get_icon(pixmappath=None, mirrored=False):
     icon.addPixmap(selected_pixmap, icon.Selected)
 
     return icon
+
+
+def draw_mas(painter, rects, melodic=50, arpegic=50, static=50):
+    font = QtGui.QFont()
+    text_option = QtGui.QTextOption()
+    text_option.setAlignment(QtCore.Qt.AlignCenter)
+
+    min_color = QtGui.QColor(COLORS['graph']['index']['mas']['min'])
+    max_color = QtGui.QColor(COLORS['graph']['index']['mas']['max'])
+
+    letters = (
+        ('M', melodic, rects[0]),
+        ('A', arpegic, rects[1]),
+        ('S', static, rects[2]))
+    for text, value, rect in letters:
+        total = sum([melodic, arpegic, static])
+        percent = (value / total) * 100 if total else total
+        color = mix_colors(min_color, max_color, percent)
+        font.setBold(value == max(melodic, arpegic, static))
+        font.setPointSize(rect.width() * 0.9)
+        painter.setFont(font)
+        painter.setPen(QtGui.QPen(color))
+        painter.drawText(rect, text, text_option)

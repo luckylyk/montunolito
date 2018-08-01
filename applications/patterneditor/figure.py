@@ -60,7 +60,7 @@ FINGERSTATES_PATH_KWARGS = [
 ]
 
 
-class FingerstateSelecter(object):
+class IGFingerstateSelecter(object):
     def __init__(self, rect):
         self.rect = rect
         self._noterects = extract_noterects(rect, number=8)
@@ -87,7 +87,7 @@ class FingerstateSelecter(object):
                 selected=False)
 
 
-class Figure(object):
+class IGFigure(object):
     def __init__(self, figure, rect=None):
         self._figure = list(figure)
         self._rect = rect
@@ -104,6 +104,10 @@ class Figure(object):
                 break
         else:
             self.selected = None
+
+    @property
+    def figure(self):
+        return tuple(self._figure)
 
     def set_rect(self, rect):
         self._rect = rect

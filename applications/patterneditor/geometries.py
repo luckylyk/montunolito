@@ -1,4 +1,6 @@
+import math
 from PyQt5 import QtCore, QtGui
+
 
 SLIDER_SEGMENT_HEIGHT = 3
 
@@ -14,8 +16,13 @@ ROWS_LEFT = 35
 ROWS_SPACING = 50
 ROWS_PADDING = 10
 ROWS_WIDTH = INDEX_WIDTH + (ROWS_PADDING * 2)
-ROWS_HEADER_SPACE = 50
-ROWS_BOTTOM_SPACE = 0
+ROWS_HEADER_SPACE = 40
+ROWS_BOTTOM_SPACE = 10
+ROWS_PLUS_LEFT = ROWS_WIDTH - 50
+ROW_PLUS_WIDTH = 30
+ROW_PLUS_HEIGHT = 30
+ROW_ROUNDNESS = 5
+ROW_BODY_TOP_PADDING = 20
 
 CONNECTION_HANDLER_SIZE = 10
 
@@ -188,7 +195,7 @@ def get_balloon_behavior_text_point(drawcontext, rect, index):
 
 
 def get_index_figure_rect(drawcontext, rect):
-    shrinked = shrink_rect(rect, 8)
+    shrinked = shrink_rect(rect, (rect.width() / 12))
     return QtCore.QRect(
         shrinked.left(),
         shrinked.top(),
@@ -197,7 +204,7 @@ def get_index_figure_rect(drawcontext, rect):
 
 
 def get_index_behavior_rect(drawcontext, rect):
-    shrinked = shrink_rect(rect, 8)
+    shrinked = shrink_rect(rect, (rect.width() / 12))
     left = (
         shrinked.left() + (shrinked.width() / 2) +
         (drawcontext.size(INDEX_BUTTON_SPACING) / 2))
@@ -263,6 +270,36 @@ def get_row_rect(drawcontext, row_number, row_len):
         left,
         drawcontext.size(ROWS_TOP),
         drawcontext.size(ROWS_WIDTH), height)
+
+
+def get_row_plus_rect(drawcontext, rect):
+    return QtCore.QRect(
+        rect.left() + drawcontext.size(ROWS_PLUS_LEFT),
+        rect.top(),
+        drawcontext.size(ROW_PLUS_WIDTH),
+        drawcontext.size(ROW_PLUS_HEIGHT))
+
+
+def get_row_body_rect(drawcontext, rect):
+    return QtCore.QRect(
+        rect.left(),
+        rect.top() + drawcontext.size(ROW_BODY_TOP_PADDING),
+        rect.width(),
+        rect.height() - drawcontext.size(ROW_BODY_TOP_PADDING))
+
+
+def get_row_body_path(drawcontext, bodyrect, plusrect):
+    path = QtGui.QPainterPath()
+    path.setFillRule(QtCore.Qt.WindingFill)
+    path.addRoundedRect(
+        QtCore.QRectF(bodyrect),
+        drawcontext.size(ROW_ROUNDNESS),
+        drawcontext.size(ROW_ROUNDNESS))
+    path.addRoundedRect(
+        QtCore.QRectF(plusrect),
+        int(drawcontext.size(ROW_ROUNDNESS)),
+        int(drawcontext.size(ROW_ROUNDNESS)))
+    return path
 
 
 def get_connection_path(start_point, end_point):
@@ -494,3 +531,25 @@ def shrink_rect(rect, value):
         rect.top() + value,
         rect.width() - (value * 2),
         rect.height() - (value * 2))
+
+
+def distance(a, b):
+    return math.sqrt((b.x() - a.x()) ** 2 + (b.y() - a.y()) ** 2)
+
+
+def get_mas_rects(rect):
+    width = distance(rect.topLeft(), rect.bottomRight()) * 0.2
+    space = rect.width() / 4
+    top = rect.top() + (rect.height() / 2)
+    points = [
+        QtCore.QPoint(rect.left() + (space * (i + 1)), top)
+        for i in range(3)]
+    return [expand_rect(point, width) for point in points]
+
+
+def expand_rect(point, value):
+    return QtCore.QRectF(
+        point.x() - (value / 2),
+        point.y() - (value / 2),
+        value,
+        value)

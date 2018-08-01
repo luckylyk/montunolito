@@ -6,7 +6,7 @@ from geometries import (
 from painting import draw_slider_path
 
 
-class Slider(object):
+class IGSlider(object):
     def __init__(self, rect, drawcontext=None, value=5, maxvalue=10):
         self.rect = rect
         self._drawcontext = drawcontext or DrawContext()

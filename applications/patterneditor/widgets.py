@@ -1,6 +1,6 @@
+from functools import partial
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from balloons import FigureBalloon, BehaviorBalloon, ConnectionBalloon
 from graph import IGPattern
 from context import DrawContext
 from painting import draw_background, draw_menu_background
@@ -87,7 +87,8 @@ class MenuWidget(QtWidgets.QWidget):
 class GraphWidget(QtWidgets.QWidget):
     figureClicked = QtCore.pyqtSignal(object, object)
     behaviorClicked = QtCore.pyqtSignal(object, object)
-    connectionClicked = QtCore.pyqtSignal(object, object)
+    connectionClicked = QtCore.pyqtSignal(object, object, object)
+    rowClicked = QtCore.pyqtSignal(object)
 
     def __init__(self, pattern, parent=None):
         super().__init__(parent)
@@ -103,9 +104,12 @@ class GraphWidget(QtWidgets.QWidget):
         self.setMinimumSize(self.sizeHint())
 
     def set_pattern(self, pattern):
+        selected_indexes = [
+            i.index for i in self.pattern.selected_indexes() if i.selected]
         self.pattern = IGPattern(
             pattern.copy(),
             drawcontext=self._drawcontext)
+        self.pattern.select_indexes(selected_indexes)
         self.repaint()
 
     def mouseMoveEvent(self, event):
@@ -131,17 +135,19 @@ class GraphWidget(QtWidgets.QWidget):
             return
 
         if action == 'figure':
-            balloon = FigureBalloon(item, parent=None)
-            pos = item._figure_rect.center()
+            point = self.mapToGlobal(item.figure_rect.center())
+            self.figureClicked.emit(item.index, point)
         elif action == 'behavior':
-            balloon = BehaviorBalloon(item, parent=None)
-            pos = item._behavior_rect.center()
+            point = self.mapToGlobal(item.behavior_rect.center())
+            self.behaviorClicked.emit(item.index, point)
         elif action == 'connection':
-            balloon = ConnectionBalloon(item, parent=None)
-            pos = item._handler_rect.center()
-        spike_tip = get_balloon_spike_point(self._drawcontext, balloon.rect())
-        balloon.move(pos - self.mapFromGlobal(spike_tip))
-        balloon.exec_()
+            point = self.mapToGlobal(item.handler_rect.center())
+            in_index = item.in_index.index
+            out_index = item.out_index.index
+            self.connectionClicked.emit(in_index, out_index, point)
+        elif action == 'row':
+            self.rowClicked.emit(item.number)
+
 
     def paintEvent(self, _):
         painter = QtGui.QPainter()
@@ -159,3 +165,25 @@ class GraphWidget(QtWidgets.QWidget):
 
     def sizeHint(self):
         return get_pattern_size(self._drawcontext, self.pattern)
+
+
+class NewMenu(QtWidgets.QMenu):
+
+    def __init__(self, templates, parent=None):
+        super().__init__(parent)
+        self.result = None
+        self._empty = QtWidgets.QAction('empty', parent=self)
+        self.addAction(self._empty)
+        self.addSeparator()
+        for template in templates:
+            action = QtWidgets.QAction(template, parent=self)
+            action.name = template
+            self.addAction(action)
+
+    def set_result(self, result):
+        self.result = result
+
+    def exec_(self):
+        result = super().exec_(QtGui.QCursor.pos())
+        if result is not None and result.text() != 'empty':
+            return result.text()

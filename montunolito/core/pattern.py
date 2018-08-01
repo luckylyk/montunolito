@@ -160,7 +160,7 @@ def get_index_occurence_probablity(pattern, index):
 
 def get_out_connected_indexes(pattern, index):
     relationships = pattern['relationships'].get(index, {})
-    return [index for index, value in relationships.items() if value]
+    return [index for index, value in relationships.items()]
 
 
 def get_in_connected_indexes(pattern, index):
@@ -173,8 +173,12 @@ def get_in_connected_indexes(pattern, index):
     return indexes
 
 
-def get_connection_strongness(pattern, in_index, out_index):
+def get_relationship(pattern, in_index, out_index):
     return pattern['relationships'][out_index][in_index]
+
+
+def set_relationship(pattern, in_index, out_index, value):
+    pattern['relationships'][out_index][in_index] = value
 
 
 def get_figure_at(pattern, index):
@@ -182,8 +186,17 @@ def get_figure_at(pattern, index):
     return pattern['quarters'][row][col]
 
 
+def set_figure_at(pattern, index, figure):
+    row, col = index
+    pattern['quarters'][row][col] = figure
+
+
 def get_behaviors_at(pattern, index):
     return pattern['behaviors'][index]
+
+
+def set_behaviors_at(pattern, index, behaviors):
+    pattern['behaviors'][index] = behaviors
 
 
 def deepcopy(pattern):

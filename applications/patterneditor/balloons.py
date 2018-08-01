@@ -7,9 +7,9 @@ from geometries import (
     get_balloon_figure_rect, get_balloon_fingerstateselecter_rect,
     get_balloon_validator_rect, get_balloon_rejecter_path,
     get_balloon_approver_path, get_balloon_behavior_slider_rect,
-    get_balloon_behavior_text_point)
-from figure import Figure, FingerstateSelecter
-from slider import Slider
+    get_balloon_behavior_text_point, get_balloon_spike_point)
+from figure import IGFigure, IGFingerstateSelecter
+from slider import IGSlider
 
 
 class Balloon(QtWidgets.QDialog):
@@ -23,9 +23,6 @@ class Balloon(QtWidgets.QDialog):
         self._approver_state = False
         if size:
             self.setFixedSize(size)
-            self.move(
-                QtGui.QCursor().pos().x() - 20,
-                QtGui.QCursor().pos().y() - self.height())
 
         self.drawable_rect = get_balloon_drawable_rect(
             self.drawcontext, self.rect())
@@ -39,8 +36,11 @@ class Balloon(QtWidgets.QDialog):
             self.drawcontext, self.rect())
         self.setMouseTracking(True)
 
-    def cursor(self):
-        return self.mapFromGlobal(QtGui.QCursor.pos())
+    def exec_(self, point=None):
+        point = point or self.cursor()
+        self.move(point - self.spike_tip)
+        result = super().exec_()
+        return result == QtWidgets.QDialog.Accepted
 
     def mouseMoveEvent(self, event):
         if self._rejecter_rect.contains(event.pos()) != self._rejecter_state:
@@ -51,6 +51,9 @@ class Balloon(QtWidgets.QDialog):
             self._approver_state = self._approver_rect.contains(event.pos())
             self.repaint()
             return
+
+    def cursor(self):
+        return self.mapFromGlobal(QtGui.QCursor.pos())
 
     def mouseReleaseEvent(self, _):
         if self._rejecter_state:
@@ -64,6 +67,10 @@ class Balloon(QtWidgets.QDialog):
             self.accept()
         if event.key() == QtCore.Qt.Key_Escape:
             self.reject()
+
+    @property
+    def spike_tip(self):
+        return get_balloon_spike_point(self.drawcontext, self.rect())
 
     def paintEvent(self, _):
         painter = QtGui.QPainter()
@@ -89,29 +96,26 @@ class Balloon(QtWidgets.QDialog):
             self._approver_state)
 
 
-BEHAVIOR_NAMES = 'Melodic', 'Arpegic', 'Static'
-
-
-class BehaviorBalloon(Balloon):
+class BehaviorsBalloon(Balloon):
     TITLE = 'Behaviors'
+    BEHAVIOR_NAMES = 'Melodic', 'Arpegic', 'Static'
 
-    def __init__(self, index, parent=None):
+    def __init__(self, behaviors, parent=None):
         super().__init__(size=QtCore.QSize(210, 150), parent=parent)
-        self._index = index
         self._mousepressed = False
-        self._melodic_slider = Slider(
+        self._melodic_slider = IGSlider(
             get_balloon_behavior_slider_rect(self.drawable_rect, 0),
-            value=index.behaviors['melodic'],
+            value=behaviors['melodic'],
             maxvalue=6)
-        self._arpegic_slider = Slider(
+        self._arpegic_slider = IGSlider(
             get_balloon_behavior_slider_rect(self.drawable_rect, 1),
-            value=index.behaviors['arpegic'],
+            value=behaviors['arpegic'],
             maxvalue=6)
-        self._static_slider = Slider(
+        self._static_slider = IGSlider(
             get_balloon_behavior_slider_rect(self.drawable_rect, 2),
-            value=index.behaviors['static'],
+            value=behaviors['static'],
             maxvalue=6)
-        self._sliders = (
+        self._igsliders = (
             self._melodic_slider,
             self._arpegic_slider,
             self._static_slider)
@@ -120,10 +124,17 @@ class BehaviorBalloon(Balloon):
                 self.drawcontext, self.drawable_rect, index)
             for index in range(3)]
 
+    @property
+    def behaviors(self):
+        return {
+            'melodic': self._melodic_slider.value,
+            'arpegic': self._arpegic_slider.value,
+            'static': self._static_slider.value}
+
     def hovered_slider(self):
-        for slider in self._sliders:
-            if slider.rect.contains(self.cursor()):
-                return slider
+        for igslider in self._igsliders:
+            if igslider.rect.contains(self.cursor()):
+                return igslider
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
@@ -148,7 +159,7 @@ class BehaviorBalloon(Balloon):
     def paint(self, painter):
         super().paint(painter)
         for i, point in enumerate(self._text_points):
-            draw_balloon_text(painter, point, BEHAVIOR_NAMES[i])
+            draw_balloon_text(painter, point, self.BEHAVIOR_NAMES[i])
 
         slider = self.hovered_slider()
         self._melodic_slider.draw(
@@ -166,27 +177,30 @@ class BehaviorBalloon(Balloon):
 
 
 class ConnectionBalloon(Balloon):
-    TITLE = 'Strongness'
+    TITLE = 'Relationship'
 
-    def __init__(self, connection, parent=None):
+    def __init__(self, value, parent=None):
         super().__init__(size=QtCore.QSize(200, 115), parent=parent)
-        self._connection = connection
-        self._slider = Slider(
+        self._igslider = IGSlider(
             self.drawable_rect,
-            value=connection.strongness(),
+            value=value,
             maxvalue=10,
             drawcontext=self.drawcontext)
         self._mousepressed = False
 
+    @property
+    def value(self):
+        return self._igslider.value
+
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
         if self._mousepressed is True:
-            self._slider.set_value(self.cursor())
+            self._igslider.set_value(self.cursor())
         self.repaint()
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
-        self._slider.set_value(self.cursor())
+        self._igslider.set_value(self.cursor())
         self._mousepressed = self.drawable_rect.contains(self.cursor())
         self.repaint()
 
@@ -196,21 +210,25 @@ class ConnectionBalloon(Balloon):
 
     def paint(self, painter):
         super().paint(painter)
-        self._slider.draw(painter, self.cursor(), pressed=self._mousepressed)
+        self._igslider.draw(painter, self.cursor(), pressed=self._mousepressed)
 
 
 class FigureBalloon(Balloon):
     TITLE = 'Figure'
 
-    def __init__(self, index, parent=None):
+    def __init__(self, figure, parent=None):
         size = QtCore.QSize(180, 220)
         super().__init__(size=size, parent=parent)
-        self._index = index
-        self.figure = Figure(
-            index.figure,
+
+        self._igfigure = IGFigure(
+            figure,
             get_balloon_figure_rect(self.drawcontext, self.drawable_rect))
         selected_rect = get_balloon_fingerstateselecter_rect(self.drawable_rect)
-        self.fingerstate_selecter = FingerstateSelecter(selected_rect)
+        self._igfingerstate_selecter = IGFingerstateSelecter(selected_rect)
+
+    @property
+    def figure(self):
+        return self._igfigure.figure
 
     def mouseMoveEvent(self, event):
         super().mouseMoveEvent(event)
@@ -218,19 +236,19 @@ class FigureBalloon(Balloon):
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
-        self.figure.set_selected_state(self.cursor())
-        if self.figure.selected is None:
+        self._igfigure.set_selected_state(self.cursor())
+        if self._igfigure.selected is None:
             self.repaint()
             return
 
-        hovered = self.fingerstate_selecter.get_hovered_index(self.cursor())
+        hovered = self._igfingerstate_selecter.get_hovered_index(self.cursor())
         if hovered is None:
             self.repaint()
             return
-        self.figure.set_fingerstate(self.figure.selected, hovered)
+        self._igfigure.set_fingerstate(self._igfigure.selected, hovered)
         self.repaint()
 
     def paint(self, painter):
         super().paint(painter)
-        self.figure.draw(painter, self.cursor())
-        self.fingerstate_selecter.draw(painter, self.cursor())
+        self._igfigure.draw(painter, self.cursor())
+        self._igfingerstate_selecter.draw(painter, self.cursor())
