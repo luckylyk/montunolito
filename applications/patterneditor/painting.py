@@ -25,8 +25,8 @@ COLORS = {
         'highlight': '#DDDD55',
         'pressed': '#AA4455'},
     'graph': {
-        'background': '#292929',
-        'grid':  '#343434',
+        'background': '#303030',
+        'grid':  '#383838',
         'row': {
             'number':{
                 'highlight': 'yellow',
@@ -35,7 +35,7 @@ COLORS = {
                 'highlight': '#535353',
                 'normal': '#4a4a4a'}},
         'connection': {
-            'dead': '#333333',
+            'dead': '#252525',
             'min': '#440715',
             'max': '#AA4455',
             'highlight': '#DDDD55'},
@@ -44,7 +44,7 @@ COLORS = {
                 'min': '#313100',
                 'max': '#858565'},
             'background': {
-                'dead': '#333333',
+                'dead': '#252525',
                 'min': '#302512',
                 'max': 'orange'},
             'border': {
@@ -268,6 +268,11 @@ def draw_index_button(painter, rect, selected=False, hover=False):
 
 
 def draw_connection(painter, connection, hover=False):
+    painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 0)))
+    brush = QtGui.QBrush(QtGui.QColor(255, 255, 255, 75))
+    painter.setBrush(brush)
+    painter.drawEllipse(connection.handler_rect)
+
     if hover:
         color = QtGui.QColor(COLORS['graph']['connection']['highlight'])
     elif not connection.strongness:
@@ -283,12 +288,13 @@ def draw_connection(painter, connection, hover=False):
 
     brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 0))
     painter.setBrush(brush)
-
     painter.drawPath(connection.path)
 
+    pen.setJoinStyle(QtCore.Qt.MiterJoin)
+    painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 0)))
     brush = QtGui.QBrush(color)
     painter.setBrush(brush)
-    painter.drawEllipse(connection.handler_rect)
+    painter.drawPath(connection.triangle_path)
 
 
 def draw_note_path(painter, path, selected=False, hover=False):

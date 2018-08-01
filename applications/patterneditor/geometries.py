@@ -2,6 +2,7 @@ import math
 from PyQt5 import QtCore, QtGui
 
 
+GRID_SPACING = 33
 SLIDER_SEGMENT_HEIGHT = 3
 
 INDEX_HEIGHT = 40
@@ -25,6 +26,8 @@ ROW_ROUNDNESS = 5
 ROW_BODY_TOP_PADDING = 20
 
 CONNECTION_HANDLER_SIZE = 10
+CONNECTION_RETUNER_PADDING = 7
+CONNECTION_RETUNER_BORDER = 15
 
 BALLOON_SPIKE_HEIGHT = 29
 BALLOON_SPIKE_BASE_LEFT = 30
@@ -43,8 +46,6 @@ BALLOON_BEHAVIORS_TEXTS_TOP_PADDING = 18
 
 FIGURE_BALLON_SPACING = 10
 
-GRID_SPACING = 33
-PATTERN_WIDTH = 120
 
 
 def get_pattern_size(drawcontext, pattern):
@@ -265,7 +266,7 @@ def get_row_rect(drawcontext, row_number, row_len):
     height = (
         drawcontext.size(ROWS_HEADER_SPACE) +
         ((drawcontext.size(INDEX_HEIGHT) + drawcontext.size(INDEX_SPACING)) *
-         row_len) + ROWS_BOTTOM_SPACE)
+         row_len) + drawcontext.size(ROWS_BOTTOM_SPACE))
     return QtCore.QRect(
         left,
         drawcontext.size(ROWS_TOP),
@@ -318,6 +319,76 @@ def get_connection_path(start_point, end_point):
         ),
         end_point.y())
     path.cubicTo(control_point_1, control_point_2, end_point)
+    return path
+
+
+def get_return_connection_path(
+        drawcontext, out_point, in_point, incol, outcol, out_row_lenght,
+        in_row_lenght, max_lenght):
+
+    out_padding = drawcontext.size(CONNECTION_RETUNER_PADDING) * (out_row_lenght - outcol)
+    in_padding = drawcontext.size(CONNECTION_RETUNER_PADDING) * (in_row_lenght - incol)
+    border = drawcontext.size(CONNECTION_RETUNER_BORDER)
+    bottom = (
+        out_point.y() +
+        ((drawcontext.size(INDEX_HEIGHT) + drawcontext.size(INDEX_SPACING)) *
+         (max_lenght - outcol)) - (drawcontext.size(INDEX_HEIGHT) / 2))
+
+    path = QtGui.QPainterPath(out_point)
+    path.lineTo(out_point.x() + out_padding, out_point.y())
+    control_point = QtCore.QPoint(
+        out_point.x() + out_padding + border,
+        out_point.y())
+    end_point = QtCore.QPoint(
+        out_point.x() + out_padding + border,
+        out_point.y() + border)
+    path.cubicTo(control_point, control_point, end_point)
+    end_point = QtCore.QPoint(end_point.x(), bottom + in_padding + out_padding)
+    path.lineTo(end_point)
+    control_point = QtCore.QPoint(
+        end_point.x(),
+        end_point.y() + border)
+    end_point = QtCore.QPoint(
+        end_point.x() - border,
+        end_point.y() + border)
+    path.cubicTo(control_point, control_point, end_point)
+
+    end_point = QtCore.QPoint(in_point.x() - in_padding, end_point.y())
+    path.lineTo(end_point)
+    control_point = QtCore.QPoint(end_point.x() - border, end_point.y())
+    end_point = QtCore.QPoint(end_point.x() - border, end_point.y() - border)
+    path.cubicTo(control_point, control_point, end_point)
+    end_point = QtCore.QPoint(end_point.x(), in_point.y() + border)
+    path.lineTo(end_point)
+    control_point = QtCore.QPoint(end_point.x(), in_point.y())
+    end_point = QtCore.QPoint(end_point.x() + border, in_point.y())
+    path.cubicTo(control_point, control_point, end_point)
+    path.lineTo(in_point)
+    return path
+
+
+
+def connection_handler_path(drawcontext, connectionpath, returner=False):
+    center = connectionpath.pointAtPercent(.5)
+    slope = connectionpath.slopeAtPercent(.5)
+    degrees = math.degrees(math.atan(slope))
+    if returner:
+        degrees = 180
+
+    offset = drawcontext.size(CONNECTION_HANDLER_SIZE / 2) 
+    triangle = QtGui.QPolygonF([
+        QtCore.QPoint(center.x() - offset, center.y() - offset),
+        QtCore.QPoint(center.x() + offset, center.y()),
+        QtCore.QPoint(center.x() - offset, center.y() + offset),
+        center])
+    transform = QtGui.QTransform()
+
+    transform.translate(center.x(), center.y())
+    transform.rotate(degrees)
+    transform.translate(-center.x(), -center.y())
+    triangle = transform.map(triangle)
+    path = QtGui.QPainterPath()
+    path.addPolygon(triangle)
     return path
 
 

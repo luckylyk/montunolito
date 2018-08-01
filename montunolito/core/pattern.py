@@ -47,9 +47,9 @@ def append_figure_at_row(pattern, figure, row):
 
 def delete_figure_at(pattern, index):
     row, column = index
-    indexes_to_offset = sorted([
-        (r, c) for (r, c) in get_existing_indexes_in_row(pattern, row)
-        if c > column],
+    indexes_to_offset = sorted(
+        [(r, c) for (r, c) in get_existing_indexes_in_row(pattern, row)
+         if c > column],
         key=lambda x: x[1])
 
     # remove and offset behaviors
@@ -113,6 +113,12 @@ def get_next_row(pattern, row):
     row += 1
     row = row if row < len(pattern['quarters']) else 0
     return row
+
+
+def get_row_lenght(pattern, row=None):
+    if row is not None:
+        return len(pattern['quarters'][row])
+    return max([len(row) for row in pattern['quarters']])
 
 
 def get_previous_row(pattern, row):

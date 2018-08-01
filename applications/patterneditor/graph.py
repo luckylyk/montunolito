@@ -1,7 +1,8 @@
 
 from montunolito.core.pattern import (
     get_index_occurence_probablity, get_existing_indexes, get_figure_at,
-    get_out_connected_indexes, get_relationship, get_behaviors_at)
+    get_out_connected_indexes, get_relationship, get_behaviors_at,
+    get_row_lenght)
 
 from context import DrawContext
 from painting import draw_index, draw_row_background, draw_connection, draw_mas, draw_row_plus
@@ -10,7 +11,8 @@ from geometries import (
     get_index_behavior_rect, get_index_figure_rect, get_index_inplug_rect,
     get_index_outplug_rect, get_index_body_rect, get_row_rect, get_index_rect,
     get_connection_path, get_connection_handler_rect, shrink_rect,
-    get_mas_rects, get_row_body_rect, get_row_plus_rect, get_row_body_path)
+    get_mas_rects, get_row_body_rect, get_row_plus_rect, get_row_body_path,
+    connection_handler_path, get_return_connection_path)
 
 
 class IGIndex(object):
@@ -144,16 +146,35 @@ class IGConnection(object):
         self.pattern = pattern
         self.in_index = in_index
         self.out_index = out_index
+        self.returner = in_index.index[0] < out_index.index[0]
         self.path = None
         self.handler_rect = None
+        self.triangle_path = None
         self.update_geometries()
 
     def update_geometries(self):
-        self.path = get_connection_path(
-            self.in_index.in_plug_center, self.out_index.out_plug_center)
+        if not self.returner:
+            self.path = get_connection_path(
+                self.in_index.in_plug_center, self.out_index.out_plug_center)
+        else:
+            out_row_lenght = get_row_lenght(
+                self.pattern.pattern, self.out_index.index[0])
+            in_row_lenght = get_row_lenght(
+                self.pattern.pattern, self.in_index.index[0])
+            self.path = get_return_connection_path(
+                self._drawcontext,
+                out_point=self.out_index.out_plug_center,
+                in_point=self.in_index.in_plug_center,
+                incol=self.in_index.index[1],
+                outcol=self.out_index.index[1],
+                out_row_lenght=out_row_lenght,
+                in_row_lenght=in_row_lenght,
+                max_lenght=get_row_lenght(self.pattern.pattern))
         self.handler_rect = get_connection_handler_rect(
             self._drawcontext,
             self.path)
+        self.triangle_path = connection_handler_path(
+            self._drawcontext, self.path, self.returner)
 
     def is_hovered(self, cursor):
         return self.handler_rect.contains(cursor)
