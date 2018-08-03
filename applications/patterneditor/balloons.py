@@ -1,15 +1,15 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
+
+from context import DrawContext
+from interactive import IGFigure, IGFingerstateSelecter, IGSlider
 from painting import (
     draw_balloon, draw_balloon_header_button, draw_balloon_text)
-from context import DrawContext
 from geometries import (
     get_balloon_background_path, get_balloon_drawable_rect,
     get_balloon_figure_rect, get_balloon_fingerstateselecter_rect,
     get_balloon_validator_rect, get_balloon_rejecter_path,
     get_balloon_approver_path, get_balloon_behavior_slider_rect,
     get_balloon_behavior_text_point, get_balloon_spike_point)
-from figure import IGFigure, IGFingerstateSelecter
-from slider import IGSlider
 
 
 class Balloon(QtWidgets.QDialog):
@@ -82,15 +82,18 @@ class Balloon(QtWidgets.QDialog):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         draw_balloon(
             painter,
+            self.drawcontext,
             self._background_path,
             self.TITLE)
         draw_balloon_header_button(
             painter,
+            self.drawcontext,
             self._rejecter_rect,
             self._rejecter_path,
             self._rejecter_state)
         draw_balloon_header_button(
             painter,
+            self.drawcontext,
             self._approver_rect,
             self._approver_path,
             self._approver_state)
@@ -159,7 +162,11 @@ class BehaviorsBalloon(Balloon):
     def paint(self, painter):
         super().paint(painter)
         for i, point in enumerate(self._text_points):
-            draw_balloon_text(painter, point, self.BEHAVIOR_NAMES[i])
+            draw_balloon_text(
+                painter, 
+                self.drawcontext,
+                point,
+                self.BEHAVIOR_NAMES[i])
 
         slider = self.hovered_slider()
         self._melodic_slider.draw(

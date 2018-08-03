@@ -38,6 +38,8 @@ class Menu():
             get_button_menu_rect(rect, 4), icon('undo.ico'), mirror=True)
         self._trash = MenuItem(
             get_button_menu_rect(rect, 5), icon('trash.png'))
+        self._themes = MenuItem(
+            get_button_menu_rect(rect, 6), icon('themes.bmp'))
 
         self._items = (
             self._new,
@@ -45,7 +47,8 @@ class Menu():
             self._open,
             self._undo,
             self._redo,
-            self._trash)
+            self._trash,
+            self._themes)
 
     def set_clicked_states(self, cursor, state=None):
         for item in self._items:

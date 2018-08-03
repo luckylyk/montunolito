@@ -3,16 +3,202 @@ from montunolito.core.pattern import (
     get_index_occurence_probablity, get_existing_indexes, get_figure_at,
     get_out_connected_indexes, get_relationship, get_behaviors_at,
     get_row_lenght)
+from montunolito.core.solfege import FINGERSSTATES
 
 from context import DrawContext
-from painting import draw_index, draw_row_background, draw_connection, draw_mas, draw_row_plus
-from figure import IGFigure
+from painting import (
+    draw_index, draw_row_background, draw_connection, draw_mas, draw_row_plus,
+    draw_note_path, draw_slider_path)
 from geometries import (
     get_index_behavior_rect, get_index_figure_rect, get_index_inplug_rect,
     get_index_outplug_rect, get_index_body_rect, get_row_rect, get_index_rect,
     get_connection_path, get_connection_handler_rect, shrink_rect,
     get_mas_rects, get_row_body_rect, get_row_plus_rect, get_row_body_path,
-    connection_handler_path, get_return_connection_path)
+    connection_handler_path, get_return_connection_path,
+    get_note_path, get_beam_tail_path, get_beams_connection_path,
+    get_eighth_rest_path, extract_noterects, get_slider_handler_rect,
+    get_slider_segmented_line_path, get_slider_handler_path)
+
+
+class IGSlider(object):
+    def __init__(self, rect, drawcontext=None, value=5, maxvalue=10):
+        self.rect = rect
+        self._drawcontext = drawcontext or DrawContext()
+        self.value = value
+        self._segmented_line_path = \
+            get_slider_segmented_line_path(
+                self._drawcontext,
+                rect,
+                maxvalue + 1)
+        self._value_rects = [
+            get_slider_handler_rect(rect, v, maxvalue)
+            for v in range(maxvalue + 1)]
+        self._value_path = get_slider_handler_path(self._value_rects[value])
+
+    def hovered_value(self, cursor):
+        for i, rect in enumerate(self._value_rects):
+            if rect.contains(cursor):
+                return i
+        return None
+
+    def set_value(self, cursor):
+        for i, rect in enumerate(self._value_rects):
+            if rect.contains(cursor):
+                self.value = i
+                self._value_path = get_slider_handler_path(
+                    self._value_rects[i])
+                return
+
+    def draw(self, painter, cursor, pressed=False):
+        draw_slider_path(
+            painter,
+            self._drawcontext,
+            self._segmented_line_path,
+            hover=False)
+        hovered = self.hovered_value(cursor) == self.value
+        draw_slider_path(
+            painter,
+            self._drawcontext,
+            self._value_path,
+            hover=hovered,
+            background=True,
+            pressed=pressed)
+
+
+def get_fingerstates_path_kwargs():
+    kwargs_list = []
+    for fingertstate in FINGERSSTATES:
+        if not any(fingertstate):
+            kwargs_list.append(None)
+            continue
+        kwargs = {'note' + str(i + 1): v for i, v in enumerate(fingertstate)}
+        kwargs_list.append(kwargs)
+    return kwargs_list
+
+FINGERSTATES_PATH_KWARGS = get_fingerstates_path_kwargs()
+
+
+class IGFingerstateSelecter(object):
+    def __init__(self, rect, drawcontext=None):
+        self._drawcontext = None or DrawContext()
+        self.rect = rect
+        self._noterects = extract_noterects(rect, number=8)
+
+    def get_hovered_index(self, cursor):
+        for i, rect in enumerate(self._noterects):
+            if rect.contains(cursor):
+                return i
+        return None
+
+    def draw(self, painter, cursor):
+        for i, kwargs in enumerate(FINGERSTATES_PATH_KWARGS):
+            noterect = self._noterects[i]
+            hover = noterect.contains(cursor)
+            if kwargs is None:
+                note_path = get_eighth_rest_path(noterect)
+            else:
+                note_path = get_note_path(noterect, **kwargs)
+
+            draw_note_path(
+                painter,
+                self._drawcontext,
+                note_path,
+                hover=hover,
+                selected=False)
+
+
+class IGFigure(object):
+    def __init__(self, figure, rect=None, drawcontext=None):
+        self._drawcontext = drawcontext or DrawContext()
+        self._figure = list(figure)
+        self._rect = rect
+        self._noterects = extract_noterects(rect) if rect else None
+        self.selected = None
+
+    def set_selected_state(self, cursor):
+        if not self._rect.contains(cursor):
+            return
+
+        for i, noterect in enumerate(self._noterects):
+            if noterect.contains(cursor):
+                self.selected = i
+                break
+        else:
+            self.selected = None
+
+    @property
+    def figure(self):
+        return tuple(self._figure)
+
+    def set_rect(self, rect):
+        self._rect = rect
+        self._noterects = extract_noterects(rect)
+
+    def set_fingerstate(self, eighth_index, fingerstate_index):
+        self._figure[eighth_index] = fingerstate_index
+
+    def draw(self, painter, cursor, hoverable=True):
+        if self._rect is None:
+            return
+
+        previous_fingerstate_index = None
+        previous_kwargs = None
+
+        for i, fingerstate_index in enumerate(self._figure):
+            noterect = self._noterects[i]
+            hover = noterect.contains(cursor) and hoverable
+            selected = self.selected == i
+            kwargs = FINGERSTATES_PATH_KWARGS[fingerstate_index]
+
+            if not kwargs:
+                previous_fingerstate_index = fingerstate_index
+                previous_kwargs = kwargs
+                note_path = get_eighth_rest_path(noterect)
+                draw_note_path(
+                    painter,
+                    self._drawcontext,
+                    note_path,
+                    hover=hover,
+                    selected=selected)
+                continue
+
+            note_path = get_note_path(noterect, **kwargs)
+            draw_note_path(
+                painter,
+                self._drawcontext,
+                note_path,
+                hover=hover,
+                selected=selected)
+
+            if previous_fingerstate_index:
+                connection_path = get_beams_connection_path(
+                    self._noterects[i-1], noterect)
+                draw_note_path(
+                    painter,
+                    self._drawcontext,
+                    connection_path,
+                    hover=hover,
+                    selected=selected)
+
+            conditions = (
+                previous_kwargs is None and
+                (
+                    i == len(self._figure) - 1 or
+                    FINGERSTATES_PATH_KWARGS[self._figure[i + 1]]
+                    is None
+                ))
+
+            if conditions:
+                tail_path = get_beam_tail_path(noterect)
+                draw_note_path(
+                    painter,
+                    self._drawcontext,
+                    tail_path,
+                    hover=hover,
+                    selected=selected)
+
+            previous_kwargs = kwargs
+            previous_fingerstate_index = fingerstate_index
 
 
 class IGIndex(object):
@@ -98,9 +284,13 @@ class IGIndex(object):
             self.selected = self._rect.contains(cursor)
 
     def draw(self, painter, cursor):
-        draw_index(painter, self, highlight_rects=self.highlight_rects(cursor))
+        draw_index(
+            painter,
+            self._drawcontext,
+            self,
+            highlight_rects=self.highlight_rects(cursor))
         self._igfigure.draw(painter, cursor, hoverable=False)
-        draw_mas(painter, self._mas_rects, **self.behaviors)
+        draw_mas(painter, self._drawcontext, self._mas_rects, **self.behaviors)
 
 
 class IGRow(object):
@@ -131,10 +321,12 @@ class IGRow(object):
     def draw(self, painter, cursor):
         draw_row_background(
             painter,
+            self._drawcontext,
             self._body_path,
             self.is_hovered(cursor))
         draw_row_plus(
             painter,
+            self._drawcontext,
             self._plus_rect,
             self.plus_is_hovered(cursor))
 
@@ -172,7 +364,8 @@ class IGConnection(object):
                 max_lenght=get_row_lenght(self.pattern.pattern))
         self.handler_rect = get_connection_handler_rect(
             self._drawcontext,
-            self.path)
+            self.path,
+            returner=self.returner)
         self.triangle_path = connection_handler_path(
             self._drawcontext, self.path, self.returner)
 
@@ -180,7 +373,11 @@ class IGConnection(object):
         return self.handler_rect.contains(cursor)
 
     def draw(self, painter, cursor):
-        draw_connection(painter, self, hover=self.is_hovered(cursor))
+        draw_connection(
+            painter,
+            self._drawcontext,
+            self,
+            hover=self.is_hovered(cursor))
 
     @property
     def strongness(self):

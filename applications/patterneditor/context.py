@@ -1,9 +1,10 @@
-
+from themes import THEMES
 
 class DrawContext(object):
     def __init__(self):
         self._size_multiplier = 1
         self._size_increase_factor = 1.1
+        self.colors = THEMES['default']
 
     def size(self, size):
         return size * self._size_multiplier
@@ -18,3 +19,6 @@ class DrawContext(object):
 
     def reset_size(self):
         self._size_multiplier = 1
+
+    def set_theme(self, theme):
+        self.colors = THEMES[theme]

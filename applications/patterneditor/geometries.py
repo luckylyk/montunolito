@@ -13,7 +13,7 @@ INDEX_BODY_RIGHTLEFT_PADDING = 15
 INDEX_BUTTON_SPACING = 5
 
 ROWS_TOP = 25
-ROWS_LEFT = 35
+ROWS_LEFT = 50
 ROWS_SPACING = 50
 ROWS_PADDING = 10
 ROWS_WIDTH = INDEX_WIDTH + (ROWS_PADDING * 2)
@@ -26,7 +26,7 @@ ROW_ROUNDNESS = 5
 ROW_BODY_TOP_PADDING = 20
 
 CONNECTION_HANDLER_SIZE = 10
-CONNECTION_RETUNER_PADDING = 7
+CONNECTION_RETUNER_PADDING = 10
 CONNECTION_RETUNER_BORDER = 15
 
 BALLOON_SPIKE_HEIGHT = 29
@@ -373,9 +373,13 @@ def connection_handler_path(drawcontext, connectionpath, returner=False):
     slope = connectionpath.slopeAtPercent(.5)
     degrees = math.degrees(math.atan(slope))
     if returner:
+        left = (
+            connectionpath.pointAtPercent(0).x() +
+            connectionpath.pointAtPercent(1).x()) / 2
+        center = QtCore.QPoint(left, center.y())
         degrees = 180
 
-    offset = drawcontext.size(CONNECTION_HANDLER_SIZE / 2) 
+    offset = drawcontext.size(CONNECTION_HANDLER_SIZE / 2)
     triangle = QtGui.QPolygonF([
         QtCore.QPoint(center.x() - offset, center.y() - offset),
         QtCore.QPoint(center.x() + offset, center.y()),
@@ -392,13 +396,19 @@ def connection_handler_path(drawcontext, connectionpath, returner=False):
     return path
 
 
-def get_connection_handler_rect(drawcontext, path):
-    center = path.pointAtPercent(0.5).toPoint()
-    top = center.y() - (drawcontext.size(CONNECTION_HANDLER_SIZE) // 2)
-    left = center.x() - (drawcontext.size(CONNECTION_HANDLER_SIZE) // 2)
+def get_connection_handler_rect(drawcontext, connectionpath, returner=False):
+    center = connectionpath.pointAtPercent(0.5).toPoint()
+    if returner:
+        left = (
+            connectionpath.pointAtPercent(0).x() +
+            connectionpath.pointAtPercent(1).x()) / 2
+        top = center.y()
+    else:
+        top = center.y()
+        left = center.x()
     return QtCore.QRect(
-        left,
-        top,
+        left - (drawcontext.size(CONNECTION_HANDLER_SIZE) // 2),
+        top - (drawcontext.size(CONNECTION_HANDLER_SIZE) // 2),
         drawcontext.size(CONNECTION_HANDLER_SIZE),
         drawcontext.size(CONNECTION_HANDLER_SIZE))
 
