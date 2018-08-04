@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets
 import os
 
+
 def data_lost_question():
     message = (
         'Some datas will be lost\n'
@@ -13,7 +14,7 @@ def data_lost_question():
 
     result = QtWidgets.QMessageBox.question(
         None,
-        'Pattern is not Save',
+        'File is not saved',
         message,
         buttons=buttons,
         defaultButton=QtWidgets.QMessageBox.Yes)
@@ -28,7 +29,7 @@ def data_lost_question():
 def save_dialog(path=None):
     filenames = QtWidgets.QFileDialog.getSaveFileName(
         None,
-        caption='Save pattern',
+        caption='Save file',
         directory=path or os.path.expanduser("~"),
         filter='*.json')
     filename = filenames[0]
@@ -42,7 +43,7 @@ def save_dialog(path=None):
 def open_dialog(path=None):
     filenames = QtWidgets.QFileDialog.getOpenFileName(
         None,
-        caption='Save pattern',
+        caption='Open file',
         directory=path or os.path.expanduser("~"),
         filter='*.json')
     return filenames[0]

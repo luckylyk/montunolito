@@ -27,6 +27,14 @@ class PatternEditorWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.menu)
         self.layout.addWidget(self._scroll_area)
 
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Control:
+            self.graph.add_selection_context = True
+
+    def keyReleaseEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Control:
+            self.graph.add_selection_context = False
+
     def set_theme(self, theme):
         self.drawcontext.set_theme(theme)
         self.graph.repaint()
@@ -110,6 +118,7 @@ class GraphWidget(QtWidgets.QWidget):
             pattern.copy(),
             drawcontext=self._drawcontext)
         self._row = None
+        self.add_selection_context = False
         self.setMinimumSize(self.sizeHint())
 
     def set_pattern(self, pattern):
@@ -137,7 +146,8 @@ class GraphWidget(QtWidgets.QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            self.pattern.set_selected_states(self.cursor())
+            self.pattern.set_selected_states(
+                self.cursor(), add=self.add_selection_context)
             self.repaint()
         action, item = self.pattern.get_index_action_hovered(self.cursor())
         if action is None:

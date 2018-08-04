@@ -6,9 +6,13 @@ from montunolito.core.pattern import (
     set_figure_at, get_behaviors_at, set_behaviors_at, get_relationship,
     set_relationship, append_figure_at_row)
 
+from montunolito.libs.qt.manager import DataStreamManager
+from montunolito.libs.qt.shortcuts import set_shortcut
+from montunolito.libs.qt.dialogs import (
+    data_lost_question, save_dialog, open_dialog)
+from montunolito.libs.jsonutils import pattern_to_json, json_to_pattern
+
 from widgets import PatternEditorWidget, NewMenu, ThemesMenu
-from manager import DataStreamManager
-from dialogs import data_lost_question, save_dialog, open_dialog
 from balloons import FigureBalloon, BehaviorsBalloon, ConnectionBalloon
 from themes import THEMES
 
@@ -31,6 +35,13 @@ class PatternEditor():
         self._widget.graph.behaviorClicked.connect(self.edit_behaviors)
         self._widget.graph.connectionClicked.connect(self.edit_connection)
         self._widget.graph.rowClicked.connect(self.append_index_at_row)
+
+        set_shortcut("Ctrl+Z", self._widget, self.undo)
+        set_shortcut("Ctrl+Y", self._widget, self.redo)
+        set_shortcut("Ctrl+N", self._widget, self.new)
+        set_shortcut("Ctrl+S", self._widget, self.save)
+        set_shortcut("Ctrl+O", self._widget, self.open)
+        set_shortcut("del", self._widget, self.delete_selected_indexes)
 
     def append_index_at_row(self, row):
         pattern = self._data_stream_manager.pattern
@@ -89,7 +100,7 @@ class PatternEditor():
             return
         with open(filename, 'r') as f:
             pattern = json.load(f)
-            pattern = convert_json_to_pattern(pattern)
+            pattern = json_to_pattern(pattern)
         self._workingfile = filename
         self.modified(pattern)
         self._data_stream_manager = DataStreamManager(pattern)
@@ -97,12 +108,11 @@ class PatternEditor():
     def save(self):
         if self._workingfile is None:
             filename = save_dialog()
-            print (filename)
             if not filename:
                 return
             self._workingfile = filename
         with open(self._workingfile, 'w') as f:
-            p = convert_pattern_to_json(self._data_stream_manager.pattern)
+            p = pattern_to_json(self._data_stream_manager.pattern)
             json.dump(p, f, indent=2)
         self._data_stream_manager.set_data_saved()
 
@@ -127,6 +137,9 @@ class PatternEditor():
     def delete_selected_indexes(self):
         indexes = [
             i.index for i in self._widget.graph.pattern.selected_indexes()]
+        # delete by the last index to avoid reindexing durange the procedure
+        # and avoid crashes with multi selected indexes delete
+        indexes = [i for i in reversed(sorted(indexes))]
         if not indexes:
             return
         pattern = self._data_stream_manager.pattern
@@ -138,28 +151,3 @@ class PatternEditor():
     def set_theme(self):
         theme = ThemesMenu(sorted(list(THEMES.keys()))).exec_()
         self._widget.set_theme(theme)
-
-
-def convert_pattern_to_json(pattern):
-    json_pattern = {}
-    json_pattern['quarters'] = pattern['quarters'][:]
-    json_pattern['behaviors'] = {
-        str(k): v for k, v in pattern['behaviors'].items()}
-    json_pattern['relationships'] = {
-        str(k): {str(l): w for l, w in v.items()}
-        for k, v in pattern['relationships'].items()}
-    return json_pattern
-
-
-def convert_json_to_pattern(jsondict):
-    pattern = {}
-    pattern['quarters'] = jsondict['quarters'][:]
-    pattern['behaviors'] = {
-        tuple([int(n) for n in k.strip('()').split(', ')]):
-        v for k, v in jsondict['behaviors'].items()}
-    pattern['relationships'] = {
-        tuple([int(n) for n in k.strip('()').split(', ')]):
-        {tuple([int(n) for n in l.strip('()').split(', ')]): w
-         for l, w in v.items()}
-        for k, v in jsondict['relationships'].items()}
-    return pattern

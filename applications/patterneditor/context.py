@@ -1,5 +1,6 @@
 from themes import THEMES
 
+
 class DrawContext(object):
     def __init__(self):
         self._size_multiplier = 1
@@ -21,4 +22,6 @@ class DrawContext(object):
         self._size_multiplier = 1
 
     def set_theme(self, theme):
-        self.colors = THEMES[theme]
+        new_theme = {k: v for k, v in THEMES['default'].items()}
+        new_theme.update(THEMES[theme])
+        self.colors = new_theme

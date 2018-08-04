@@ -274,7 +274,9 @@ class IGIndex(object):
     def behavior_hovered(self, cursor):
         return self.behavior_rect.contains(cursor)
 
-    def set_selected_state(self, cursor):
+    def set_selected_state(self, cursor, add=False):
+        if add and self.selected:
+            return
         if not self.selected:
             self.selected = (
                 self.body_rect.contains(cursor) and
@@ -448,12 +450,12 @@ class IGPattern(object):
                 return 'row', row
         return None, None
 
-    def set_selected_states(self, cursor):
+    def set_selected_states(self, cursor, add=False):
         for connection in self._igconnections:
             if connection.is_hovered(cursor):
                 return
         for index in self._igindexes:
-            index.set_selected_state(cursor)
+            index.set_selected_state(cursor, add)
 
     def select_indexes(self, indexes):
         for igindex in self._igindexes:
