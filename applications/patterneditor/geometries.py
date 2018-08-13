@@ -385,8 +385,8 @@ def connection_handler_path(drawcontext, connectionpath, returner=False):
         QtCore.QPoint(center.x() + offset, center.y()),
         QtCore.QPoint(center.x() - offset, center.y() + offset),
         center])
-    transform = QtGui.QTransform()
 
+    transform = QtGui.QTransform()
     transform.translate(center.x(), center.y())
     transform.rotate(degrees)
     transform.translate(-center.x(), -center.y())
