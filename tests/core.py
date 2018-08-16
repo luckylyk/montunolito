@@ -539,27 +539,130 @@ def test_get_index_occurence_probablity():
 
 
 def test_iteration():
+    pattern = {
+        "behaviors": {
+            "(3, 0)": {
+            "arpegic": 0,
+            "static": 5,
+            "melodic": 0
+            },
+            "(3, 1)": {
+            "arpegic": 5,
+            "static": 0,
+            "melodic": 0
+            },
+            "(2, 0)": {
+            "arpegic": 0,
+            "static": 6,
+            "melodic": 0
+            },
+            "(2, 1)": {
+            "arpegic": 4,
+            "static": 2,
+            "melodic": 0
+            },
+            "(1, 0)": {
+            "arpegic": 0,
+            "static": 6,
+            "melodic": 0
+            },
+            "(0, 0)": {
+            "arpegic": 0,
+            "static": 6,
+            "melodic": 0
+            }
+        },
+        "quarters": [
+            [
+            [
+                0,
+                0,
+                7,
+                0
+            ]
+            ],
+            [
+            [
+                0,
+                0,
+                7,
+                0
+            ]
+            ],
+            [
+            [
+                0,
+                0,
+                7,
+                0
+            ],
+            [
+                0,
+                3,
+                6,
+                3
+            ]
+            ],
+            [
+            [
+                0,
+                0,
+                7,
+                0
+            ],
+            [
+                0,
+                3,
+                7,
+                0
+            ]
+            ]
+        ],
+        "relationships": {
+            "(3, 0)": {
+            "(0, 0)": 1
+            },
+            "(3, 1)": {
+            "(0, 0)": 1
+            },
+            "(2, 0)": {
+            "(3, 0)": 10,
+            "(3, 1)": 0
+            },
+            "(2, 1)": {
+            "(3, 0)": 0,
+            "(3, 1)": 1
+            },
+            "(1, 0)": {
+            "(2, 1)": 1,
+            "(2, 0)": 4
+            },
+            "(0, 0)": {
+            "(1, 0)": 10
+            }
+        }
+        }
     CHORDGRIDS = dict(
         example = [
             {'degree': 1, 'name': 'Minor'},
             None,
             None,
+            None,
             {'degree': 4, 'name': 'Minor'},
+            None,
             None,
             None,
             {'degree': 5, 'name': 'M7'},
             None,
             None,
             None,
-            None,
             {'degree': 4, 'name': 'Minor'},
             None,
             None, 
-            {'degree': 1, 'name': 'Minor'},
             None])
     import time
     montunos = montuno_generator(
-        pattern=PATTERNS['chacha'],
+        pattern=pattern,
         chord_grid=CHORDGRIDS['example'],
         tonality=5)
     print (montunos)

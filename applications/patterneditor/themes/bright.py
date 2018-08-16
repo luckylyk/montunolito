@@ -21,5 +21,4 @@ COLORS = {
     'graph.row.plus.highlight': '#BABABA',
     'graph.row.plus.normal': 'black',
     'graph.row.background.highlight': '#898989',
-    'graph.row.background.highlight': '#898989',
     'graph.row.background.normal': '#9A9A9A'}

@@ -150,4 +150,5 @@ class PatternEditor():
 
     def set_theme(self):
         theme = ThemesMenu(sorted(list(THEMES.keys()))).exec_()
-        self._widget.set_theme(theme)
+        if theme:
+            self._widget.set_theme(theme)

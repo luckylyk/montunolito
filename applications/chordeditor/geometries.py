@@ -1,28 +1,54 @@
 from PyQt5 import QtCore, QtGui
 
 
+GLOBAL_WIDTH = 1200
+NOTESELECTER_HEIGHT = 30
+CHORDSELECTER_HEIGHT = 20
+
 STAFF_PADDING = 10
-STAFF_SPACING = 15
-STAFF_HEIGHT = 40
+STAFF_TOP_PADDING = 30
+STAFF_SPACING = 20
+STAFF_HEIGHT = 30
 
 REPEAT_WIDTH = 1.5
 REPEAT_HEIGHT = 10
 REPEAT_OFFSET = 2
 
+DRAGPATH_ROUND_RADIUS = 5
 
 
-def extract_noteitem_rect(rect, index):
-    width = rect.width() / 12
-    return QtCore.QRect(
-        rect.left() + (width * index),
+def get_noteselecter_rect(rect):
+    return QtCore.QRectF(
+        rect.left(),
         rect.top(),
-        width,
-        rect.height())
+        GLOBAL_WIDTH,
+        NOTESELECTER_HEIGHT)
 
 
-def extract_chordname_rect(rect, index):
-    width = rect.width() / 18
-    return QtCore.QRect(
+def get_functionselecter_rect(rect):
+    return QtCore.QRectF(
+        rect.left(),
+        rect.top() + NOTESELECTER_HEIGHT,
+        GLOBAL_WIDTH,
+        CHORDSELECTER_HEIGHT)
+
+
+def get_staffs_rect(rect):
+    top = (
+        rect.top() +
+        STAFF_TOP_PADDING +
+        NOTESELECTER_HEIGHT +
+        CHORDSELECTER_HEIGHT)
+    return QtCore.QRectF(
+        rect.left() + STAFF_PADDING,
+        top,
+        rect.width() - (STAFF_PADDING * 2),
+        rect.height() - STAFF_TOP_PADDING)
+
+
+def extract_items_rect(rect, index, count):
+    width = rect.width() / count
+    return QtCore.QRectF(
         rect.left() + (width * index),
         rect.top(),
         width,
@@ -30,25 +56,18 @@ def extract_chordname_rect(rect, index):
 
 
 def get_staff_path(rect, final=False):
-    v_center = rect.top() + (rect.height() / 2)
-    start_point = QtCore.QPointF(rect.left(), v_center)
-    end_point = QtCore.QPointF(rect.right(), v_center)
+    start_point = QtCore.QPointF(rect.left(), rect.bottom())
+    end_point = QtCore.QPointF(rect.right(), rect.bottom())
     path = QtGui.QPainterPath(start_point)
     path.lineTo(end_point)
 
-    height = rect.height() * .3
-    quarters_rect = QtCore.QRectF(
-        rect.left(), v_center - (height / 2),
-        rect.width(), height)
-
     height = rect.height() * .15
-    heighth_rect = QtCore.QRectF(
-        rect.left(), v_center - (height / 2),
+    quarters_rect = QtCore.QRectF(
+        rect.left(), rect.bottom() - height,
         rect.width(), height)
 
     path = graduate_path(rect, path, 2)
     path = graduate_path(quarters_rect, path, 8)
-    path = graduate_path(heighth_rect, path, 16)
 
     if not final:
         return path
@@ -75,11 +94,10 @@ def extract_heighth_rects(staffrect):
 
 def extract_staffs_rects(rect, staff_count):
     rects = []
-    left = rect.left() + STAFF_PADDING
-    width = rect.width() - (STAFF_PADDING * 2)
     for i in range(staff_count):
         top = STAFF_PADDING + rect.top() + (i * (STAFF_HEIGHT + STAFF_SPACING))
-        rects.append(QtCore.QRectF(left, top, width, STAFF_HEIGHT))
+        rects.append(
+            QtCore.QRectF(rect.left(), top, rect.width(), STAFF_HEIGHT))
     return rects
 
 
@@ -119,3 +137,41 @@ def graduate_path(rect, path, value):
         path.moveTo(start_point)
         path.lineTo(end_point)
     return path
+
+
+def get_drag_path(points):
+    path = QtGui.QPainterPath(points[0])
+    for point in points:
+        path.lineTo(point)
+        if point == points[-1]:
+            continue
+        path.addEllipse(point, DRAGPATH_ROUND_RADIUS, DRAGPATH_ROUND_RADIUS)
+        path.moveTo(point)
+    return path
+
+
+def get_selection_rects(staff):
+    rects = []
+    rect = None
+    previous_selected = False
+    for igchord in staff.chords:
+        if igchord.selected:
+            if previous_selected is False:
+                rect = QtCore.QRectF(igchord.rect)
+            else:
+                rect.setBottomRight(igchord.rect.bottomRight())
+        else:
+            if rect is not None:
+                rects.append(rect)
+        previous_selected = igchord if igchord.selected else False
+    if rect is not None:
+        rects.append(rect)
+    return rects
+
+
+def get_square_rect(in_point, out_point):
+    left = min([in_point.x(), out_point.x()])
+    right = max([in_point.x(), out_point.x()])
+    top = min([in_point.y(), out_point.y()])
+    bottom = max([in_point.y(), out_point.y()])
+    return QtCore.QRectF(left, top, right - left, bottom - top)

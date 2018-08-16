@@ -6,7 +6,6 @@ And also some utils.
 
 NOTES = ('A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab')
 
-
 SCALE_LENGTH = 12
 
 

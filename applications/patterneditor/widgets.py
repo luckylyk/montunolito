@@ -224,4 +224,5 @@ class ThemesMenu(QtWidgets.QMenu):
 
     def exec_(self):
         result = super().exec_(QtGui.QCursor.pos())
-        return result.text()
+        if result:
+            return result.text()

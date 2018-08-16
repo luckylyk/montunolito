@@ -16,7 +16,7 @@ def get_pre_registered_eighthkbnotes():
     d = [34, 38, 46, 50]
 
     return [
-        a, b, c, a, [], d, [], a,  [], d, [], a, [], d, a, a]
+        a, b, c, a, [], d, [], a, [], d, [], a, [], d, a, a]
 
 
 def get_chromatic_eighthkbnotes():
@@ -24,10 +24,10 @@ def get_chromatic_eighthkbnotes():
 
 
 def convert_to_eighthkbnotes(eighthnotes):
-    eighthkbstates=[]
+    eighthkbstates = []
     for eighthnote in eighthnotes:
         eighthkbstate = convert_eighthnote_to_eighthkbstate(
-            eighthnote=eighthnote, 
+            eighthnote=eighthnote,
             eighthkbstates=eighthkbstates)
         eighthkbstates.append(eighthkbstate)
     return eighthkbstates
@@ -36,7 +36,7 @@ def convert_to_eighthkbnotes(eighthnotes):
 def get_generated_eighthkbnotes():
     a = [1, None, None, None, 1]
     b = [None, 4, None, None, None]
-    c = [None, None, 8, None , None]
+    c = [None, None, 8, None, None]
     d = [None, 4, None, 8, None]
     e = [None, None, None, None, None]
 
@@ -61,7 +61,7 @@ CHORDS = {
         None,
         None,
         {'degree': 5, 'name': 'Major'},
-        None, 
+        None,
         None,
         None],
 
@@ -79,35 +79,34 @@ CHORDS = {
         None,
         {'degree': 5, 'name': 'Minor'},
         None,
-        None, 
+        None,
         {'degree': 0, 'name': 'Minor'},
         None],
 
     'lejourdupoisson': [
         {'degree': 0, 'name': 'm6'},
-        None, None, None, None, None, 
+        None, None, None, None, None,
         {'degree': 10, 'name': 'M6'},
-        None, None, None, None, None, None, None, 
+        None, None, None, None, None, None, None,
         {'degree': 8, 'name': 'M6'},
-        None, None, None, None, None, None, None, 
+        None, None, None, None, None, None, None,
         {'degree': 7, 'name': 'M7'},
-        None, None, None, None, None, None, None, 
+        None, None, None, None, None, None, None,
         {'degree': 5, 'name': 'm6'},
-        None, None, None, None, None, None, None, 
+        None, None, None, None, None, None, None,
         {'degree': 0, 'name': 'm7'},
-        None, None, None, None, None, None, None, 
+        None, None, None, None, None, None, None,
         {'degree': 2, 'name': 'M7'},
-        None, None, None, None, None, None, None, 
+        None, None, None, None, None, None, None,
         {'degree': 7, 'name': 'M7'},
         None, None, None, None, None, None, None, None, None],
 }
 
 
-
 def get_full_generated_eighthkbnotes():
 
     montunos = montuno_generator(
-        pattern=PATTERNS['montuno'],
+        pattern=PATTERNS['afterbeat'],
         chord_grid=CHORDS['lejourdupoisson'],
         tonality=3)
 
@@ -127,6 +126,6 @@ if __name__ == "__main__":
     #     get_full_generated_eighthkbnotes())
 
     xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=600)
-    fileoutput = r'C:\Users\zil\Desktop\xmltest\montuno.xml'
+    fileoutput = r'C:\Users\zil\Desktop\xmltest\chacha2.xml'
     with open(fileoutput, 'w') as myfile:
         myfile.write(xmlcontent)
