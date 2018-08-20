@@ -145,9 +145,10 @@ def define_melody_length(eighthmetas):
     this method check the eighthmetas continuity and return the lenght of the
     generable melody.
     '''
-    length = min([
-        count_occurence_continuity([d['chord'] for d in eighthmetas]),
-        count_occurence_continuity([d['behavior'] for d in eighthmetas])])
+    length = count_occurence_continuity([d['chord'] for d in eighthmetas])
+    # min([
+    #     count_occurence_continuity([d['chord'] for d in eighthmetas]),
+    #     count_occurence_continuity([d['behavior'] for d in eighthmetas])])
     if length < len(eighthmetas):
         length += 1
     return length

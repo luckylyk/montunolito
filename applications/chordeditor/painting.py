@@ -1,11 +1,14 @@
 from PyQt5 import QtCore, QtGui
 
 COLORS = {
-    'noteitem.background.normal': '#FFEFE3',
-    'noteitem.background.highlight': '#EEDED2',
+    'noteitem.background.normal': '#EEDED2',
+    'noteitem.background.highlight': '#FFEFE3',
     'noteitem.background.active': 'yellow',
     'noteitem.text': 'black',
     'staff.lines': 'black',
+    'staff.selecter.normal': 'black',
+    'staff.selecter.highlight': 'blue',
+    'staff.selected': 'blue',
     'dragpath': 'red',
     'background': '#FFEFE3',
     'chord.text': 'black',
@@ -50,7 +53,7 @@ def draw_chord(painter, igchord):
     option.setAlignment(QtCore.Qt.AlignCenter)
     font = QtGui.QFont()
     font.setBold(True)
-    size = min([igchord.rect.width(), igchord.rect.height()]) * .5
+    size = min([igchord.rect.width(), igchord.rect.height()]) * .33
     font.setPixelSize(size)
     painter.setFont(font)
     text_rect = QtCore.QRectF(igchord.rect)
@@ -82,15 +85,33 @@ def draw_note_item(painter, noteitem):
     painter.drawText(text_rect, noteitem.text, option)
 
 
-def draw_staff(painter, path):
+def draw_staff(painter, staff):
+    transparent = QtGui.QColor(0, 0, 0, 0)
     color = QtGui.QColor(COLORS['staff.lines'])
     painter.setPen(QtGui.QPen(color))
     painter.setBrush(QtGui.QBrush(color))
-    painter.drawPath(path)
+    painter.drawPath(staff.path)
+
+    if staff.selecter_hovered:
+        color = COLORS['staff.selecter.highlight']
+    else:
+        color = COLORS['staff.selecter.normal']
+    painter.setPen(transparent)
+    painter.setBrush(QtGui.QBrush(QtGui.QColor(color)))
+    painter.drawPath(staff.selecter_path)
+
+    # if staff.selected is False:
+    #     return
+
+    # painter.setBrush(QtGui.QBrush(transparent))
+    # pen = QtGui.QPen(QtGui.QColor(COLORS['staff.selected']))
+    # pen.setWidth(2)
+    # painter.setPen(pen)
+    # painter.drawRect(staff.selected_rect)
 
 
-def draw_selection_rects(painter, rects):
-    color = COLORS['chord.border.selected']
+def draw_selection_rects(painter, rects, staff=False):
+    color = COLORS['staff.selected' if staff else 'chord.border.selected']
     pen = QtGui.QPen(QtGui.QColor(color))
     pen.setWidth(2)
     painter.setPen(pen)

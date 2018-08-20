@@ -1,6 +1,7 @@
 import sys
 import traceback
 import os
+import json
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from montunolito.converters.musicxml.convert import convert_to_musicxml
@@ -106,8 +107,8 @@ CHORDS = {
 def get_full_generated_eighthkbnotes():
 
     montunos = montuno_generator(
-        pattern=PATTERNS['afterbeat'],
-        chord_grid=CHORDS['lejourdupoisson'],
+        pattern=PATTERNS['montuno'],
+        chord_grid=load_chord_json(),
         tonality=3)
 
     eighthkbnotes = []
@@ -116,6 +117,12 @@ def get_full_generated_eighthkbnotes():
         eighthkbnotes.append(eighthkbnote)
     return eighthkbnotes
 
+
+def load_chord_json():
+    chord_file_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord.json')
+    with open(chord_file_path, 'r') as chord_file:
+        return json.load(chord_file)
 
 if __name__ == "__main__":
 
@@ -126,6 +133,6 @@ if __name__ == "__main__":
     #     get_full_generated_eighthkbnotes())
 
     xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=600)
-    fileoutput = r'C:\Users\zil\Desktop\xmltest\chacha2.xml'
+    fileoutput = r'C:\Users\zil\Desktop\xmltest\chacha10.xml'
     with open(fileoutput, 'w') as myfile:
         myfile.write(xmlcontent)

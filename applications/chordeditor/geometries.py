@@ -6,7 +6,9 @@ NOTESELECTER_HEIGHT = 30
 CHORDSELECTER_HEIGHT = 20
 
 STAFF_PADDING = 10
-STAFF_TOP_PADDING = 30
+STAFF_TOP_PADDING = 15
+STAFF_LEFT = 15
+STAFF_SELECTION_RADIUS = STAFF_LEFT * .5
 STAFF_SPACING = 20
 STAFF_HEIGHT = 30
 
@@ -33,6 +35,32 @@ def get_functionselecter_rect(rect):
         CHORDSELECTER_HEIGHT)
 
 
+def get_chordgrid_rect(rect):
+    top = (
+        rect.top() +
+        STAFF_TOP_PADDING)
+    return QtCore.QRectF(
+        rect.left() + STAFF_PADDING,
+        top,
+        rect.width() - (STAFF_PADDING * 2),
+        rect.height() - STAFF_TOP_PADDING)
+
+
+def get_chord_constructor_size():
+    height = NOTESELECTER_HEIGHT + CHORDSELECTER_HEIGHT
+    return QtCore.QSize(GLOBAL_WIDTH, height)
+
+
+def get_chordgrid_minimumsize(chordgrid):
+    height = (
+        NOTESELECTER_HEIGHT +
+        CHORDSELECTER_HEIGHT +
+        STAFF_TOP_PADDING +
+        ((STAFF_HEIGHT + STAFF_SPACING) * len(chordgrid.staffs)) +
+        STAFF_TOP_PADDING)
+    return QtCore.QSize(GLOBAL_WIDTH, height)
+
+
 def get_staffs_rect(rect):
     top = (
         rect.top() +
@@ -56,6 +84,9 @@ def extract_items_rect(rect, index, count):
 
 
 def get_staff_path(rect, final=False):
+    rect = QtCore.QRectF(
+        rect.left() + STAFF_LEFT, rect.top(),
+        rect.width() - STAFF_LEFT, rect.height())
     start_point = QtCore.QPointF(rect.left(), rect.bottom())
     end_point = QtCore.QPointF(rect.right(), rect.bottom())
     path = QtGui.QPainterPath(start_point)
@@ -66,8 +97,8 @@ def get_staff_path(rect, final=False):
         rect.left(), rect.bottom() - height,
         rect.width(), height)
 
-    path = graduate_path(rect, path, 2)
-    path = graduate_path(quarters_rect, path, 8)
+    path = graduate_path(rect, path, 4)
+    path = graduate_path(quarters_rect, path, 16)
 
     if not final:
         return path
@@ -82,13 +113,16 @@ def get_staff_path(rect, final=False):
 
 
 def extract_heighth_rects(staffrect):
+    rect = QtCore.QRectF(
+        staffrect.left() + STAFF_LEFT, staffrect.top(),
+        staffrect.width() - STAFF_LEFT, staffrect.height())
     rects = []
-    increment = staffrect.width() / 16
-    for i in range(17):
-        left = staffrect.left() + (i * increment)
+    increment = rect.width() / 32
+    for i in range(33):
+        left = rect.left() + (i * increment)
         rects.append(
             QtCore.QRectF(
-                left, staffrect.top(), increment, staffrect.height()))
+                left, rect.top(), increment, rect.height()))
     return rects
 
 
@@ -139,7 +173,11 @@ def graduate_path(rect, path, value):
     return path
 
 
-def get_drag_path(points):
+def get_drag_path(items, cursor):
+    points = [item.rect.center() for item in items if item] + [cursor]
+    if len(points) == 1:
+        return
+
     path = QtGui.QPainterPath(points[0])
     for point in points:
         path.lineTo(point)
@@ -150,23 +188,44 @@ def get_drag_path(points):
     return path
 
 
-def get_selection_rects(staff):
+def get_selection_rects(items, grow=2):
     rects = []
     rect = None
     previous_selected = False
-    for igchord in staff.chords:
-        if igchord.selected:
+    for item in items:
+        if item.selected:
             if previous_selected is False:
-                rect = QtCore.QRectF(igchord.rect)
+                rect = QtCore.QRectF(item.rect)
             else:
-                rect.setBottomRight(igchord.rect.bottomRight())
-        else:
-            if rect is not None:
-                rects.append(rect)
-        previous_selected = igchord if igchord.selected else False
+                rect = rect.united(item.rect)
+        elif rect is not None:
+            rects.append(grow_rect(rect, grow))
+        previous_selected = item if item.selected else False
     if rect is not None:
-        rects.append(rect)
+        rects.append(grow_rect(rect, grow))
     return rects
+
+
+def grow_rect(rect, value):
+    return QtCore.QRectF(
+        rect.left() - value,
+        rect.top() - value,
+        rect.width() + (value * 2),
+        rect.height() + (value * 2))
+
+
+def get_staff_selecter_rect(rect):
+    return QtCore.QRectF(rect.left(), rect.top(), STAFF_LEFT, rect.height())
+
+
+def get_staff_selecter_path(rect):
+    path = QtGui.QPainterPath()
+    path.addEllipse(
+        rect.center().x() - (STAFF_SELECTION_RADIUS / 2),
+        rect.center().y() - (STAFF_SELECTION_RADIUS / 2),
+        STAFF_SELECTION_RADIUS,
+        STAFF_SELECTION_RADIUS)
+    return path
 
 
 def get_square_rect(in_point, out_point):

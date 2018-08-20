@@ -12,6 +12,6 @@ from montunolito.patterns import PATTERNS
 from application import PatternEditor
 
 application = QtWidgets.QApplication(sys.argv)
-pe = PatternEditor()
+pe = PatternEditor(PATTERNS['montuno'])
 pe.show()
 application.exec_()

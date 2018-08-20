@@ -19,6 +19,7 @@ class PatternEditorWidget(QtWidgets.QWidget):
         self._scroll_area = QtWidgets.QScrollArea()
         self._scroll_area.setWidget(self.graph)
         self._scroll_area.setWidgetResizable(True)
+        # hack to deactivate scroll on wheelEvent
         self._scroll_area.wheelEvent = lambda x: None
 
         self.layout = QtWidgets.QVBoxLayout(self)

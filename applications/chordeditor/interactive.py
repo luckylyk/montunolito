@@ -7,7 +7,8 @@ from painting import (
     draw_selection_square)
 from geometries import (
     extract_items_rect, get_staff_path, get_selection_rects, get_square_rect,
-    extract_staffs_rects, extract_heighth_rects, get_repeat_path)
+    extract_staffs_rects, extract_heighth_rects, get_repeat_path,
+    get_staff_selecter_rect, get_staff_selecter_path, grow_rect)
 
 
 class IGItem():
@@ -30,14 +31,18 @@ class IGItem():
 
 
 class IGNoteSelecter():
-    def __init__(self, rect, key):
+    def __init__(self, rect, tonality):
         self.rect = rect
         self.notes = []
         self.enable = False
+        self.set_tonality(tonality)
+
+    def set_tonality(self, tonality):
+        self.notes = []
         for i in range(12):
             self.notes.append(IGItem(
-                extract_items_rect(rect, i, len(NOTES)),
-                NOTES[remap_number(i + key, 12)],
+                extract_items_rect(self.rect, i, len(NOTES)),
+                NOTES[remap_number(i + tonality, 12)],
                 index=i))
 
     def set_states(self, cursor, clicked=False):
@@ -106,13 +111,32 @@ class IGStaff():
             for rect, chord in zip(chords, extract_heighth_rects(rect))]
         self.rect = rect
         self.final = final
+        self.selecter_hovered = False
+        self.selected = False
+
         self.path = get_staff_path(self.rect, self.final)
+        self.selecter_rect = get_staff_selecter_rect(self.rect)
+        self.selecter_path = get_staff_selecter_path(self.selecter_rect)
+        self.selected_rect = grow_rect(self.rect, 4)
+
+    def set_hover(self, cursor):
+        self.selecter_hovered = self.selecter_rect.contains(cursor)
+
+    def set_rect(self, rect):
+        chord_rects = extract_heighth_rects(rect)
+        for i, igchord in enumerate(self.chords):
+            igchord.set_rect(chord_rects[i])
+        self.rect = rect
+        self.path = get_staff_path(self.rect, self.final)
+        self.selecter_rect = get_staff_selecter_rect(self.rect)
+        self.selecter_path = get_staff_selecter_path(self.selecter_rect)
+        self.selected_rect = grow_rect(self.rect, 4)
 
     def draw(self, painter):
         for igchord in self.chords:
             igchord.draw(painter)
-        draw_staff(painter, self.path)
-        selection_rects = get_selection_rects(self)
+        draw_staff(painter, self)
+        selection_rects = get_selection_rects(self.chords)
         if selection_rects:
             draw_selection_rects(painter, selection_rects)
 
@@ -129,8 +153,17 @@ class IGChord():
         self.name = self.note() + ' ' + chord['name'] if chord else None
         self.path = get_repeat_path(self.rect) if self.chord is None else None
 
+    def set_tonality(self, tonality):
+        self.tonality = tonality
+        name = self.note() + ' ' + self.chord['name'] if self.chord else None
+        self.name = name
+
     def note(self):
         return NOTES[remap_number(self.chord['degree'] + self.tonality, 12)]
+
+    def set_rect(self, rect):
+        self.rect = rect
+        self.path = get_repeat_path(self.rect) if self.chord is None else None
 
     def set_chord(self, chord):
         self.chord = chord
@@ -173,8 +206,13 @@ class IGSelectionSquare():
 class IGChordGrid():
     def __init__(self, rect, chordgrid, tonality=0):
         self.rect = rect
-        chordgrids = split_array(chordgrid, 16)
-        set_array_lenght_multiple(chordgrids[-1], 16)
+        self.staffs = None
+        self.tonality = tonality
+        self.set_chordgrid(chordgrid)
+
+    def set_chordgrid(self, chordgrid):
+        chordgrids = split_array(chordgrid, 32)
+        set_array_lenght_multiple(chordgrids[-1], 32)
         staff_rects = extract_staffs_rects(self.rect, len(chordgrids))
         self.staffs = []
         for i, (chords, rect) in enumerate(zip(chordgrids, staff_rects)):
@@ -182,7 +220,7 @@ class IGChordGrid():
                 rect,
                 chords,
                 final=i == len(chordgrids) - 1,
-                tonality=tonality)
+                tonality=self.tonality)
             self.staffs.append(staff)
 
     def activate(self, cursor):
@@ -192,6 +230,8 @@ class IGChordGrid():
     def set_hover(self, cursor):
         for igchord in self.igchords():
             igchord.set_hover(cursor)
+        for igstaff in self.staffs:
+            igstaff.set_hover(cursor)
 
     def igchords(self):
         return [
@@ -222,8 +262,8 @@ class IGChordGrid():
     def igchord(self, index):
         if index is None:
             return None
-        staff = index // 16
-        index = index % 16
+        staff = index // 32
+        index = index % 32
         return self.staffs[staff].chords[index]
 
     def released(self):
@@ -233,18 +273,36 @@ class IGChordGrid():
     def clear_selection(self):
         for igchord in self.igchords():
             igchord.selected = False
+        for igstaff in self.staffs:
+            igstaff.selected = False
+
+    def select_staff(self):
+        for igstaff in self.staffs:
+            if igstaff.selecter_hovered is True:
+                igstaff.selected = True
 
     def select_hovered(self, rect=None):
-        if rect is None:
+        if rect is not None:
+            igchords = [
+                igchord for igchord in self.igchords()
+                if rect.intersects(igchord.rect)]
+            for igchord in igchords:
+                igchord.selected = True
+        else:
             igchord = self.igchord(self.hovered_index())
             if igchord:
                 igchord.selected = True
-        else:
-            igchords = [
-                igchord for igchord in self.igchords()
-                if rect.contains(igchord.rect.center())]
-            for igchord in igchords:
-                igchord.selected = True
+
+    def delete_selected_staffs(self):
+        for igstaff in reversed(self.staffs):
+            if igstaff.selected is True:
+                self.staffs.remove(igstaff)
+                del igstaff
+        count = len(self.staffs)
+        rects = extract_staffs_rects(self.rect, count)
+        for i, igstaff in enumerate(self.staffs):
+            igstaff.final = i == count - 1
+            igstaff.set_rect(rects[i])
 
     def select_range(self, index_1, index_2=None):
         index_2 = index_2 or index_1
@@ -256,3 +314,5 @@ class IGChordGrid():
     def draw(self, painter):
         for igstaff in self.staffs:
             igstaff.draw(painter)
+        selection_rects = get_selection_rects(self.staffs, 4)
+        draw_selection_rects(painter, selection_rects, staff=True)
