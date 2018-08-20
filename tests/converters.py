@@ -86,9 +86,9 @@ CHORDS = {
 
     'lejourdupoisson': [
         {'degree': 0, 'name': 'm6'},
-        None, None, None, None, None,
+        None, None, None, None, None, None,
         {'degree': 10, 'name': 'M6'},
-        None, None, None, None, None, None, None,
+        None, None, None, None, None, None, None, 
         {'degree': 8, 'name': 'M6'},
         None, None, None, None, None, None, None,
         {'degree': 7, 'name': 'M7'},
@@ -100,7 +100,7 @@ CHORDS = {
         {'degree': 2, 'name': 'M7'},
         None, None, None, None, None, None, None,
         {'degree': 7, 'name': 'M7'},
-        None, None, None, None, None, None, None, None, None],
+        None, None, None, None, None, None, None, None],
 }
 
 
@@ -108,7 +108,7 @@ def get_full_generated_eighthkbnotes():
 
     montunos = montuno_generator(
         pattern=PATTERNS['montuno'],
-        chord_grid=load_chord_json(),
+        chord_grid=CHORDS['lejourdupoisson'],
         tonality=3)
 
     eighthkbnotes = []

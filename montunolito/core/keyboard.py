@@ -29,9 +29,9 @@ def convert_eighthnote_to_eighthkbstate(eighthnote, eighthkbstates=None):
         kbs for kbs in eighthkbstates if is_harmonic_eighthkbstate(kbs)]
 
     reference_melodic_eighthkbstate = (
-        melodic_eighthkbstate[0] if melodic_eighthkbstate else None)
+        melodic_eighthkbstate[-1] if melodic_eighthkbstate else None)
     reference_harmonic_eighthkbstate = (
-        harmonic_eighthkbstate[0] if harmonic_eighthkbstate else None)
+        harmonic_eighthkbstate[-1] if harmonic_eighthkbstate else None)
 
     if get_fingersstate_type(eighthnote) == 'melodic':
         generated_kbnotes = generate_melodic_eighthkbstate(
