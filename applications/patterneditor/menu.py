@@ -1,6 +1,6 @@
 import os
-from geometries import get_button_menu_rect, shrink_rect
-from painting import get_icon, draw_icon
+from patterneditor.geometries import get_button_menu_rect, shrink_rect
+from patterneditor.painting import get_icon, draw_icon
 
 
 ICONDIR = os.path.dirname(__file__)

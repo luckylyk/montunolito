@@ -1,17 +1,17 @@
 from functools import partial
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from interactive import IGPattern
-from context import DrawContext
-from painting import draw_background, draw_menu_background
-from geometries import get_pattern_size, get_balloon_spike_point, GRID_SPACING
-from menu import Menu
+from patterneditor.interactive import IGPattern
+from patterneditor.context import DrawContext
+from patterneditor.painting import draw_background, draw_menu_background
+from patterneditor.geometries import get_pattern_size, get_balloon_spike_point, GRID_SPACING
+from patterneditor.menu import Menu
 
 
 class PatternEditorWidget(QtWidgets.QWidget):
 
     def __init__(self, pattern, parent=None):
-        super().__init__(parent=parent)
+        super().__init__(parent, QtCore.Qt.Window)
         self.drawcontext = DrawContext()
         self.graph = GraphWidget(pattern, self.drawcontext)
         self.menu = MenuWidget(drawcontext=self.drawcontext)

@@ -12,36 +12,36 @@ from montunolito.libs.qt.dialogs import (
     data_lost_question, save_dialog, open_dialog)
 from montunolito.libs.jsonutils import pattern_to_json, json_to_pattern
 
-from widgets import PatternEditorWidget, NewMenu, ThemesMenu
-from balloons import FigureBalloon, BehaviorsBalloon, ConnectionBalloon
-from themes import THEMES
+from patterneditor.widgets import PatternEditorWidget, NewMenu, ThemesMenu
+from patterneditor.balloons import FigureBalloon, BehaviorsBalloon, ConnectionBalloon
+from patterneditor.themes import THEMES
 
 
 class PatternEditor():
     def __init__(self, pattern):
         self._workingfile = None
-        self._widget = PatternEditorWidget(pattern)
+        self.view = PatternEditorWidget(pattern)
         self._undo_manager = UndoManager(pattern, deepcopy)
 
-        self._widget.menu.newPatternRequested.connect(self.new)
-        self._widget.menu.openPatternRequested.connect(self.open)
-        self._widget.menu.savePatternRequested.connect(self.save)
-        self._widget.menu.undoRequested.connect(self.undo)
-        self._widget.menu.redoRequested.connect(self.redo)
-        self._widget.menu.deleteRequested.connect(self.delete_selected_indexes)
-        self._widget.menu.themesRequested.connect(self.set_theme)
+        self.view.menu.newPatternRequested.connect(self.new)
+        self.view.menu.openPatternRequested.connect(self.open)
+        self.view.menu.savePatternRequested.connect(self.save)
+        self.view.menu.undoRequested.connect(self.undo)
+        self.view.menu.redoRequested.connect(self.redo)
+        self.view.menu.deleteRequested.connect(self.delete_selected_indexes)
+        self.view.menu.themesRequested.connect(self.set_theme)
 
-        self._widget.graph.figureClicked.connect(self.edit_figure)
-        self._widget.graph.behaviorClicked.connect(self.edit_behaviors)
-        self._widget.graph.connectionClicked.connect(self.edit_connection)
-        self._widget.graph.rowClicked.connect(self.append_index_at_row)
+        self.view.graph.figureClicked.connect(self.edit_figure)
+        self.view.graph.behaviorClicked.connect(self.edit_behaviors)
+        self.view.graph.connectionClicked.connect(self.edit_connection)
+        self.view.graph.rowClicked.connect(self.append_index_at_row)
 
-        set_shortcut("Ctrl+Z", self._widget, self.undo)
-        set_shortcut("Ctrl+Y", self._widget, self.redo)
-        set_shortcut("Ctrl+N", self._widget, self.new)
-        set_shortcut("Ctrl+S", self._widget, self.save)
-        set_shortcut("Ctrl+O", self._widget, self.open)
-        set_shortcut("del", self._widget, self.delete_selected_indexes)
+        set_shortcut("Ctrl+Z", self.view, self.undo)
+        set_shortcut("Ctrl+Y", self.view, self.redo)
+        set_shortcut("Ctrl+N", self.view, self.new)
+        set_shortcut("Ctrl+S", self.view, self.save)
+        set_shortcut("Ctrl+O", self.view, self.open)
+        set_shortcut("del", self.view, self.delete_selected_indexes)
 
     def append_index_at_row(self, row):
         pattern = self._undo_manager.data
@@ -52,7 +52,7 @@ class PatternEditor():
     def edit_figure(self, index, point):
         pattern = self._undo_manager.data
         figure = get_figure_at(pattern, index)
-        balloon = FigureBalloon(figure, parent=self._widget)
+        balloon = FigureBalloon(figure, parent=self.view)
         result = balloon.exec_(point)
         if result is True:
             set_figure_at(pattern, index, balloon.figure)
@@ -61,7 +61,7 @@ class PatternEditor():
     def edit_behaviors(self, index, point):
         pattern = self._undo_manager.data
         behaviors = get_behaviors_at(pattern, index)
-        balloon = BehaviorsBalloon(behaviors, parent=self._widget)
+        balloon = BehaviorsBalloon(behaviors, parent=self.view)
         result = balloon.exec_(point)
         if result is True:
             set_behaviors_at(pattern, index, balloon.behaviors)
@@ -70,18 +70,18 @@ class PatternEditor():
     def edit_connection(self, in_index, out_index, point):
         pattern = self._undo_manager.data
         relationship = get_relationship(pattern, in_index, out_index)
-        balloon = ConnectionBalloon(relationship, parent=self._widget)
+        balloon = ConnectionBalloon(relationship, parent=self.view)
         result = balloon.exec_(point)
         if result is True:
             set_relationship(pattern, in_index, out_index, balloon.value)
             self.modified(pattern)
 
     def show(self):
-        self._widget.show()
+        self.view.show()
 
     def modified(self, pattern):
         self._undo_manager.set_data_modified(pattern)
-        self._widget.graph.set_pattern(pattern)
+        self.view.graph.set_pattern(pattern)
 
     def new(self):
         result = NewMenu(sorted(list(PATTERNS.keys()))).exec_()
@@ -90,7 +90,7 @@ class PatternEditor():
         pattern = PATTERNS[result] if result else get_new_pattern()
         self._workingfile = None
         self._undo_manager = UndoManager(pattern, deepcopy)
-        self._widget.graph.set_pattern(pattern)
+        self.view.graph.set_pattern(pattern)
 
     def open(self):
         if not self.check_save():
@@ -118,11 +118,11 @@ class PatternEditor():
 
     def undo(self):
         self._undo_manager.undo()
-        self._widget.graph.set_pattern(self._undo_manager.data)
+        self.view.graph.set_pattern(self._undo_manager.data)
 
     def redo(self):
         self._undo_manager.redo()
-        self._widget.graph.set_pattern(self._undo_manager.data)
+        self.view.graph.set_pattern(self._undo_manager.data)
 
     def check_save(self):
         if self._undo_manager.data_saved is False:
@@ -136,7 +136,7 @@ class PatternEditor():
 
     def delete_selected_indexes(self):
         indexes = [
-            i.index for i in self._widget.graph.pattern.selected_indexes()]
+            i.index for i in self.view.graph.pattern.selected_indexes()]
         # delete by the last index to avoid reindexing durange the procedure
         # and avoid crashes with multi selected indexes delete
         indexes = [i for i in reversed(sorted(indexes))]
@@ -146,9 +146,9 @@ class PatternEditor():
         for index in indexes:
             delete_figure_at(pattern, index)
         self._undo_manager.set_data_modified(pattern)
-        self._widget.graph.set_pattern(pattern)
+        self.view.graph.set_pattern(pattern)
 
     def set_theme(self):
         theme = ThemesMenu(sorted(list(THEMES.keys()))).exec_()
         if theme:
-            self._widget.set_theme(theme)
+            self.view.set_theme(theme)

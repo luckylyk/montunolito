@@ -1,4 +1,4 @@
-from themes import THEMES
+from patterneditor.themes import THEMES
 
 
 class DrawContext(object):

@@ -5,11 +5,11 @@ from montunolito.core.pattern import (
     get_row_lenght)
 from montunolito.core.solfege import FINGERSSTATES
 
-from context import DrawContext
-from painting import (
+from patterneditor.context import DrawContext
+from patterneditor.painting import (
     draw_index, draw_row_background, draw_connection, draw_mas, draw_row_plus,
     draw_note_path, draw_slider_path)
-from geometries import (
+from patterneditor.geometries import (
     get_index_behavior_rect, get_index_figure_rect, get_index_inplug_rect,
     get_index_outplug_rect, get_index_body_rect, get_row_rect, get_index_rect,
     get_connection_path, get_connection_handler_rect, shrink_rect,

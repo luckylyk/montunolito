@@ -3,12 +3,11 @@
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
 from montunolito.core.solfege import NOTES
-from painting import draw_drag_path, draw_background
 
-from interactive import (
+from chordeditor.interactive import (
     IGNoteSelecter, IGFunctionSelecter, IGChordGrid, IGSelectionSquare)
-
-from geometries import (
+from chordeditor.painting import draw_drag_path, draw_background
+from chordeditor.geometries import (
     get_noteselecter_rect, get_functionselecter_rect, GLOBAL_WIDTH,
     get_staffs_rect, get_drag_path, get_chordgrid_rect,
     get_chordgrid_minimumsize, get_chord_constructor_size)
@@ -21,7 +20,7 @@ def icon(filename):
 
 class ChordGridView(QtWidgets.QWidget):
     def __init__(self, chords=None, parent=None):
-        super().__init__(parent=parent)
+        super().__init__(parent, QtCore.Qt.Window)
         self.setMaximumWidth(GLOBAL_WIDTH)
 
         self.chordgrid_editor = ChordGridWidget(chords)

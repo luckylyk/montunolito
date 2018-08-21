@@ -1,10 +1,10 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from context import DrawContext
-from interactive import IGFigure, IGFingerstateSelecter, IGSlider
-from painting import (
+from patterneditor.context import DrawContext
+from patterneditor.interactive import IGFigure, IGFingerstateSelecter, IGSlider
+from patterneditor.painting import (
     draw_balloon, draw_balloon_header_button, draw_balloon_text)
-from geometries import (
+from patterneditor.geometries import (
     get_balloon_background_path, get_balloon_drawable_rect,
     get_balloon_figure_rect, get_balloon_fingerstateselecter_rect,
     get_balloon_validator_rect, get_balloon_rejecter_path,

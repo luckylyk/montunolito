@@ -2,10 +2,10 @@ from montunolito.core.solfege import NOTES, CHORDS
 from montunolito.core.utils import (
     remap_number, split_array, set_array_lenght_multiple)
 
-from painting import (
+from chordeditor.painting import (
     draw_note_item, draw_staff, draw_chord, draw_selection_rects,
     draw_selection_square)
-from geometries import (
+from chordeditor.geometries import (
     extract_items_rect, get_staff_path, get_selection_rects, get_square_rect,
     extract_staffs_rects, extract_heighth_rects, get_repeat_path,
     get_staff_selecter_rect, get_staff_selecter_path, grow_rect)
