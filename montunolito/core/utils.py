@@ -101,11 +101,14 @@ def split_array(array, lenght=10):
     '''
     arrays = []
     subarray = []
-    for item in array:
+    for i, item in enumerate(array):
         subarray.append(item)
         if len(subarray) == lenght:
             arrays.append(subarray)
             subarray = []
+        elif i + 1 == len(array):
+            arrays.append(subarray)
+
     return arrays
 
 

@@ -2,7 +2,7 @@
 
 import json
 from montunolito.core.chord import deepcopy, get_new_chordgrid
-from montunolito.libs.qt.manager import DataStreamManager
+from montunolito.libs.manager import UndoManager, CopyManager
 from montunolito.libs.qt.shortcuts import set_shortcut
 from montunolito.libs.qt.dialogs import (
     data_lost_question, save_dialog, open_dialog)
@@ -13,7 +13,8 @@ class ChordGridEditor():
     def __init__(self, chords):
         self._workingfile = None
         self._view = ChordGridView(chords)
-        self._data_stream_manager = DataStreamManager(chords, deepcopy)
+        self._undo_manager = UndoManager(chords, deepcopy)
+        self._copy_manager = CopyManager(chords, self.is_index_selected)
 
         self._view.menu.newRequested.connect(self.new)
         self._view.menu.openRequested.connect(self.open)
@@ -27,6 +28,7 @@ class ChordGridEditor():
         self._view.menu.redoRequested.connect(self.redo)
 
         self._view.chordgrid_editor.gridModified.connect(self.modified)
+        self._view.chordgrid_editor.lastIndexModified.connect(self._copy_manager.set_index)
 
         set_shortcut("Ctrl+Z", self._view, self.undo)
         set_shortcut("Ctrl+Y", self._view, self.redo)
@@ -44,23 +46,27 @@ class ChordGridEditor():
     def new(self):
         if self.check_save() is not True:
             return
-        print('new')
+
         chordgrid = get_new_chordgrid()
         self._workingfile = None
         self._view.chordgrid_editor.set_chordgrid(chordgrid)
-        self._data_stream_manager = DataStreamManager(chordgrid, deepcopy)
+        self._undo_manager = UndoManager(chordgrid, deepcopy)
+        self._copy_manager.set_array(self._undo_manager.data)
 
     def open(self):
         if not self.check_save():
             return
+
         filename = open_dialog()
         if not filename:
             return
+
         with open(filename, 'r') as f:
             chordgrid = json.load(f)
         self._workingfile = filename
         self._view.chordgrid_editor.set_chordgrid(chordgrid)
-        self._data_stream_manager = DataStreamManager(chordgrid, deepcopy)
+        self._undo_manager = UndoManager(chordgrid, deepcopy)
+        self._copy_manager.set_array(self._undo_manager.data)
 
     def save(self):
         if self._workingfile is None:
@@ -68,13 +74,15 @@ class ChordGridEditor():
             if not filename:
                 return
             self._workingfile = filename
+
         with open(self._workingfile, 'w') as f:
-            chordgrid = self._data_stream_manager.data
+            chordgrid = self._undo_manager.data
             json.dump(chordgrid, f, indent=2)
-        self._data_stream_manager.set_data_saved()
+
+        self._undo_manager.set_data_saved()
 
     def add(self):
-        chordgrid = self._data_stream_manager.data
+        chordgrid = self._undo_manager.data
         chordgrid.extend([None] * 32)
         self._view.chordgrid_editor.set_chordgrid(chordgrid)
         self.modified()
@@ -83,30 +91,38 @@ class ChordGridEditor():
         self._view.chordgrid_editor.delete_selection()
 
     def cut(self):
-        pass
+        chordgrid = self._copy_manager.cut()
+        self._view.chordgrid_editor.set_chordgrid(chordgrid)
+        self.modified()
 
     def copy(self):
-        pass
+        self._copy_manager.copy()
 
     def paste(self):
-        pass
+        data = self._copy_manager.paste()
+        if data is not None:
+            self._view.chordgrid_editor.set_chordgrid(data)
+            self.modified()
 
     def undo(self):
-        self._data_stream_manager.undo()
-        data = self._data_stream_manager.data
+        self._undo_manager.undo()
+        data = self._undo_manager.data
         self._view.chordgrid_editor.set_chordgrid(data)
+        self._copy_manager.set_array(data)
 
     def redo(self):
-        self._data_stream_manager.redo()
-        data = self._data_stream_manager.data
+        self._undo_manager.redo()
+        data = self._undo_manager.data
         self._view.chordgrid_editor.set_chordgrid(data)
+        self._copy_manager.set_array(data)
 
     def modified(self):
         data = self._view.chordgrid_editor.chordgrid
-        self._data_stream_manager.set_data_modified(data)
+        self._undo_manager.set_data_modified(data)
+        self._copy_manager.set_array(data)
 
     def check_save(self):
-        if self._data_stream_manager.data_saved is False:
+        if self._undo_manager.data_saved is False:
             result = data_lost_question()
             if result is True:
                 self.save()
@@ -114,3 +130,6 @@ class ChordGridEditor():
             elif result is None:
                 return False
         return True
+
+    def is_index_selected(self, index):
+        return self._view.chordgrid_editor.is_index_selected(index)

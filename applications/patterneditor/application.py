@@ -6,7 +6,7 @@ from montunolito.core.pattern import (
     set_figure_at, get_behaviors_at, set_behaviors_at, get_relationship,
     set_relationship, append_figure_at_row, deepcopy)
 
-from montunolito.libs.qt.manager import DataStreamManager
+from montunolito.libs.manager import UndoManager
 from montunolito.libs.qt.shortcuts import set_shortcut
 from montunolito.libs.qt.dialogs import (
     data_lost_question, save_dialog, open_dialog)
@@ -21,7 +21,7 @@ class PatternEditor():
     def __init__(self, pattern):
         self._workingfile = None
         self._widget = PatternEditorWidget(pattern)
-        self._data_stream_manager = DataStreamManager(pattern, deepcopy)
+        self._undo_manager = UndoManager(pattern, deepcopy)
 
         self._widget.menu.newPatternRequested.connect(self.new)
         self._widget.menu.openPatternRequested.connect(self.open)
@@ -44,13 +44,13 @@ class PatternEditor():
         set_shortcut("del", self._widget, self.delete_selected_indexes)
 
     def append_index_at_row(self, row):
-        pattern = self._data_stream_manager.data
+        pattern = self._undo_manager.data
         figure = (0, 0, 0, 0)
         append_figure_at_row(pattern, figure, row)
         self.modified(pattern)
 
     def edit_figure(self, index, point):
-        pattern = self._data_stream_manager.data
+        pattern = self._undo_manager.data
         figure = get_figure_at(pattern, index)
         balloon = FigureBalloon(figure, parent=self._widget)
         result = balloon.exec_(point)
@@ -59,7 +59,7 @@ class PatternEditor():
             self.modified(pattern)
 
     def edit_behaviors(self, index, point):
-        pattern = self._data_stream_manager.data
+        pattern = self._undo_manager.data
         behaviors = get_behaviors_at(pattern, index)
         balloon = BehaviorsBalloon(behaviors, parent=self._widget)
         result = balloon.exec_(point)
@@ -68,7 +68,7 @@ class PatternEditor():
             self.modified(pattern)
 
     def edit_connection(self, in_index, out_index, point):
-        pattern = self._data_stream_manager.data
+        pattern = self._undo_manager.data
         relationship = get_relationship(pattern, in_index, out_index)
         balloon = ConnectionBalloon(relationship, parent=self._widget)
         result = balloon.exec_(point)
@@ -80,7 +80,7 @@ class PatternEditor():
         self._widget.show()
 
     def modified(self, pattern):
-        self._data_stream_manager.set_data_modified(pattern)
+        self._undo_manager.set_data_modified(pattern)
         self._widget.graph.set_pattern(pattern)
 
     def new(self):
@@ -89,7 +89,7 @@ class PatternEditor():
             return
         pattern = PATTERNS[result] if result else get_new_pattern()
         self._workingfile = None
-        self._data_stream_manager = DataStreamManager(pattern, deepcopy)
+        self._undo_manager = UndoManager(pattern, deepcopy)
         self._widget.graph.set_pattern(pattern)
 
     def open(self):
@@ -103,7 +103,7 @@ class PatternEditor():
             pattern = json_to_pattern(pattern)
         self._workingfile = filename
         self.modified(pattern)
-        self._data_stream_manager = DataStreamManager(pattern, deepcopy)
+        self._undo_manager = UndoManager(pattern, deepcopy)
 
     def save(self):
         if self._workingfile is None:
@@ -112,20 +112,20 @@ class PatternEditor():
                 return
             self._workingfile = filename
         with open(self._workingfile, 'w') as f:
-            p = pattern_to_json(self._data_stream_manager.data)
+            p = pattern_to_json(self._undo_manager.data)
             json.dump(p, f, indent=2)
-        self._data_stream_manager.set_data_saved()
+        self._undo_manager.set_data_saved()
 
     def undo(self):
-        self._data_stream_manager.undo()
-        self._widget.graph.set_pattern(self._data_stream_manager.data)
+        self._undo_manager.undo()
+        self._widget.graph.set_pattern(self._undo_manager.data)
 
     def redo(self):
-        self._data_stream_manager.redo()
-        self._widget.graph.set_pattern(self._data_stream_manager.data)
+        self._undo_manager.redo()
+        self._widget.graph.set_pattern(self._undo_manager.data)
 
     def check_save(self):
-        if self._data_stream_manager.data_saved is False:
+        if self._undo_manager.data_saved is False:
             result = data_lost_question()
             if result is True:
                 self.save()
@@ -142,10 +142,10 @@ class PatternEditor():
         indexes = [i for i in reversed(sorted(indexes))]
         if not indexes:
             return
-        pattern = self._data_stream_manager.data
+        pattern = self._undo_manager.data
         for index in indexes:
             delete_figure_at(pattern, index)
-        self._data_stream_manager.set_data_modified(pattern)
+        self._undo_manager.set_data_modified(pattern)
         self._widget.graph.set_pattern(pattern)
 
     def set_theme(self):

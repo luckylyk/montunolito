@@ -479,7 +479,9 @@ def test_split_array():
     array = [3, 5, 8, 6, 8, 7, 4, 5, 6, 5, 4, 2, 3, 4, 8, 9]
     arrays = split_array(array, lenght=8)
     assert arrays == [[3, 5, 8, 6, 8, 7, 4, 5], [6, 5, 4, 2, 3, 4, 8, 9]]
-
+    array = [3, 5, 8, 6, 8, 7, 4, 5, 6, 5, 4, 2, 3, 4, 8]
+    arrays = split_array(array, lenght=4)
+    assert arrays == [[3, 5, 8, 6], [8, 7, 4, 5], [6, 5, 4, 2], [3, 4, 8]]
 
 def test_set_array_lenght_multiple():
     array = [3, 5, 8, 6, 8]

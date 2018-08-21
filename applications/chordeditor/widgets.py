@@ -114,6 +114,7 @@ class ChordGridMenu(QtWidgets.QWidget):
 
 class ChordGridWidget(QtWidgets.QWidget):
     gridModified = QtCore.pyqtSignal()
+    lastIndexModified = QtCore.pyqtSignal(object)
 
     def __init__(self, chords=None, parent=None, tonality=0):
         super().__init__(parent, QtCore.Qt.Window)
@@ -200,16 +201,19 @@ class ChordGridWidget(QtWidgets.QWidget):
 
         if self.selection_mode not in ('add', 'in_between'):
             self.igchordgrid.clear_selection()
+            self.lastIndexModified.emit(None)
 
         if self.selection_mode not in (False, 'in_between'):
             self.igchordgrid.select_hovered(self.selectionsquare.rect)
             self.igchordgrid.select_staff()
             self.last_selected = self.igchordgrid.hovered_index()
+            self.lastIndexModified.emit(self.last_selected)
 
         if self.selection_mode == 'in_between':
             if self.last_selected is None:
                 self.igchordgrid.select_hovered(self.selectionsquare.rect)
                 self.last_selected = self.igchordgrid.hovered_index()
+                self.lastIndexModified.emit(self.last_selected)
             else:
                 index = self.igchordgrid.hovered_index()
                 self.igchordgrid.select_range(self.last_selected, index)
@@ -267,6 +271,8 @@ class ChordGridWidget(QtWidgets.QWidget):
         self.gridModified.emit()
         self.repaint()
 
+    def is_index_selected(self, index):
+        return self.igchordgrid.igchord(index).selected
 
 def cursor(widget):
     return widget.mapFromGlobal(QtGui.QCursor.pos())
