@@ -10,9 +10,12 @@ from chordeditor.widgets import ChordGridView
 
 
 class ChordGridEditor():
+    TITLE = 'Chord Editor'
+
     def __init__(self, chords):
         self._workingfile = None
         self.view = ChordGridView(chords)
+        self.update_title()
         self._undo_manager = UndoManager(chords, deepcopy)
         self._copy_manager = CopyManager(chords, self.is_index_selected)
 
@@ -40,6 +43,10 @@ class ChordGridEditor():
         set_shortcut("Ctrl+V", self.view, self.paste)
         set_shortcut("del", self.view, self.delete)
 
+    def update_title(self):
+        title = self.TITLE + (" - " + self._workingfile if self._workingfile else "")
+        self.view.setWindowTitle(title)
+
     def set_parentview(self, parent=None):
         self.view.setParent(parent)
 
@@ -55,6 +62,7 @@ class ChordGridEditor():
         self.view.chordgrid_editor.set_chordgrid(chordgrid)
         self._undo_manager = UndoManager(chordgrid, deepcopy)
         self._copy_manager.set_array(self._undo_manager.data)
+        self.update_title()
 
     def open(self):
         if not self.check_save():
@@ -70,6 +78,7 @@ class ChordGridEditor():
         self.view.chordgrid_editor.set_chordgrid(chordgrid)
         self._undo_manager = UndoManager(chordgrid, deepcopy)
         self._copy_manager.set_array(self._undo_manager.data)
+        self.update_title()
 
     def save(self):
         if self._workingfile is None:
@@ -83,6 +92,7 @@ class ChordGridEditor():
             json.dump(chordgrid, f, indent=2)
 
         self._undo_manager.set_data_saved()
+        self.update_title()
 
     def add(self):
         chordgrid = self._undo_manager.data

@@ -18,9 +18,12 @@ from patterneditor.themes import THEMES
 
 
 class PatternEditor():
+    TITLE = 'Pattern Editor'
+
     def __init__(self, pattern):
         self._workingfile = None
         self.view = PatternEditorWidget(pattern)
+        self.update_title()
         self._undo_manager = UndoManager(pattern, deepcopy)
 
         self.view.menu.newPatternRequested.connect(self.new)
@@ -42,6 +45,10 @@ class PatternEditor():
         set_shortcut("Ctrl+S", self.view, self.save)
         set_shortcut("Ctrl+O", self.view, self.open)
         set_shortcut("del", self.view, self.delete_selected_indexes)
+
+    def update_title(self):
+        title = self.TITLE + (" - " + self._workingfile if self._workingfile else "")
+        self.view.setWindowTitle(title)
 
     def append_index_at_row(self, row):
         pattern = self._undo_manager.data
@@ -91,6 +98,7 @@ class PatternEditor():
         self._workingfile = None
         self._undo_manager = UndoManager(pattern, deepcopy)
         self.view.graph.set_pattern(pattern)
+        self.update_title()
 
     def open(self):
         if not self.check_save():
@@ -104,6 +112,7 @@ class PatternEditor():
         self._workingfile = filename
         self.modified(pattern)
         self._undo_manager = UndoManager(pattern, deepcopy)
+        self.update_title()
 
     def save(self):
         if self._workingfile is None:
@@ -115,6 +124,7 @@ class PatternEditor():
             p = pattern_to_json(self._undo_manager.data)
             json.dump(p, f, indent=2)
         self._undo_manager.set_data_saved()
+        self.update_title()
 
     def undo(self):
         self._undo_manager.undo()
@@ -148,7 +158,7 @@ class PatternEditor():
         self._undo_manager.set_data_modified(pattern)
         self.view.graph.set_pattern(pattern)
 
-    def set_theme(self):
-        theme = ThemesMenu(sorted(list(THEMES.keys()))).exec_()
+    def set_theme(self, theme):
+        # theme = ThemesMenu(sorted(list(THEMES.keys()))).exec_()
         if theme:
             self.view.set_theme(theme)

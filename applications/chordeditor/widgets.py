@@ -21,7 +21,6 @@ def icon(filename):
 class ChordGridView(QtWidgets.QWidget):
     def __init__(self, chords=None, parent=None):
         super().__init__(parent, QtCore.Qt.Window)
-        self.setMaximumWidth(GLOBAL_WIDTH)
 
         self.chordgrid_editor = ChordGridWidget(chords)
         self.menu = ChordGridMenu()
@@ -30,6 +29,7 @@ class ChordGridView(QtWidgets.QWidget):
         self._scroll_area = QtWidgets.QScrollArea()
         self._scroll_area.setWidget(self.chordgrid_editor)
         self._scroll_area.setWidgetResizable(True)
+        self._scroll_area.setAlignment(QtCore.Qt.AlignCenter)
 
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -41,6 +41,8 @@ class ChordGridView(QtWidgets.QWidget):
         self.keyPressEvent = self.chordgrid_editor.keyPressEvent
         self.keyReleaseEvent = self.chordgrid_editor.keyReleaseEvent
 
+    def sizeHint(self):
+        return QtCore.QSize(600, 450)
 
 class ChordGridMenu(QtWidgets.QWidget):
     newRequested = QtCore.pyqtSignal()
@@ -142,6 +144,7 @@ class ChordGridWidget(QtWidgets.QWidget):
 
     def set_chordgrid(self, chordgrid):
         self.igchordgrid.set_chordgrid(chordgrid)
+        self.setMinimumSize(get_chordgrid_minimumsize(self.igchordgrid))
         self.repaint()
 
     def resizeEvent(self, _):
@@ -188,9 +191,6 @@ class ChordGridWidget(QtWidgets.QWidget):
     def keyReleaseEvent(self, event):
         if event.key() in (QtCore.Qt.Key_Control, QtCore.Qt.Key_Shift):
             self.selection_mode = self.igchordgrid.rect.contains(cursor(self))
-
-        # if event.key() in (QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete):
-        #     self.delete_selection()
 
     def mouseReleaseEvent(self, _):
         self.clicked = False

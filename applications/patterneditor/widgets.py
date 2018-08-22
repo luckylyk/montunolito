@@ -1,11 +1,12 @@
 from functools import partial
+import os
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 from patterneditor.interactive import IGPattern
 from patterneditor.context import DrawContext
 from patterneditor.painting import draw_background, draw_menu_background
 from patterneditor.geometries import get_pattern_size, get_balloon_spike_point, GRID_SPACING
-from patterneditor.menu import Menu
+from patterneditor.themes import THEMES
 
 
 class PatternEditorWidget(QtWidgets.QWidget):
@@ -14,7 +15,7 @@ class PatternEditorWidget(QtWidgets.QWidget):
         super().__init__(parent, QtCore.Qt.Window)
         self.drawcontext = DrawContext()
         self.graph = GraphWidget(pattern, self.drawcontext)
-        self.menu = MenuWidget(drawcontext=self.drawcontext)
+        self.menu = MenuWidget()
 
         self._scroll_area = QtWidgets.QScrollArea()
         self._scroll_area.setWidget(self.graph)
@@ -42,6 +43,11 @@ class PatternEditorWidget(QtWidgets.QWidget):
         self.menu.repaint()
 
 
+ICONDIR = os.path.dirname(__file__)
+def icon(filename):
+    return QtGui.QIcon(os.path.join(ICONDIR, 'icons', filename))
+
+
 class MenuWidget(QtWidgets.QWidget):
     newPatternRequested = QtCore.pyqtSignal()
     openPatternRequested = QtCore.pyqtSignal()
@@ -49,57 +55,48 @@ class MenuWidget(QtWidgets.QWidget):
     undoRequested = QtCore.pyqtSignal()
     redoRequested = QtCore.pyqtSignal()
     deleteRequested = QtCore.pyqtSignal()
-    themesRequested = QtCore.pyqtSignal()
+    themesRequested = QtCore.pyqtSignal(str)
 
-    def __init__(self, drawcontext=None, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setFixedHeight(50)
-        self.setMouseTracking(True)
-        self._drawcontext = drawcontext or DrawContext()
-        self.signals = (
-            self.newPatternRequested,
-            self.openPatternRequested,
-            self.savePatternRequested,
-            self.undoRequested,
-            self.redoRequested,
-            self.deleteRequested,
-            self.themesRequested)
-        self._menu = Menu(self.rect())
 
-    def paintEvent(self, _):
-        painter = QtGui.QPainter()
-        painter.begin(self)
-        self.paint(painter)
-        painter.end()
+        self.new = QtWidgets.QAction(icon('new.png'), '', parent=self)
+        self.new.triggered.connect(self.newPatternRequested.emit)
+        self.open = QtWidgets.QAction(icon('open.png'), '', parent=self)
+        self.open.triggered.connect(self.openPatternRequested.emit)
+        self.save = QtWidgets.QAction(icon('save.png'), '', parent=self)
+        self.save.triggered.connect(self.savePatternRequested.emit)
 
-    def mouseMoveEvent(self, event):
-        super().mouseMoveEvent(event)
-        self._menu.set_hovered_states(self.cursor())
-        self.repaint()
+        self.delete = QtWidgets.QAction(icon('delete.png'), '', parent=self)
+        self.delete.triggered.connect(self.deleteRequested.emit)
 
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            self._menu.set_clicked_states(self.cursor())
-            self.repaint()
+        self.undo = QtWidgets.QAction(icon('undo.png'), '', parent=self)
+        self.undo.triggered.connect(self.savePatternRequested.emit)
+        self.redo = QtWidgets.QAction(icon('redo.png'), '', parent=self)
+        self.redo.triggered.connect(self.redoRequested.emit)
 
-    def mouseReleaseEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            index = self._menu.hovered_index()
-            if index is not None:
-                self.signals[index].emit()
-            self._menu.set_clicked_states(self.cursor(), False)
-            self.repaint()
+        self.toolbar = QtWidgets.QToolBar()
+        self.toolbar.addAction(self.new)
+        self.toolbar.addAction(self.open)
+        self.toolbar.addAction(self.save)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.delete)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.undo)
+        self.toolbar.addAction(self.redo)
 
-    def leaveEvent(self, _):
-        self._menu.set_clicked_states(self.cursor(), False)
+        self.themes_label = QtWidgets.QLabel('theme:')
+        self.themes_combo = QtWidgets.QComboBox()
+        self.themes_combo.addItems(THEMES)
+        method = self.themesRequested.emit
+        self.themes_combo.currentTextChanged.connect(method)
 
-    def cursor(self):
-        return self.mapFromGlobal(QtGui.QCursor.pos())
-
-    def paint(self, painter):
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        draw_menu_background(painter, self._drawcontext, self.rect())
-        self._menu.draw(painter)
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 10, 0)
+        self.layout.addWidget(self.toolbar)
+        self.layout.addStretch(1)
+        self.layout.addWidget(self.themes_label)
+        self.layout.addWidget(self.themes_combo)
 
 
 class GraphWidget(QtWidgets.QWidget):
