@@ -109,7 +109,7 @@ def get_full_generated_eighthkbnotes():
     montunos = montuno_generator(
         pattern=PATTERNS['montuno'],
         chord_grid=load_chord_json(),
-        tonality=5)
+        tonality=3)
 
     eighthkbnotes = []
     for _ in range(8*8*4):
@@ -120,7 +120,7 @@ def get_full_generated_eighthkbnotes():
 
 def load_chord_json():
     chord_file_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord_02.json')
+        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord_anatole.json')
     with open(chord_file_path, 'r') as chord_file:
         return json.load(chord_file)
 
@@ -133,6 +133,6 @@ if __name__ == "__main__":
     #     get_full_generated_eighthkbnotes())
 
     xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=600)
-    fileoutput = r'C:\Users\zil\Desktop\xmltest\chacha10.xml'
+    fileoutput = r'C:\Users\zil\Desktop\xmltest\anatole.xml'
     with open(fileoutput, 'w') as myfile:
         myfile.write(xmlcontent)
