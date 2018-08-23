@@ -15,9 +15,25 @@ is a python librairy. It contains 3 packages
 ```python
   from montunolito.patterns import PATTERNS
 ```
-
-
 - applications:
 	This package contains very wip user interface to edit the rythmic patterns and the chord grids.
 - test:
 the package contains all the unit test already written for the other package. It's not complete, but it cover a big part of the montunolito who are a sensitive package and logic to debug
+
+
+
+##### montunolito.core
+The core contains the algorythms to generate a keyboard sequence. To generate those sequence, the montunolito combine to elements constructed by the user : the pattern and the chordgrid.
+
+
+[![N|Solid](https://raw.githubusercontent.com/luckylyk/montunolito/master/documentation/pattern_description.png)](https://nodesource.com/products/nsolid)
+
+- fingerstate:
+  Is a list of five booleans representing the finger. From the thumb to pinky, if the state is True, the finger press a keyboard touch. Else, it's off.  All the possible fingerstates are stored in the constant :
+```python
+montunolito.core.solfege.FINGERSSTATES
+```
+- figure:
+  A figure is a combinaison off fingerstates as eighth. Thats store as list of indexes. The indexes are the fingerstate index from the constant FINGERSSTATES
+- pattern:
+    The pattern give the rythmic behavior and the finger used on keyboard per eighth. The pattern contains 3 elements, a figure's table, a figure relationship's table and a list of melodic behavior type coeficient per figure.
