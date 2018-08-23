@@ -286,101 +286,101 @@ def test_generate_melody_from_eighthmetas():
 ###############################################################################
 
 
-def test_is_melodic_eighthkbstates():
-    assert is_melodic_eighthkbstate([24, 36, 48, 60])
-    assert not is_melodic_eighthkbstate([5, 10, 0, 65])
+def test_is_melodic_keyboard_eighths():
+    assert is_melodic_keyboard_eighth([24, 36, 48, 60])
+    assert not is_melodic_keyboard_eighth([5, 10, 0, 65])
 
 
-def test_is_harmonic_eighthkbstates():
-    assert not is_harmonic_eighthkbstate([24, 36, 48, 60])
-    assert is_harmonic_eighthkbstate([5, 10, 0, 65])
+def test_is_harmonic_keyboard_eighths():
+    assert not is_harmonic_keyboard_eighth([24, 36, 48, 60])
+    assert is_harmonic_keyboard_eighth([5, 10, 0, 65])
 
 
 def test_generate_melodic_keys():
-    melodic_keys = generate_melodic_eighthkbstate([5, None, None, None, 5])
+    melodic_keys = generate_melodic_keyboard_eighth([5, None, None, None, 5])
     remapped = ([remap_number(k, value=12) for k in melodic_keys])
     assert len(set(remapped)) == 1
 
-    melodic_keys = generate_melodic_eighthkbstate([5, None, None, None, 5])
+    melodic_keys = generate_melodic_keyboard_eighth([5, None, None, None, 5])
     assert len(melodic_keys) == 3
 
-    melodic_keys = generate_melodic_eighthkbstate([None, None, 10, None, None])
+    melodic_keys = generate_melodic_keyboard_eighth([None, None, 10, None, None])
     assert len(melodic_keys) == 2
 
     eightnote = ([8, None, None, None, 8])
     reference_keysstate = [38, 50, 62]
-    melodic_keys = generate_melodic_eighthkbstate(eightnote, reference_keysstate)
+    melodic_keys = generate_melodic_keyboard_eighth(eightnote, reference_keysstate)
     assert melodic_keys == [32, 44, 56]
 
     eightnote = ([8, None, None, None, 8])
     reference_keysstate = [50, 62]
-    melodic_keys = generate_melodic_eighthkbstate(eightnote, reference_keysstate)
+    melodic_keys = generate_melodic_keyboard_eighth(eightnote, reference_keysstate)
     assert melodic_keys == [44, 56, 68]
 
     eightnote = ([None, None, 8, None, None])
     reference_keysstate = [38, 50, 62]
-    melodic_keys = generate_melodic_eighthkbstate(eightnote, reference_keysstate)
+    melodic_keys = generate_melodic_keyboard_eighth(eightnote, reference_keysstate)
     assert melodic_keys == [44, 56]
 
 
 def test_generate_harmonic_keys():
     eighthnote = [None, 5, None, 8, None]
-    keys = generate_harmonic_eighthkbstate(
+    keys = generate_harmonic_keyboard_eighth(
         eighthnote=eighthnote,
-        reference_melodic_eighthkbstate=None,
-        reference_harmonic_eighthkbstate=None)
+        reference_melodic_keyboard_eighth=None,
+        reference_harmonic_keyboard_eighth=None)
     assert len(keys) == 4
     for key in keys:
         assert remap_number(key, value=12) in eighthnote
 
     eighthnote = [0, 5, 7, 9, 11]
-    keys = generate_harmonic_eighthkbstate(
+    keys = generate_harmonic_keyboard_eighth(
         eighthnote=eighthnote,
-        reference_melodic_eighthkbstate=None,
-        reference_harmonic_eighthkbstate=None)
+        reference_melodic_keyboard_eighth=None,
+        reference_harmonic_keyboard_eighth=None)
     assert len(keys) == 10
     for key in keys:
         assert remap_number(key, value=12) in eighthnote
 
     eighthnote = [0, 5, 7, 9, 11]
     reference_melodic_keys = [44, 56, 68]
-    keys = generate_harmonic_eighthkbstate(
+    keys = generate_harmonic_keyboard_eighth(
         eighthnote=eighthnote,
-        reference_melodic_eighthkbstate=reference_melodic_keys,
-        reference_harmonic_eighthkbstate=None)
+        reference_melodic_keyboard_eighth=reference_melodic_keys,
+        reference_harmonic_keyboard_eighth=None)
     assert keys == [45, 47, 48, 53, 55, 57, 59, 60, 65, 67]
 
     eighthnote = [None, 5, None, 9, None]
     reference_melodic_keys = [44, 56, 68]
-    keys = generate_harmonic_eighthkbstate(
+    keys = generate_harmonic_keyboard_eighth(
         eighthnote=eighthnote,
-        reference_melodic_eighthkbstate=reference_melodic_keys,
-        reference_harmonic_eighthkbstate=None)
+        reference_melodic_keyboard_eighth=reference_melodic_keys,
+        reference_harmonic_keyboard_eighth=None)
     assert keys == [45, 53, 57, 65]
 
     eighthnote = [None, 2, None, 10, None]
     reference_harmonic_keys = [45, 53, 57, 65]
-    keys = generate_harmonic_eighthkbstate(
+    keys = generate_harmonic_keyboard_eighth(
         eighthnote=eighthnote,
-        reference_melodic_eighthkbstate=None,
-        reference_harmonic_eighthkbstate=reference_harmonic_keys)
+        reference_melodic_keyboard_eighth=None,
+        reference_harmonic_keyboard_eighth=reference_harmonic_keys)
     assert len([n for n in eighthnote if n]) * 2 == len(keys)
     assert keys == [46, 50, 58, 62]
 
     eighthnote = [0, 2, 5, 10, 11]
     reference_harmonic_keys = [45, 53, 57, 65]
-    keys = generate_harmonic_eighthkbstate(
+    keys = generate_harmonic_keyboard_eighth(
         eighthnote=eighthnote,
-        reference_melodic_eighthkbstate=None,
-        reference_harmonic_eighthkbstate=reference_harmonic_keys)
+        reference_melodic_keyboard_eighth=None,
+        reference_harmonic_keyboard_eighth=reference_harmonic_keys)
     assert keys == [29, 34, 35, 36, 38, 41, 46, 47, 48, 50]
 
     eighthnote = [0, 2, 5, 8, 10]
     reference_harmonic_keys = [45, 46, 49, 50, 55, 57, 58, 61, 62, 67]
-    keys = generate_harmonic_eighthkbstate(
+    keys = generate_harmonic_keyboard_eighth(
         eighthnote=eighthnote,
-        reference_melodic_eighthkbstate=None,
-        reference_harmonic_eighthkbstate=reference_harmonic_keys)
+        reference_melodic_keyboard_eighth=None,
+        reference_harmonic_keyboard_eighth=reference_harmonic_keys)
     assert keys == [44, 46, 48, 50, 56, 56, 58, 60, 62, 68]
 
 
@@ -496,7 +496,7 @@ def test_set_array_lenght_multiple():
 
 def test_get_index_occurence_probablity():
     pattern_test = {
-        'quarters': 
+        'figures': 
         [
             [(1, 1, 1, 1), (1, 0, 1, 1)],
             [(1, 1, 1, 1)],
@@ -574,7 +574,7 @@ def test_iteration():
             "melodic": 0
             }
         },
-        "quarters": [
+        "figures": [
             [
             [
                 0,
@@ -698,8 +698,8 @@ if __name__ == '__main__':
         test_generate_melody_from_eighthmetas,
         test_get_number_multiples,
         test_generate_melodic_keys,
-        test_is_melodic_eighthkbstates,
-        test_is_harmonic_eighthkbstates,
+        test_is_melodic_keyboard_eighths,
+        test_is_harmonic_keyboard_eighths,
         test_generate_harmonic_keys,
         test_split_array,
         test_set_array_lenght_multiple,

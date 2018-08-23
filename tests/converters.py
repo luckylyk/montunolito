@@ -5,9 +5,10 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from montunolito.converters.musicxml.convert import convert_to_musicxml
+from montunolito.converters.midi.convert import convert_to_midi
 from montunolito.core.iterators import montuno_generator
 from montunolito.patterns import PATTERNS
-from montunolito.core.keyboard import convert_eighthnote_to_eighthkbstate
+from montunolito.core.keyboard import convert_eighthnote_to_keyboard_eighth
 
 
 def get_pre_registered_eighthkbnotes():
@@ -25,13 +26,13 @@ def get_chromatic_eighthkbnotes():
 
 
 def convert_to_eighthkbnotes(eighthnotes):
-    eighthkbstates = []
+    keyboard_sequence = []
     for eighthnote in eighthnotes:
-        eighthkbstate = convert_eighthnote_to_eighthkbstate(
+        keyboard_eighth = convert_eighthnote_to_keyboard_eighth(
             eighthnote=eighthnote,
-            eighthkbstates=eighthkbstates)
-        eighthkbstates.append(eighthkbstate)
-    return eighthkbstates
+            keyboard_sequence=keyboard_sequence)
+        keyboard_sequence.append(keyboard_eighth)
+    return keyboard_sequence
 
 
 def get_generated_eighthkbnotes():
@@ -109,7 +110,7 @@ def get_full_generated_eighthkbnotes():
     montunos = montuno_generator(
         pattern=PATTERNS['montuno'],
         chord_grid=load_chord_json(),
-        tonality=3)
+        tonality=0)
 
     eighthkbnotes = []
     for _ in range(8*8*4):
@@ -120,7 +121,7 @@ def get_full_generated_eighthkbnotes():
 
 def load_chord_json():
     chord_file_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord_anatole.json')
+        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord_manana.json')
     with open(chord_file_path, 'r') as chord_file:
         return json.load(chord_file)
 
@@ -132,7 +133,14 @@ if __name__ == "__main__":
     #     get_generated_eighthkbnotes() +
     #     get_full_generated_eighthkbnotes())
 
+    fileoutput = r'C:\Users\zil\Desktop\xmltest\''
     xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=600)
-    fileoutput = r'C:\Users\zil\Desktop\xmltest\anatole.xml'
-    with open(fileoutput, 'w') as myfile:
+    midicontent = convert_to_midi(eighthkbnotes, tempo=100)
+
+    with open(fileoutput + 'anatole2.xml', 'w') as myfile:
         myfile.write(xmlcontent)
+
+    with open(fileoutput + 'anatole2.mid', "wb") as output_file:
+        midicontent.writeFile(output_file)
+
+

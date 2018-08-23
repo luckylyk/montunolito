@@ -3,7 +3,7 @@ NAME = 'afterbeat'
 
 
 PATTERN = {
-    'quarters': [
+    'figures': [
         [(0, 7, 0, 7)],
         [(0, 7, 0, 7)],
         [(0, 7, 0, 7)],

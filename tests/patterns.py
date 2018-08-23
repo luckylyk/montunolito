@@ -4,15 +4,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
 from montunolito.core.pattern import (
-    get_new_pattern, append_fingerstates_indexes, append_quarter_row,
+    get_new_pattern, append_fingerstates_indexes, append_figure_row,
     delete_fingerstates_indexes, set_behavior_value, set_relationship_value)
 
 
 pattern = get_new_pattern()
-append_quarter_row(pattern)
-append_quarter_row(pattern)
-append_quarter_row(pattern)
-append_quarter_row(pattern)
+append_figure_row(pattern)
+append_figure_row(pattern)
+append_figure_row(pattern)
+append_figure_row(pattern)
 fingerstates_indexes = (0, 1, 2, 7)
 row = 0
 append_fingerstates_indexes(pattern, fingerstates_indexes, 1)
@@ -34,8 +34,8 @@ set_relationship_value(pattern, (2, 2), (3, 0), 1)
 set_relationship_value(pattern, (0, 1), (1, 0), 2)
 set_relationship_value(pattern, (0, 1), (1, 1), 10)
 print ("")
-print ("Quarters")
-for qindexes in pattern["quarters"]:
+print ("figures")
+for qindexes in pattern["figures"]:
     print("  -->", qindexes, sep=" ")
 print ("")
 

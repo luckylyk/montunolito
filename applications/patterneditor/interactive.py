@@ -419,7 +419,7 @@ class IGPattern(object):
 
     @property
     def rows(self):
-        return self._pattern['quarters']
+        return self._pattern['figures']
 
     def draw(self, painter, cursor):
         for row in self._igrows:

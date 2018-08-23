@@ -5,7 +5,7 @@ import itertools
 from .utils import choose
 from .solfege import FINGERSSTATES
 from .melody import convert_eighthmetas_to_eighthnotes
-from .keyboard import convert_eighthnote_to_eighthkbstate
+from .keyboard import convert_eighthnote_to_keyboard_eighth
 
 
 def pattern_iterator(pattern):
@@ -16,7 +16,7 @@ def pattern_iterator(pattern):
     relationship indice between the indexes definied in the sub patter dict:
     'relationship'
     '''
-    last_pindexes = (3, random.randint(1, len(pattern['quarters'][-1])) - 1)
+    last_pindexes = (3, random.randint(1, len(pattern['figures'][-1])) - 1)
     while True:
         qpatterns = pattern['relationships'][last_pindexes]
         pindexes = choose(qpatterns)
@@ -54,7 +54,7 @@ def create_eighthmetas(
     representing 4 eighth notes.
     '''
     fingersstates_retrieved = []
-    qpattern = pattern['quarters'][pattern_index[0]][pattern_index[1]]
+    qpattern = pattern['figures'][pattern_index[0]][pattern_index[1]]
     for index in qpattern:
         fingersstates_retrieved.append(FINGERSSTATES[index])
     return [
@@ -95,7 +95,7 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
 
     previous_eighthnotes = [None, None, None, None]
     eighthmetas = next(eighthtmetas_it) + next(eighthtmetas_it)
-    eighthkbstates = []
+    keyboard_sequence = []
 
     while True:
         eighthnotes = convert_eighthmetas_to_eighthnotes(
@@ -103,22 +103,22 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
             tonality)
 
         for i, eighthnote in enumerate(eighthnotes):
-            eighthkbstate = convert_eighthnote_to_eighthkbstate(
+            keyboard_eighth = convert_eighthnote_to_keyboard_eighth(
                 eighthnote=eighthnote, 
-                eighthkbstates=eighthkbstates)
-            eighthkbstates.append(eighthkbstate)
+                keyboard_sequence=keyboard_sequence)
+            keyboard_sequence.append(keyboard_eighth)
             ## print for debug
             # print(eighthmetas[i])
             # print(eighthnote)
-            # print(eighthkbstate)
-            yield eighthkbstate
+            # print(keyboard_eighth)
+            yield keyboard_eighth
 
         offset = -len(eighthnotes) + 1
         previous_eighthnotes = previous_eighthnotes[offset:-1] + eighthnotes
         eighthmetas = eighthmetas[len(eighthnotes):]
 
-        if len(eighthkbstates) > 8:
-            eighthkbstates = eighthkbstates[-8:]
+        if len(keyboard_sequence) > 8:
+            keyboard_sequence = keyboard_sequence[-8:]
 
         while len(eighthmetas) < 8:
             eighthmetas += next(eighthtmetas_it)

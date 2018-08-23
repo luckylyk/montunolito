@@ -2,7 +2,7 @@
 
 def pattern_to_json(pattern):
     json_pattern = {}
-    json_pattern['quarters'] = pattern['quarters'][:]
+    json_pattern['figures'] = pattern['figures'][:]
     json_pattern['behaviors'] = {
         str(k): v for k, v in pattern['behaviors'].items()}
     json_pattern['relationships'] = {
@@ -13,7 +13,7 @@ def pattern_to_json(pattern):
 
 def json_to_pattern(jsondict):
     pattern = {}
-    pattern['quarters'] = jsondict['quarters'][:]
+    pattern['figures'] = jsondict['figures'][:]
     pattern['behaviors'] = {
         tuple([int(n) for n in k.strip('()').split(', ')]):
         v for k, v in jsondict['behaviors'].items()}

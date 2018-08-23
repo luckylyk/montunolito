@@ -1,8 +1,8 @@
-# every pattern contains 3 keys: quarters, relationships and behaviors
-# keys 'quarters' contains differents alternative array of hand pattern index.
-# the key number correspond the quarter of the pattern (1 = first quarter, etc)
+# every pattern contains 3 keys: figures, relationships and behaviors
+# keys 'figures' contains differents alternative array of hand pattern index.
+# the key number correspond the figure of the pattern (1 = first figure, etc)
 # the 'relationship' key contains a dict. His keys represent the pattern index
-# it contain the pattern index of the next quarter and a value
+# it contain the pattern index of the next figure and a value
 # (between 0 and 5)
 # it's for generate random patterns.
 # this is data and will be moved in JSON files. Every pattern will be save as
@@ -10,7 +10,7 @@
 
 
 EMPTY_PATTERN = {
-    'quarters': [[], [], [], []],
+    'figures': [[], [], [], []],
     'relationships': {},
     'behaviors': {}
 }
@@ -21,16 +21,16 @@ def get_new_pattern():
     return deepcopy(EMPTY_PATTERN)
 
 
-def append_quarter_row(pattern):
-    pattern['quarters'].append([])
+def append_figure_row(pattern):
+    pattern['figures'].append([])
 
 
 def append_figure_at_row(pattern, figure, row):
     # add fingerstates indexes
-    pattern['quarters'][row].append(figure)
+    pattern['figures'][row].append(figure)
 
     # add behabiors
-    index = row, len(pattern['quarters'][row]) - 1
+    index = row, len(pattern['figures'][row]) - 1
     pattern['behaviors'][index] = EMPTY_BEHAVIORS.copy()
 
     # add relationships
@@ -82,13 +82,13 @@ def delete_figure_at(pattern, index):
             del pattern['relationships'][relationship_index][index]
 
     # remove fingerstates indexes
-    del pattern['quarters'][row][column]
+    del pattern['figures'][row][column]
 
 
 def get_existing_indexes(pattern):
     indexes = []
-    for index, quarter in enumerate(pattern['quarters']):
-        for i, _ in enumerate(quarter):
+    for index, figure in enumerate(pattern['figures']):
+        for i, _ in enumerate(figure):
             indexes.append(tuple([index, i]))
     return indexes
 
@@ -102,8 +102,8 @@ def get_existing_indexes_in_row(pattern, row):
 def index_exists(pattern, index):
     row, column = index
     conditions = (
-        len(pattern['quarters']) <= row or
-        len(pattern['quarters'][row]) <= column)
+        len(pattern['figures']) <= row or
+        len(pattern['figures'][row]) <= column)
     if conditions:
         return False
     return True
@@ -111,19 +111,19 @@ def index_exists(pattern, index):
 
 def get_next_row(pattern, row):
     row += 1
-    row = row if row < len(pattern['quarters']) else 0
+    row = row if row < len(pattern['figures']) else 0
     return row
 
 
 def get_row_lenght(pattern, row=None):
     if row is not None:
-        return len(pattern['quarters'][row])
-    return max([len(row) for row in pattern['quarters']])
+        return len(pattern['figures'][row])
+    return max([len(row) for row in pattern['figures']])
 
 
 def get_previous_row(pattern, row):
     row -= 1
-    row = row if row >= 0 else len(pattern['quarters']) - 1
+    row = row if row >= 0 else len(pattern['figures']) - 1
     return row
 
 
@@ -189,12 +189,12 @@ def set_relationship(pattern, in_index, out_index, value):
 
 def get_figure_at(pattern, index):
     row, col = index
-    return pattern['quarters'][row][col]
+    return pattern['figures'][row][col]
 
 
 def set_figure_at(pattern, index, figure):
     row, col = index
-    pattern['quarters'][row][col] = figure
+    pattern['figures'][row][col] = figure
 
 
 def get_behaviors_at(pattern, index):
@@ -207,7 +207,7 @@ def set_behaviors_at(pattern, index, behaviors):
 
 def deepcopy(pattern):
     cpattern = {}
-    cpattern['quarters'] = [row[:] for row in pattern['quarters']]
+    cpattern['figures'] = [row[:] for row in pattern['figures']]
     cpattern['relationships'] = {
         k: {l: w for l, w in v.items()}
         for k, v in pattern['relationships'].items()}

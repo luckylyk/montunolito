@@ -93,12 +93,12 @@ def get_staff_path(rect, final=False):
     path.lineTo(end_point)
 
     height = rect.height() * .15
-    quarters_rect = QtCore.QRectF(
+    figures_rect = QtCore.QRectF(
         rect.left(), rect.bottom() - height,
         rect.width(), height)
 
     path = graduate_path(rect, path, 4)
-    path = graduate_path(quarters_rect, path, 16)
+    path = graduate_path(figures_rect, path, 16)
 
     if not final:
         return path
