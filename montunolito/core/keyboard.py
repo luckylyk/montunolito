@@ -3,8 +3,8 @@ from .solfege import SCALE_LENGTH, get_fingersstate_type
 
 
 KEYBOARD_LENGHT = 88
-HIGHER_NOTE_USED = 75
-LOWER_NOTE_USED = 15
+HIGHER_NOTE_USED = 66
+LOWER_NOTE_USED = 25
 REFERENCE_STARTNOTE = 35
 
 
@@ -16,9 +16,27 @@ def is_harmonic_keyboard_eighth(keyboard_eighth):
     return keyboard_eighth_length(keyboard_eighth) > 1
 
 
+def is_mute_keyboard_eighth(keyboard_eighth):
+    return keyboard_eighth_length(keyboard_eighth) == 0
+
+
 def keyboard_eighth_length(keyboard_eighth):
     return len(set(
         [remap_number(n, value=SCALE_LENGTH) for n in keyboard_eighth]))
+
+
+def melodic_gap(note_array_1, note_array_2):
+    note_array_1 = [n for n in note_array_1 if n is not None]
+    note_array_2 = [n for n in note_array_2 if n is not None]
+    if not all([note_array_1, note_array_2]):
+        raise ValueError('cannot compare melodic gap with an empty array.')
+
+    note_1 = remap_number(note_array_1[0], value=SCALE_LENGTH)
+    note_2 = remap_number(note_array_2[0], value=SCALE_LENGTH)
+    note_1, note_2 = max([note_1, note_2]), min([note_1, note_2])
+    value_1 = abs(note_1 - note_2)
+    value_2 = abs((note_2 + SCALE_LENGTH) - note_1)
+    return min([value_1, value_2])
 
 
 def convert_eighthnote_to_keyboard_eighth(eighthnote, keyboard_sequence=None):
@@ -28,6 +46,9 @@ def convert_eighthnote_to_keyboard_eighth(eighthnote, keyboard_sequence=None):
     harmonic_keyboard_eighth = [
         kbs for kbs in keyboard_sequence if is_harmonic_keyboard_eighth(kbs)]
 
+    keyboard_eighth = [
+        e for e in keyboard_sequence if not is_mute_keyboard_eighth(e)]
+    keyboard_eighth = keyboard_eighth[-1] if keyboard_eighth else None
     reference_melodic_keyboard_eighth = (
         melodic_keyboard_eighth[-1] if melodic_keyboard_eighth else None)
     reference_harmonic_keyboard_eighth = (
@@ -41,6 +62,7 @@ def convert_eighthnote_to_keyboard_eighth(eighthnote, keyboard_sequence=None):
     elif get_fingersstate_type(eighthnote) == 'harmonic':
         generated_kbnotes = generate_harmonic_keyboard_eighth(
             eighthnote=eighthnote,
+            reference_keyboard_eighth=keyboard_eighth,
             reference_melodic_keyboard_eighth=reference_melodic_keyboard_eighth,
             reference_harmonic_keyboard_eighth=reference_harmonic_keyboard_eighth)
 
@@ -71,7 +93,7 @@ def generate_melodic_keyboard_eighth(
                     reference=key,
                     array=notes,
                     clamp=KEYBOARD_LENGHT))
-        return sorted(keys)
+        return clamp_keyboard_heighth(sorted(keys), reference_keyboard_eighth)
 
     startindex = 0
     for note in notes:
@@ -81,9 +103,10 @@ def generate_melodic_keyboard_eighth(
             break
 
     if pressed_fingers_number == 2 and len(reference_keyboard_eighth) == 3:
-        return sorted(notes[startindex:startindex+2])
+        notes = sorted(notes[startindex:startindex+2])
     else:
-        return sorted(notes[startindex-1:startindex+2])
+        notes = sorted(notes[startindex-1:startindex+2])
+    return clamp_keyboard_heighth(notes, reference_keyboard_eighth)
 
 
 def eighthnote_lenght(eighthnote):
@@ -91,7 +114,8 @@ def eighthnote_lenght(eighthnote):
 
 
 def generate_harmonic_keyboard_eighth(
-        eighthnote, reference_melodic_keyboard_eighth=None,
+        eighthnote, reference_keyboard_eighth=None,
+        reference_melodic_keyboard_eighth=None,
         reference_harmonic_keyboard_eighth=None):
 
     notes = [note for note in eighthnote if note is not None]
@@ -107,12 +131,15 @@ def generate_harmonic_keyboard_eighth(
             number=note, base=SCALE_LENGTH, maximum=KEYBOARD_LENGHT)])
 
     conditions = (
-        reference_melodic_keyboard_eighth and
-        not reference_harmonic_keyboard_eighth)
+        (reference_melodic_keyboard_eighth and
+        not reference_harmonic_keyboard_eighth) or
+        (reference_keyboard_eighth and
+         is_melodic_keyboard_eighth(reference_keyboard_eighth)))
+
     if conditions:
-        for number in multiples:
+        for number in sorted(multiples):
             check_notes = [remap_number(k, value=SCALE_LENGTH) for k in keys]
-            if number > reference_melodic_keyboard_eighth[0]:
+            if number > sorted(reference_melodic_keyboard_eighth)[0]:
                 if remap_number(number, value=SCALE_LENGTH) not in check_notes:
                     keys.extend([number, number + SCALE_LENGTH])
         return sorted(keys)
@@ -150,3 +177,15 @@ def generate_first_harmonic_keys(notes):
             clamp=KEYBOARD_LENGHT)
         keys.extend([number, number + SCALE_LENGTH])
     return sorted(keys)
+
+
+def clamp_keyboard_heighth(keyboard_eight, reference_keyboard_eight):
+    if not melodic_gap(reference_keyboard_eight, keyboard_eight) > 4:
+        return keyboard_eight
+
+    if keyboard_eight[-1] > HIGHER_NOTE_USED:
+        keyboard_eight = [n - SCALE_LENGTH for n in keyboard_eight]
+    elif keyboard_eight[0] < LOWER_NOTE_USED:
+        keyboard_eight = [n + SCALE_LENGTH for n in keyboard_eight]
+
+    return keyboard_eight

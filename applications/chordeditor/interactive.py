@@ -1,4 +1,4 @@
-from montunolito.core.solfege import NOTES, CHORDS
+from montunolito.core.solfege import NOTES, CHORDS, SCALE_LENGTH
 from montunolito.core.utils import (
     remap_number, split_array, set_array_lenght_multiple)
 
@@ -39,10 +39,10 @@ class IGNoteSelecter():
 
     def set_tonality(self, tonality):
         self.notes = []
-        for i in range(12):
+        for i in range(SCALE_LENGTH):
             self.notes.append(IGItem(
                 extract_items_rect(self.rect, i, len(NOTES)),
-                NOTES[remap_number(i + tonality, 12)],
+                NOTES[remap_number(i + tonality, SCALE_LENGTH)],
                 index=i))
 
     def set_states(self, cursor, clicked=False):

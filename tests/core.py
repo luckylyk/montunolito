@@ -78,10 +78,19 @@ def test_generate_static_melody():
 def test_generate_arpegic_melody():
     chord_array = [4, 7, 10, 0, 3]
     chord_array_destination = [5, 7, 10, 0, 3]
-    assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 0, 10, 7, 4, 3, 5], [4, 3, 0, 10, 7, 4, 3, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
-    assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 0, 10, 7, 4, 3, 5], [4, 3, 0, 10, 7, 4, 3, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
-    assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 0, 10, 7, 4, 3, 5], [4, 3, 0, 10, 7, 4, 3, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
-    assert generate_arpegic_melody(chord_array[:], chord_array_destination[:], 8) in ([4, 3, 0, 10, 7, 4, 3, 5], [4, 3, 0, 10, 7, 4, 3, 10], [4, 7, 10, 0, 3, 4, 7, 5], [4, 7, 10, 0, 3, 4, 7, 10])
+    possibilities = (
+        [4, 3, 0, 10, 7, 4, 3, 5],
+        [4, 3, 0, 10, 7, 4, 3, 10],
+        [4, 7, 10, 0, 3, 4, 7, 5],
+        [4, 7, 10, 0, 3, 4, 7, 10])
+    tests = []
+    for _ in range(100):
+        tests.append(
+            generate_arpegic_melody(
+                chord_array[:],
+                chord_array_destination[:], 8))
+    for test in tests:
+        assert test in possibilities
 
 
 def test_generate_chromatic_melody():
@@ -106,7 +115,7 @@ def test_generate_chromatic_melody():
         reference_note=7,
         chord_array=chord_array[:],
         chord_array_destination=chord_array_destination[:],
-        length=4) 
+        length=4)
     assert melody == [4, 3, 2, 1]
 
     melody = generate_chromatic_melody(
@@ -205,7 +214,7 @@ def test_define_melody_lenghth():
         {'chord': {'name': 'Minor', 'degree': 4}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)},
         {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (0, 0, 0, 0, 0)},
         {'chord': {'name': 'M7', 'degree': 5}, 'behavior': 'chromatic', 'fingersstate': (1, 0, 0, 0, 1)}]
-    assert define_melody_length(eighthmetas) == 3
+    assert define_melody_length(eighthmetas) == 4
 
     eighthmetas = [
         {'chord': {'name': 'Minor', 'degree': 1}, 'behavior': 'arpegic', 'fingersstate': (1, 0, 0, 0, 1)},
@@ -294,6 +303,12 @@ def test_is_melodic_keyboard_eighths():
 def test_is_harmonic_keyboard_eighths():
     assert not is_harmonic_keyboard_eighth([24, 36, 48, 60])
     assert is_harmonic_keyboard_eighth([5, 10, 0, 65])
+
+
+def test_melodic_gap():
+    assert melodic_gap([0], [12]) == 0
+    assert melodic_gap([0], [24]) == 0
+    assert melodic_gap([1], [36]) == 1
 
 
 def test_generate_melodic_keys():
@@ -541,109 +556,6 @@ def test_get_index_occurence_probablity():
 
 
 def test_iteration():
-    pattern = {
-        "behaviors": {
-            "(3, 0)": {
-            "arpegic": 0,
-            "static": 5,
-            "melodic": 0
-            },
-            "(3, 1)": {
-            "arpegic": 5,
-            "static": 0,
-            "melodic": 0
-            },
-            "(2, 0)": {
-            "arpegic": 0,
-            "static": 6,
-            "melodic": 0
-            },
-            "(2, 1)": {
-            "arpegic": 4,
-            "static": 2,
-            "melodic": 0
-            },
-            "(1, 0)": {
-            "arpegic": 0,
-            "static": 6,
-            "melodic": 0
-            },
-            "(0, 0)": {
-            "arpegic": 0,
-            "static": 6,
-            "melodic": 0
-            }
-        },
-        "figures": [
-            [
-            [
-                0,
-                0,
-                7,
-                0
-            ]
-            ],
-            [
-            [
-                0,
-                0,
-                7,
-                0
-            ]
-            ],
-            [
-            [
-                0,
-                0,
-                7,
-                0
-            ],
-            [
-                0,
-                3,
-                6,
-                3
-            ]
-            ],
-            [
-            [
-                0,
-                0,
-                7,
-                0
-            ],
-            [
-                0,
-                3,
-                7,
-                0
-            ]
-            ]
-        ],
-        "relationships": {
-            "(3, 0)": {
-            "(0, 0)": 1
-            },
-            "(3, 1)": {
-            "(0, 0)": 1
-            },
-            "(2, 0)": {
-            "(3, 0)": 10,
-            "(3, 1)": 0
-            },
-            "(2, 1)": {
-            "(3, 0)": 0,
-            "(3, 1)": 1
-            },
-            "(1, 0)": {
-            "(2, 1)": 1,
-            "(2, 0)": 4
-            },
-            "(0, 0)": {
-            "(1, 0)": 10
-            }
-        }
-        }
     CHORDGRIDS = dict(
         example = [
             {'degree': 1, 'name': 'Minor'},
@@ -664,7 +576,7 @@ def test_iteration():
             None])
     import time
     montunos = montuno_generator(
-        pattern=pattern,
+        pattern=PATTERN['montuno'],
         chord_grid=CHORDGRIDS['example'],
         tonality=5)
     print (montunos)
@@ -673,9 +585,9 @@ def test_iteration():
         time.sleep(.075)
         print(next(montunos))
 
+
 def test_get_fingerstate_type():
     assert get_fingersstate_type([False, True, False, True, False]) == 'harmonic'
-    print (get_fingersstate_type([True, False, False, False, True]))
     assert get_fingersstate_type([True, False, False, False, True]) == 'melodic'
     assert get_fingersstate_type([1, None, None, None, 1]) == 'melodic'
     assert get_fingersstate_type([0, None, None, None, 0]) == 'melodic'
@@ -700,6 +612,7 @@ if __name__ == '__main__':
         test_generate_melodic_keys,
         test_is_melodic_keyboard_eighths,
         test_is_harmonic_keyboard_eighths,
+        test_melodic_gap,
         test_generate_harmonic_keys,
         test_split_array,
         test_set_array_lenght_multiple,
@@ -728,4 +641,4 @@ if __name__ == '__main__':
             print(m + " :")
             print(tb)
 
-#test_iteration()
+    #test_iteration()

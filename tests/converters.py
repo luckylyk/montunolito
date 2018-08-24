@@ -9,6 +9,7 @@ from montunolito.converters.midi.convert import convert_to_midi
 from montunolito.core.iterators import montuno_generator
 from montunolito.patterns import PATTERNS
 from montunolito.core.keyboard import convert_eighthnote_to_keyboard_eighth
+from montunolito.libs.jsonutils import json_to_pattern
 
 
 def get_pre_registered_eighthkbnotes():
@@ -108,9 +109,9 @@ CHORDS = {
 def get_full_generated_eighthkbnotes():
 
     montunos = montuno_generator(
-        pattern=PATTERNS['montuno'],
+        pattern=load_pattern_json(),
         chord_grid=load_chord_json(),
-        tonality=0)
+        tonality=11)
 
     eighthkbnotes = []
     for _ in range(8*8*4):
@@ -121,9 +122,16 @@ def get_full_generated_eighthkbnotes():
 
 def load_chord_json():
     chord_file_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord_manana.json')
+        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord_mistuco.json')
     with open(chord_file_path, 'r') as chord_file:
         return json.load(chord_file)
+
+
+def load_pattern_json():
+    chord_file_path = r"C:\Users\zil\cumbia.json"
+    with open(chord_file_path, 'r') as chord_file:
+        return json_to_pattern(json.load(chord_file))
+
 
 if __name__ == "__main__":
 
