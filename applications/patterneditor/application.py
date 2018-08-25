@@ -4,12 +4,14 @@ from montunolito.patterns import PATTERNS
 from montunolito.core.pattern import (
     delete_figure_at, get_new_pattern, get_existing_indexes, get_figure_at,
     set_figure_at, get_behaviors_at, set_behaviors_at, get_relationship,
-    set_relationship, append_figure_at_row, deepcopy)
+    set_relationship, append_figure_at_row, deepcopy, is_valid_pattern,
+    is_iterable_pattern)
 
 from montunolito.libs.manager import UndoManager
 from montunolito.libs.qt.shortcuts import set_shortcut
 from montunolito.libs.qt.dialogs import (
-    data_lost_question, save_dialog, open_dialog)
+    data_lost_question, save_dialog, open_dialog, check_pattern_dialog,
+    invalid_file_dialog)
 from montunolito.libs.jsonutils import pattern_to_json, json_to_pattern
 
 from patterneditor.widgets import PatternEditorWidget, NewMenu, ThemesMenu
@@ -17,12 +19,15 @@ from patterneditor.balloons import FigureBalloon, BehaviorsBalloon, ConnectionBa
 from patterneditor.themes import THEMES
 
 
+TITLE = 'Pattern Editor'
+
+
 class PatternEditor():
-    TITLE = 'Pattern Editor'
 
     def __init__(self, pattern):
         self._workingfile = None
         self.view = PatternEditorWidget(pattern)
+        self.title = TITLE
         self.update_title()
         self._undo_manager = UndoManager(pattern, deepcopy)
 
@@ -33,6 +38,7 @@ class PatternEditor():
         self.view.menu.redoRequested.connect(self.redo)
         self.view.menu.deleteRequested.connect(self.delete_selected_indexes)
         self.view.menu.themesRequested.connect(self.set_theme)
+        self.view.menu.verifyRequested.connect(self.verify_pattern)
 
         self.view.graph.figureClicked.connect(self.edit_figure)
         self.view.graph.behaviorClicked.connect(self.edit_behaviors)
@@ -46,8 +52,16 @@ class PatternEditor():
         set_shortcut("Ctrl+O", self.view, self.open)
         set_shortcut("del", self.view, self.delete_selected_indexes)
 
+    @property
+    def pattern(self):
+        return self._undo_manager.data
+
+    def set_title(self, title):
+        self.title = title
+        self.update_title()
+
     def update_title(self):
-        title = self.TITLE + (" - " + self._workingfile if self._workingfile else "")
+        title = self.title + (" - " + self._workingfile if self._workingfile else "")
         self.view.setWindowTitle(title)
 
     def append_index_at_row(self, row):
@@ -107,8 +121,15 @@ class PatternEditor():
         if not filename:
             return
         with open(filename, 'r') as f:
-            pattern = json.load(f)
-            pattern = json_to_pattern(pattern)
+            try:
+                pattern = json.load(f)
+                pattern = json_to_pattern(pattern)
+            except:
+                invalid_file_dialog(filename)
+                return
+        if not is_valid_pattern(pattern):
+            invalid_file_dialog(filename)
+            return
         self._workingfile = filename
         self.modified(pattern)
         self._undo_manager = UndoManager(pattern, deepcopy)
@@ -157,6 +178,11 @@ class PatternEditor():
             delete_figure_at(pattern, index)
         self._undo_manager.set_data_modified(pattern)
         self.view.graph.set_pattern(pattern)
+
+    def verify_pattern(self):
+        pattern = self._undo_manager.data
+        result, details = is_iterable_pattern(pattern)
+        check_pattern_dialog(result, details)
 
     def set_theme(self, theme):
         # theme = ThemesMenu(sorted(list(THEMES.keys()))).exec_()

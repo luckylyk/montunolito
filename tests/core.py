@@ -330,7 +330,7 @@ def test_generate_melodic_keys():
     eightnote = ([8, None, None, None, 8])
     reference_keysstate = [50, 62]
     melodic_keys = generate_melodic_keyboard_eighth(eightnote, reference_keysstate)
-    assert melodic_keys == [44, 56, 68]
+    assert melodic_keys == [44 - 12, 56 - 12, 68 - 12] # must be clamped
 
     eightnote = ([None, None, 8, None, None])
     reference_keysstate = [38, 50, 62]
@@ -576,7 +576,7 @@ def test_iteration():
             None])
     import time
     montunos = montuno_generator(
-        pattern=PATTERN['montuno'],
+        pattern=PATTERNS['montuno'],
         chord_grid=CHORDGRIDS['example'],
         tonality=5)
     print (montunos)
@@ -641,4 +641,4 @@ if __name__ == '__main__':
             print(m + " :")
             print(tb)
 
-    #test_iteration()
+    test_iteration()

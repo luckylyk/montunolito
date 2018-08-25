@@ -215,3 +215,47 @@ def deepcopy(pattern):
         k: {l: w for l, w in v.items()}
         for k, v in pattern['behaviors'].items()}
     return cpattern
+
+
+def is_valid_pattern(pattern):
+    try:
+        pattern['figures']
+        pattern['relationships']
+        pattern['behaviors']
+        return True
+    except KeyError:
+        return False
+
+
+def is_iterable_pattern(pattern):
+    errors = []
+    warnings = []
+
+    for i, figure in enumerate(pattern['figures']):
+        if not figure:
+            errors.append('pattern contain emtpy row: {}'.format(i))
+
+    for index, behaviors in pattern['behaviors'].items():
+        result = sum([v for v in behaviors.values()])
+        if not result:
+            errors.append(
+                'figure at {} doesn\'t have behaviors indices'.format(index))
+
+    indexes = get_existing_indexes(pattern)
+    for index in indexes:
+        occurence_probability = get_index_occurence_probablity(pattern, index)
+        if not occurence_probability:
+            warnings.append('figure at {} will never played'.format(index))
+            continue
+        relationships = pattern['relationships'][index]
+        iterability = sum([v for v in relationships.values()])
+        if not iterability:
+            errors.append(
+                'figure at {} is a dead end,'
+                'it doesn\'t have out relationships'.format(index))
+
+    result = not bool(errors)
+    log = 'Errors: {}\n\nWarnings: {}'.format(
+        '\n  - '.join(errors) if errors else 'No errors',
+        '\n  - '.join(warnings) if warnings else 'No warnings')
+    return result, log

@@ -47,3 +47,29 @@ def open_dialog(path=None):
         directory=path or os.path.expanduser("~"),
         filter='*.json')
     return filenames[0]
+
+
+def invalid_file_dialog(path):
+    msg = QtWidgets.QMessageBox()
+    msg.setWindowTitle("Invalid file")
+    msg.setIcon(QtWidgets.QMessageBox.Critical)
+    msg.setText('file is invalid : \n{}'.format(path))
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg.exec_()
+
+
+def check_pattern_dialog(result, details):
+    if result:
+        icon = QtWidgets.QMessageBox.Information
+        text = "The pattern is valid"
+    else:
+        icon = QtWidgets.QMessageBox.Critical
+        text = "The pattern is broken !"
+
+    msg = QtWidgets.QMessageBox()
+    msg.setWindowTitle("Pattern check")
+    msg.setIcon(icon)
+    msg.setText(text)
+    msg.setDetailedText(details)
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg.exec_()

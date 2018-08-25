@@ -56,6 +56,7 @@ class MenuWidget(QtWidgets.QWidget):
     redoRequested = QtCore.pyqtSignal()
     deleteRequested = QtCore.pyqtSignal()
     themesRequested = QtCore.pyqtSignal(str)
+    verifyRequested = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -71,9 +72,12 @@ class MenuWidget(QtWidgets.QWidget):
         self.delete.triggered.connect(self.deleteRequested.emit)
 
         self.undo = QtWidgets.QAction(icon('undo.png'), '', parent=self)
-        self.undo.triggered.connect(self.savePatternRequested.emit)
+        self.undo.triggered.connect(self.undoRequested.emit)
         self.redo = QtWidgets.QAction(icon('redo.png'), '', parent=self)
         self.redo.triggered.connect(self.redoRequested.emit)
+
+        self.verify = QtWidgets.QAction(icon('verify.png'), '', parent=self)
+        self.verify.triggered.connect(self.verifyRequested.emit)
 
         self.toolbar = QtWidgets.QToolBar()
         self.toolbar.addAction(self.new)
@@ -84,10 +88,13 @@ class MenuWidget(QtWidgets.QWidget):
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.undo)
         self.toolbar.addAction(self.redo)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.verify)
 
         self.themes_label = QtWidgets.QLabel('theme:')
         self.themes_combo = QtWidgets.QComboBox()
         self.themes_combo.addItems(THEMES)
+        self.themes_combo.setCurrentText('default')
         method = self.themesRequested.emit
         self.themes_combo.currentTextChanged.connect(method)
 

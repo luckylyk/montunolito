@@ -21,13 +21,15 @@ from montunomakina.generators import SimpleGenerator
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__(None)
+        self.setWindowTitle('Montuno Makina 0.1')
+
         self.patterns = []
+        self.patterns_count = 0
         self.chords = []
+        self.chords_count = 0
         self.generator = SimpleGenerator()
-        self.generator.close = self.generator.hide
 
         self.workspace = QtWidgets.QMdiArea()
-        # self.workspace.setViewMode(QtWidgets.QMdiArea.TabbedView)
         self.workspace.addSubWindow(self.generator)
 
         menubar = self.menuBar()
@@ -58,24 +60,39 @@ class MainWindow(QtWidgets.QMainWindow):
         menu.addAction(
             '&Cascade Windows',
             self.workspace.cascadeSubWindows)
+        menu = menubar.addMenu('&?')
+        menu.addAction(
+            '&About',
+            self.workspace.cascadeSubWindows)
         self.setCentralWidget(self.workspace)
         menubar.show()
+        self.update_generator()
 
     def new_pattereditor(self):
+        self.patterns_count += 1
         pattern = PatternEditor(PATTERNS['montuno'])
+        pattern.set_title('{} {}'.format(pattern.title, self.patterns_count))
         pattern.view.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         pattern.view.destroyed.connect(self.window_closed)
         self.patterns.append(pattern)
         self.workspace.addSubWindow(pattern.view)
         pattern.view.show()
+        self.update_generator()
 
     def new_chordeditor(self):
+        self.chords_count += 1
         chords = ChordGridEditor(get_new_chordgrid())
+        chords.set_title('{} {}'.format(chords.title, self.chords_count))
         chords.view.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         chords.view.destroyed.connect(self.window_closed)
         self.chords.append(chords)
         self.workspace.addSubWindow(chords.view)
         chords.view.show()
+        self.update_generator()
+
+    def update_generator(self):
+        self.generator.set_patterneditors(self.patterns)
+        self.generator.set_chordeditors(self.chords)
 
     def show_generator(self):
         try:
@@ -88,7 +105,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def window_closed(self):
         self.patterns = [app for app in self.patterns if test_application(app)]
         self.chords = [app for app in self.chords if test_application(app)]
-
+        self.update_generator()
 
 
 def test_application(app):

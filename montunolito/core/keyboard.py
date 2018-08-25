@@ -180,7 +180,7 @@ def generate_first_harmonic_keys(notes):
 
 
 def clamp_keyboard_heighth(keyboard_eight, reference_keyboard_eight):
-    if not melodic_gap(reference_keyboard_eight, keyboard_eight) > 4:
+    if not melodic_gap(reference_keyboard_eight, keyboard_eight) >= 4:
         return keyboard_eight
 
     if keyboard_eight[-1] > HIGHER_NOTE_USED:

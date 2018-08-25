@@ -111,7 +111,7 @@ def get_full_generated_eighthkbnotes():
     montunos = montuno_generator(
         pattern=load_pattern_json(),
         chord_grid=load_chord_json(),
-        tonality=11)
+        tonality=3)
 
     eighthkbnotes = []
     for _ in range(8*8*4):
@@ -120,15 +120,19 @@ def get_full_generated_eighthkbnotes():
     return eighthkbnotes
 
 
+def get_extreme_eighth_notes():
+    return [[15, 88]] * 8
+
+
 def load_chord_json():
     chord_file_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord_mistuco.json')
+        os.path.dirname(os.path.realpath(__file__)), 'ressources', 'chord_30defebrero.json')
     with open(chord_file_path, 'r') as chord_file:
         return json.load(chord_file)
 
 
 def load_pattern_json():
-    chord_file_path = r"C:\Users\zil\cumbia.json"
+    chord_file_path = r"C:\Users\zil\calypso.json"
     with open(chord_file_path, 'r') as chord_file:
         return json_to_pattern(json.load(chord_file))
 
@@ -145,7 +149,7 @@ if __name__ == "__main__":
     xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=600)
     midicontent = convert_to_midi(eighthkbnotes, tempo=100)
 
-    with open(fileoutput + 'anatole2.xml', 'w') as myfile:
+    with open(fileoutput + 'extreme.xml', 'w') as myfile:
         myfile.write(xmlcontent)
 
     with open(fileoutput + 'anatole2.mid', "wb") as output_file:

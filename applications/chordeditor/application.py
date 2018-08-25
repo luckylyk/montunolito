@@ -9,11 +9,14 @@ from montunolito.libs.qt.dialogs import (
 from chordeditor.widgets import ChordGridView
 
 
+TITLE = 'Chord Editor'
+
+
 class ChordGridEditor():
-    TITLE = 'Chord Editor'
 
     def __init__(self, chords):
         self._workingfile = None
+        self.title = TITLE
         self.view = ChordGridView(chords)
         self.update_title()
         self._undo_manager = UndoManager(chords, deepcopy)
@@ -43,8 +46,16 @@ class ChordGridEditor():
         set_shortcut("Ctrl+V", self.view, self.paste)
         set_shortcut("del", self.view, self.delete)
 
+    @property
+    def chordgrid(self):
+        return self._undo_manager.data
+
+    def set_title(self, title):
+        self.title = title
+        self.update_title()
+
     def update_title(self):
-        title = self.TITLE + (" - " + self._workingfile if self._workingfile else "")
+        title = self.title + (" - " + self._workingfile if self._workingfile else "")
         self.view.setWindowTitle(title)
 
     def set_parentview(self, parent=None):
