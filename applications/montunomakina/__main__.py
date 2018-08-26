@@ -122,8 +122,3 @@ if __name__ == '__main__':
     w = MainWindow()
     w.show()
     application.exec_()
-
-
-print(QtWidgets.QStyleFactory.keys())
-
-"windowsxp", "windowsvista", "gtk", "macintosh"

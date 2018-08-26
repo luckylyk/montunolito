@@ -13,7 +13,7 @@ from montunolito.libs.jsonutils import json_to_pattern
 
 
 def get_pre_registered_eighthkbnotes():
-    a = [31, 43, 55]
+    a = [43, 56]
     b = [34, 46]
     c = [38, 50]
     d = [34, 38, 46, 50]
@@ -139,7 +139,7 @@ def load_pattern_json():
 
 if __name__ == "__main__":
 
-    eighthkbnotes = get_full_generated_eighthkbnotes()
+    eighthkbnotes = get_pre_registered_eighthkbnotes()
     # (
     #     get_pre_registered_eighthkbnotes() +
     #     get_generated_eighthkbnotes() +
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=600)
     midicontent = convert_to_midi(eighthkbnotes, tempo=100)
 
-    with open(fileoutput + 'extreme.xml', 'w') as myfile:
+    with open(fileoutput + 'chek.xml', 'w') as myfile:
         myfile.write(xmlcontent)
 
     with open(fileoutput + 'anatole2.mid', "wb") as output_file:
