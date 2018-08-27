@@ -1,7 +1,13 @@
 
+from sequencereader.painting import draw_measure
+
 
 class IGMeasure(object):
-    def __init__(self, rect):
+    def __init__(self, rect, sequence):
         self.rect = rect
+        self.sequence = sequence
 
-        #lower line is 43, upper line is 56
+    def draw(self, painter):
+        if self.rect is None:
+            return
+        draw_measure(painter, self)
