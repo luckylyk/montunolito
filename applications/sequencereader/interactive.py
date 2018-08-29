@@ -18,7 +18,10 @@ class IGQuater(object):
     def set_rect(self, rect):
         self.rect = rect
         self.note_rects = extract_notes_rects(rect) if rect else None
-        self.paths = get_notes_paths( self.note_rects, self.sequence) if rect else []
+        if rect:
+            self.paths = get_notes_paths(self.note_rects, self.sequence)
+        else:
+            self.paths = []
 
     def draw(self, painter):
         if self.rect is None:

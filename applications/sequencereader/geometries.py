@@ -1,5 +1,6 @@
 from PyQt5 import QtCore
 
+
 MEASURE_WIDTH = 250
 MEASURE_HEIGHT = MEASURE_WIDTH * .65
 KEYSPACE_WIDTH = 50
@@ -41,11 +42,11 @@ def extract_quarters_rects(measurerect):
 
 
 def extract_notes_rects(quarterrect):
-    padding = quarterrect.width() * .1
+    padding = quarterrect.width() * .125
     quarterrect = QtCore.QRectF(
         quarterrect.left() + padding, quarterrect.top(),
         quarterrect.width() - (2 * padding), quarterrect.height())
-    width = quarterrect.width() * .2
+    width = quarterrect.width() * .1
     spacing = (quarterrect.width() - (width * 4)) / 3
     rects = []
     for i in range(4):

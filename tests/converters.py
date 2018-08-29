@@ -13,7 +13,7 @@ from montunolito.libs.jsonutils import json_to_pattern
 
 
 def get_pre_registered_eighthkbnotes():
-    a = [43, 56]
+    a = [42, 57]
     b = [34, 46]
     c = [38, 50]
     d = [34, 38, 46, 50]

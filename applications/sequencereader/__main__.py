@@ -12,13 +12,15 @@ from sequencereader.widgets import SequenceReader
 
 
 def get_pre_registered_eighthkbnotes():
-    a = [43, 56]
+    a = [31, 43, 57]
     b = [34, 46]
     c = [38, 50]
-    d = [34, 38, 46, 50]
+    d = [34, 41, 46, 50]
 
+    # return [[i] for i in range(88)]
+    # return [a, [], [], [], [], [], [], [], [], [], [], [], [], []]
     return [
-        a, b, c, a, [], d, [], a, [], d, [], a, [], d, a, a] * 50
+        a, b, c, a, [], d, [], a, [], d, [], a, [], d, a, a] * 4
 
 application = QtWidgets.QApplication(sys.argv)
 sequence_reader = SequenceReader(get_pre_registered_eighthkbnotes())

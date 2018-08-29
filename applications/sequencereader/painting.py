@@ -11,7 +11,7 @@ def draw_measure(painter, igmeasure):
 
 def draw_quarter(painter, quarter):
     painter.setBrush(QtGui.QBrush(QtGui.QColor('red')))
-    painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 0)))
+    painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 255)))
     # for rect in quarter.note_rects:
     #     painter.drawRect(rect)
     painter.setBrush(QtGui.QBrush(QtGui.QColor('black')))
