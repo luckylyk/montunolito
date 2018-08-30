@@ -29,6 +29,10 @@ def extract_rects_keyspaces(rect):
 
 
 def extract_quarters_rects(measurerect):
+    padding = measurerect.width() * .05
+    measurerect = QtCore.QRectF(
+        measurerect.left() + padding, measurerect.top(),
+        measurerect.width() - (2 * padding), measurerect.height())
     width = measurerect.width() / 2
     rects = []
     for i in range(2):

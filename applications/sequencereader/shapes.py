@@ -1,83 +1,46 @@
 from PyQt5 import QtGui, QtCore
 import sys
-from montunolito.core.solfege import SCALE_LENGTH
-from montunolito.core.utils import remap_number
+from sequencereader.staff import (
+    get_note_position, get_top_from_position, POSITIONS_COUNT, get_additional_staff_lines)
 
 
-DIESE_SCALE = 0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6
-BEMOLE_SCALE = 0, 1, 1, 2, 3, 3, 4, 4, 5, 6, 6, 7
-NOTE_ELLIPSE_RADIUS = 4
-
-
-def get_staff_lines(rect):
-    path = QtGui.QPainterPath()
-    space = rect.height() / 36
-    top = rect.top() + (11 * space)
-    for _ in range(5):
-        path.moveTo(rect.left(), top)
-        path.lineTo(rect.right(), top)
-        top += space * 2
-    return path
-
-
-def get_measure_separator(rect, left=False):
-    left = rect.left() if left else rect.right()
-    space = rect.height() / 36
-    top = rect.top() + (11 * space)
-    bottom = rect.top() + (19 * space)
-    path = QtGui.QPainterPath(QtCore.QPointF(rect.right(), top))
-    path.lineTo(rect.right(), bottom)
-    return path
-
-
-def get_notes_paths(noterects, sequence):
-    paths = []
-    beam_bottoms = []
-    for rect, notes in zip(noterects, sequence):
-        if not notes:
-            paths.append(get_eighth_rest(rect))
-            continue
-        points = get_notes_centers(rect, notes)
-        for point in points:
-            radius = rect.height() / 36
-            paths.append(get_note_path(point, radius))
-        beam_bottoms.append(QtCore.QPointF(rect.center().x(), points[0].y()))
-    beam_path = QtGui.QPainterPath()
-    beam_top = beam_bottoms[0].y() - 100
-    for bottom in beam_bottoms:
-        beam_path.moveTo(bottom)
-        beam_path.lineTo(QtCore.QPointF(bottom.x(), beam_top))
-    paths.append(beam_path)
-    return paths
-
-
-def get_note_path(point, radius):
-    path = QtGui.QPainterPath()
-    path.addEllipse(point, radius, radius * .8)
-    return path
-
-
-# 43 is firts line as Eb
-# 56 is first line as F#
-def get_space_multiplier(note, display_scale=None):
-    display_scale = display_scale or BEMOLE_SCALE
-    multiplier = (note // SCALE_LENGTH) - 1
-    line = display_scale[remap_number(note, SCALE_LENGTH)]
-    return (line + (multiplier * 6)) + 1
-
-
-def get_notes_centers(noterect, notes, display_scale=None):
-    space = noterect.height() / 36
+def get_notes_path(noterect, notes):
+    radius = noterect.height() / POSITIONS_COUNT
+    x = noterect.center().x()
+    previous_position = sys.maxsize
     points = []
-    previous_top = None
     for note in notes:
-        multiplier = get_space_multiplier(note, display_scale)
-        top = noterect.bottom() - (space * multiplier)
-        difference = abs(top - previous_top) if previous_top else sys.maxsize
-        left = noterect.left() if difference > space else noterect.right()
-        previous_top = top
+        position = get_note_position(note)
+        top = get_top_from_position(noterect, position)
+        difference = abs(position - previous_position)
+        left = x - radius if difference > 1 else x + radius
         points.append(QtCore.QPointF(left, top))
-    return points
+        previous_position = position
+
+    path = QtGui.QPainterPath()
+    for point in points:
+        transform = QtGui.QTransform()
+        transform.translate(point.x(), point.y())
+        transform.rotate(-25)
+        transform.translate(-point.x(), -point.y())
+        note_path = QtGui.QPainterPath()
+        note_path.addEllipse(point, radius, radius * .75)
+        note_path = transform.map(note_path)
+        path.addPath(note_path)
+
+    rect = QtCore.QRectF(
+        x - (radius * 2) - (radius / 2),
+        noterect.top(),
+        radius * 2 + radius,
+        noterect.height())
+
+    down = get_additional_staff_lines(rect, get_note_position(notes[0]))
+    if down:
+        path.addPath(down)
+    up = get_additional_staff_lines(rect, get_note_position(notes[-1]))
+    if up:
+        path.addPath(up)
+    return path
 
 
 def get_eighth_rest(noterect):

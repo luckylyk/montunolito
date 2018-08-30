@@ -121,7 +121,7 @@ def get_full_generated_eighthkbnotes():
 
 
 def get_extreme_eighth_notes():
-    return [[15, 88]] * 8
+    return [[0, 88]] * 8
 
 
 def load_chord_json():
@@ -139,7 +139,7 @@ def load_pattern_json():
 
 if __name__ == "__main__":
 
-    eighthkbnotes = get_pre_registered_eighthkbnotes()
+    eighthkbnotes = get_extreme_eighth_notes()
     # (
     #     get_pre_registered_eighthkbnotes() +
     #     get_generated_eighthkbnotes() +
