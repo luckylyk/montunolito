@@ -12,10 +12,11 @@ from sequencereader.widgets import Test
 
 
 def get_pre_registered_eighthkbnotes():
-    a = [33]
+    a = [80]
     b = [34, 46]
     c = [38, 50]
     d = [34, 41, 46, 50]
+    return (a, [], c, d)
     return [a, [], [], [], a, [], [], []] #, [], [], [], [], [], [], [], [], [], []]
     # return [[i] for i in range(88)]
     # return [a, [], [], [], [], [], [], [], [], [], [], [], [], []]
@@ -27,3 +28,13 @@ sequence_reader = Test()
 # sequence_reader = SequenceReader(get_pre_registered_eighthkbnotes())
 sequence_reader.show()
 application.exec_()
+
+
+############################################################################
+#################################  TESTS  ##################################
+############################################################################
+# from sequencereader.staff import get_beams_directions
+# print(get_beams_directions(get_pre_registered_eighthkbnotes()))
+# print(get_beams_directions(get_pre_registered_eighthkbnotes()))
+# print(get_beams_directions(get_pre_registered_eighthkbnotes()))
+# print(get_beams_directions(get_pre_registered_eighthkbnotes()))

@@ -125,3 +125,16 @@ def set_array_lenght_multiple(array, multiple=10, default=None):
     while len(array) % multiple != 0:
         array.append(default)
     return array
+
+
+def past_and_futur(array):
+    '''
+    this is and utils iterator who parse and array return the previous,
+    current and next value.
+    Usefull to comparing stuff in array
+    '''
+    past_element = None
+    for i, element in enumerate(array):
+        futur_element = array[i + 1] if i < len(array) - 1 else None
+        yield past_element, element, futur_element
+

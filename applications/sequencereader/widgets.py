@@ -6,15 +6,24 @@ from montunolito.core.utils import split_array, set_array_lenght_multiple
 from sequencereader.geometries import (
     extract_measures_rects, extract_rects_keyspaces, extract_notes_rects,
     extract_quarters_rects)
-from sequencereader.shapes import get_notes_path
-from sequencereader.staff import get_note_position, get_standard_staff_lines, get_additional_staff_lines
+from sequencereader.shapes import get_notes_path, get_notes_connections_path
+from sequencereader.staff import get_note_position, get_standard_staff_lines, get_additional_staff_lines, get_beams_directions
 
 from montunolito.core.solfege import NOTES, SCALE_LENGTH
 from montunolito.core.utils import remap_number
 
 
+def get_sample_sequence():
+    a = [48]
+    b = [40, 60]
+    c = [65, 66, 75]
+    d = [43, 50]
+    return (a, [], b, d)
+
+
 class Test(QtWidgets.QWidget):
-    sequence = [33, 43, 44, 56, 75], [38, 45], [52], [33, 43, 44, 56, 60]
+    sequence = [33, 43, 44, 45, 75], [38, 45], [52], [33, 43, 44, 56, 60]
+    sequence = get_sample_sequence()
 
     def paintEvent(self, _):
         painter = QtGui.QPainter()
@@ -22,12 +31,17 @@ class Test(QtWidgets.QWidget):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         painter.setBrush(QtGui.QBrush(QtGui.QColor('black')))
         quarterrects = extract_quarters_rects(self.rect())
+        connections = []
         for quarterrect in quarterrects:
             noterects = extract_notes_rects(quarterrect)
-            for notes, noterect in zip(self.sequence, noterects):
-                path = get_notes_path(noterect, notes)
+            directions = get_beams_directions(self.sequence)
+            for notes, noterect, d in zip(self.sequence, noterects, directions):
+                path = get_notes_path(noterect, notes, direction=d)
                 painter.drawPath(path)
+            connections.append(get_notes_connections_path(noterects, self.sequence))
         painter.drawPath(get_standard_staff_lines(self.rect()))
+        for connection in connections:
+            painter.drawPath(connection)
         painter.end()
 
 

@@ -104,7 +104,7 @@ def montuno_generator(pattern, chord_grid, tonality, forced_behavior=None):
 
         for i, eighthnote in enumerate(eighthnotes):
             keyboard_eighth = convert_eighthnote_to_keyboard_eighth(
-                eighthnote=eighthnote, 
+                eighthnote=eighthnote,
                 keyboard_sequence=keyboard_sequence)
             keyboard_sequence.append(keyboard_eighth)
             ## print for debug
