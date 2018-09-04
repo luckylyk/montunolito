@@ -6,7 +6,7 @@ from montunolito.core.utils import split_array, set_array_lenght_multiple
 from sequencereader.geometries import (
     extract_measures_rects, extract_rects_keyspaces, extract_notes_rects,
     extract_quarters_rects)
-from sequencereader.shapes import get_notes_path, get_notes_connections_path
+from sequencereader.shapes import get_notes_path, get_notes_connections_path, get_path, G_KEY
 from sequencereader.staff import get_note_position, get_standard_staff_lines, get_additional_staff_lines, get_beams_directions
 
 from montunolito.core.solfege import NOTES, SCALE_LENGTH
@@ -32,6 +32,15 @@ class Test(QtWidgets.QWidget):
         painter.setBrush(QtGui.QBrush(QtGui.QColor('black')))
         quarterrects = extract_quarters_rects(self.rect())
         connections = []
+
+        key_pos = QtCore.QPointF(
+            self.rect().width() / 25,
+            self.rect().center().y() - 0)#(self.rect().height()/1))
+        path = get_path(
+            G_KEY, ratio=self.rect().height() / 3.5,
+            position=key_pos)
+        painter.drawPath(path)
+
         for quarterrect in quarterrects:
             noterects = extract_notes_rects(quarterrect)
             directions = get_beams_directions(self.sequence)
