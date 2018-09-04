@@ -10,7 +10,9 @@ from sequencereader.staff import (
 BEAMCONNECTION_WIDTH_FACTOR = .025
 TAILS_HEIGHT_FACTOR = .33
 
+
 BEMOL = {
+    'center': (16, 76),
     'start': (0, 0),
     'points': (
         [(0, 100)],
@@ -19,98 +21,34 @@ BEMOL = {
         [(0, 68)],
         [(15, 60), (30, 66), (30, 60)],
         [(25, 70), (25, 80), (0, 98)],
-        [(25, 70), (25, 80), (0, 98)]
-    ),
-    'center': (16, 76)
-}
+        [(25, 70), (25, 80), (0, 98)])}
 
 DIESE = {
     'center': (50, 50),
     'start': (33, 39),
     'points': (
-        [(33, 48)],
-        [(66, 39)],
-        [(66, 30)],
-        [(33, 39)],
-        [None, (33, 66)],
-        [(33, 75)],
-        [(66, 66)],
-        [(66, 57)],
-        [(33, 66)],
-        [None, (42, 20)],
-        [(42, 88)],
-        [(44, 88)],
-        [(44, 20)],
-        [(42, 20)],
-        [None, (56, 17)],
-        [(56, 85)],
-        [(58, 85)],
-        [(58, 17)],
-        [(56, 17)],
-    )
-}
-
+        [(33, 48)], [(66, 39)], [(66, 30)], [(33, 39)], [None, (33, 66)],
+        [(33, 75)], [(66, 66)], [(66, 57)], [(33, 66)], [None, (42, 20)],
+        [(42, 88)], [(44, 88)], [(44, 20)], [(42, 20)], [None, (56, 17)],
+        [(56, 85)], [(58, 85)], [(58, 17)], [(56, 17)])}
 
 TAIL = {
     'start': (0, 0),
     'points': (
         [(0, 50), (33, 27), (33, 100)],
-        [(33, 55), (0, 80), (0, 0)]
-    )
-}
-
+        [(33, 55), (0, 80), (0, 0)])}
 
 EIGHTH_REST = {
-    'center': (50, 50),
-    'start': 'TODO',
-    'points': 'TODO'
-}
-
-
-
-def get_eighth_rest(noterect):
-    vpadding = noterect.height() * .4
-    hpadding = noterect.width() * .1
-    noterect = QtCore.QRectF(
-        noterect.left() + hpadding,
-        noterect.top() + (vpadding * .88),
-        noterect.width() - (hpadding * 2),
-        noterect.height() - (vpadding * 2))
-
-    start_point = QtCore.QPointF(
-        noterect.left() - round(noterect.width() / 2),
-        noterect.top() + round(noterect.height() / 3))
-    path = QtGui.QPainterPath(start_point)
-    control_point = QtCore.QPointF(
-        start_point.x() + (noterect.width() / 5),
-        start_point.y() + round(noterect.height() / 8))
-    control_point_2 = QtCore.QPointF(
-        start_point.x() + noterect.width(),
-        start_point.y() + round(noterect.height() / 10))
-    end_point = QtCore.QPointF(
-        noterect.right() + round(noterect.width() / 2),
-        noterect.top() + round(noterect.height() / 4))
-    path.cubicTo(control_point, control_point_2, end_point)
-    path.lineTo(QtCore.QPointF(
-        noterect.left(), noterect.bottom() - round(noterect.height() / 3)))
-    path.lineTo(QtCore.QPointF(
-        start_point.x() + round(noterect.width() / 3),
-        noterect.bottom() - round(noterect.height() / 3)))
-    path.lineTo(end_point)
-    control_point = QtCore.QPointF(
-        control_point.x() + (noterect.width() / 2),
-        control_point.y() + round(noterect.height() / 20))
-    control_point_2 = QtCore.QPointF(
-        control_point.x() - ((noterect.width() / 3) * 2),
-        control_point_2.y() + round(noterect.height() / 30))
-    path.cubicTo(control_point, control_point_2, start_point)
-    path.addEllipse(
-        QtCore.QPointF(
-            start_point.x() + round(noterect.width() / 2.5),
-            start_point.y()),
-        noterect.width() * .4, noterect.height() * .07)
-    path.setFillRule(QtCore.Qt.WindingFill)
-    return path
+    'center': (50, 135),
+    'start': (31, 100),
+    'points': (
+        [(25, 100)],
+        [(100, 0)],
+        [(75, 25), (50, 33), (25, 33)],
+        [(0, 33), (0, 0), (25, 0)],
+        [(45, 0), (45, 27), (25, 27)],
+        [(33, 27), (75, 27), (100, 0)],
+        [(31, 100)])}
 
 
 def get_left_note(x, radius, difference, direction):
@@ -129,7 +67,9 @@ def get_left_alteration(x, radius, difference, direction):
 
 def get_notes_path(noterect, notes, direction='down'):
     if not notes:
-        return get_eighth_rest(noterect)
+        ratio = noterect.height() / 15
+        point = noterect.center()
+        return get_path(EIGHTH_REST, ratio=ratio, position=point)
 
     radius = noterect.height() / POSITIONS_COUNT
     x = noterect.center().x()
@@ -216,7 +156,6 @@ def get_notes_connections_path(noterects, sequence):
             continue
         height = noterect.height()
         path.addPath(get_beam_connection_path(start_point, end_point, height))
-
     return path
 
 
