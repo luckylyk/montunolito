@@ -185,6 +185,19 @@ def get_notes_connections_path(noterects, sequence):
 
 def get_path(
         array, ratio=100, rotation=None, position=None, mirrorh=False):
+    '''
+    This method transform a dict to a QPainterPath().
+    The path will be transformed with the given ratio(in%), rotation(degree),
+    position(QPoint) and have an horizontal mirror.
+    The dict must contains 2 keys 
+        'start': (x, y)
+        'points': (
+            [(x, y)], # will be interpreted as lineTo
+            [None, (x, y)], # will be interpreted as moveTo
+            [(x, y), (x, y), (x, y)]]) # will be interpreted as cubicTo
+    a third key can be used to set a shape center (default is (0, 0)):
+        'center': (x, y)
+    '''
     ratio /= 100
 
     path = QtGui.QPainterPath(QtCore.QPointF(*array['start']))
