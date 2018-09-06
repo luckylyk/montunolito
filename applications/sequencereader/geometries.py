@@ -1,8 +1,10 @@
+import sys
 from PyQt5 import QtCore
+from sequencereader.staff import POSITIONS_COUNT, get_note_position, is_altered
 
 
-MEASURE_WIDTH = 250
-MEASURE_HEIGHT = MEASURE_WIDTH * .65
+MEASURE_WIDTH = 350
+MEASURE_HEIGHT = MEASURE_WIDTH * .8
 KEYSPACE_WIDTH = 50
 
 
@@ -45,19 +47,50 @@ def extract_quarters_rects(measurerect):
     return rects
 
 
-def extract_notes_rects(quarterrect):
+def extract_notes_lefts(quarterrect):
     padding = quarterrect.width() * .125
     quarterrect = QtCore.QRectF(
         quarterrect.left() + padding, quarterrect.top(),
         quarterrect.width() - (2 * padding), quarterrect.height())
     width = quarterrect.width() * .1
     spacing = (quarterrect.width() - (width * 4)) / 3
-    rects = []
-    for i in range(4):
-        rects.append(
-            QtCore.QRect(
-                quarterrect.left() + ((width + spacing) * i),
-                quarterrect.top(),
-                width,
-                quarterrect.height()))
-    return rects
+    return [quarterrect.left() + ((width + spacing) * i) for i in range(4)]
+
+
+def get_note_x(x, radius, difference, direction):
+    if direction == 'up':
+        return x - radius if difference > 1 else x + radius
+    return x + radius if difference > 1 else x - radius
+
+
+def get_alteration_x(x, radius, difference, direction):
+    left = x - (radius * 3.5) if difference > 2 else x - (radius * 6)
+    if direction != 'up':
+        left += radius * 1.25
+    return left
+
+
+def get_top_from_position(height, position):
+    position = POSITIONS_COUNT - position
+    return (height / POSITIONS_COUNT) * (position - 1)
+
+
+def get_note_body_and_alterations_centers(notes, x, y, height, direction):
+    radius = height / POSITIONS_COUNT
+    previous_position = sys.maxsize
+    previous_alteration_position = sys.maxsize
+    centers = []
+    alterations_centers = []
+    for note in notes:
+        position = get_note_position(note)
+        top = y + get_top_from_position(height, position)
+        difference = abs(position - previous_position)
+        left = get_note_x(x, radius, difference, direction)
+        centers.append(QtCore.QPointF(left, top))
+        previous_position = position
+        if is_altered(note):
+            difference = abs(position - previous_alteration_position)
+            left = get_alteration_x(x, radius, difference, direction)
+            alterations_centers.append(QtCore.QPointF(left, top))
+            previous_alteration_position = position
+    return centers, alterations_centers

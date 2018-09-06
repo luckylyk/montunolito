@@ -42,9 +42,9 @@ def get_additional_staff_lines(rect, position):
             return get_staff_lines(rect, 18, line)
 
 
-def get_top_from_position(rect, position):
+def get_top_from_position(height, position):
     position = POSITIONS_COUNT - position
-    return (rect.height() / POSITIONS_COUNT) * (position - 1)
+    return (height / POSITIONS_COUNT) * (position - 1)
 
 
 def get_note_position(note, display_scale=None):
@@ -73,30 +73,30 @@ def get_beams_directions(sequence):
     return directions
 
 
-def get_beam_start_end(rect, notes):
+def get_beam_start_end(height, notes):
     first_note = get_note_position(notes[0])
     last_note = get_note_position(notes[-1])
-    start = get_top_from_position(rect, first_note)
-    end = get_top_from_position(rect, last_note)
+    start = get_top_from_position(height, first_note)
+    end = get_top_from_position(height, last_note)
     return start, end
 
 
-def get_beam_bottom(rect, notes, up=True):
-    start, end = get_beam_start_end(rect, notes)
+def get_beam_bottom(height, notes, up=True):
+    start, end = get_beam_start_end(height, notes)
     return start if up else end
 
 
-def get_beam_top(rect, notes, up=True):
-    start, end = get_beam_start_end(rect, notes)
-    offset = rect.height() * BEAM_LENGTH_FACTOR
+def get_beam_top(height, notes, up=True):
+    start, end = get_beam_start_end(height, notes)
+    offset = height * BEAM_LENGTH_FACTOR
     return end - offset if up else start + offset
 
 
-def get_beams_tops(rect, sequence, directions):
+def get_beams_tops(height, sequence, directions):
     tops = []
     tops_tmp = []
     iterator = zip(past_and_futur(sequence), directions)
-    straight = rect.height() * STRAIGHT_CONNECTION_FACTOR
+    straight = height * STRAIGHT_CONNECTION_FACTOR
     for (_, notes, next_notes), direction in iterator:
         if not notes:
             tops.append(None)
@@ -104,30 +104,35 @@ def get_beams_tops(rect, sequence, directions):
             continue
 
         is_up = direction == 'up'
-        tops_tmp.append(get_beam_top(rect, notes, up=is_up))
+        tops_tmp.append(get_beam_top(height, notes, up=is_up))
         if not next_notes:
             if abs(tops_tmp[0] - tops_tmp[-1]) < straight:
                 top = min(tops_tmp) if is_up else max(tops_tmp)
                 tops.extend([top for _ in range(len(tops_tmp))])
             else:
-                tops.extend(get_average_beam_tops(tops_tmp))
+                tops.extend(get_average_beam_tops(tops_tmp, is_up))
             tops_tmp = []
     return tops
 
 
-def get_average_beam_tops(tops):
+def get_average_beam_tops(tops, is_up):
     if len(tops) == 1:
         return tops
 
     start = tops[0]
     end = tops[-1]
-    spacer = (start - end) / (len(tops) - 1)
 
     if len(tops) == 2:
+        spacer = (start - end) / (len(tops) - 1)
         return [tops[0] - (spacer * .3), tops[-1] + (spacer * .3)]
 
-    highest = min(tops)
-    tops = [highest - (spacer * i) for i in range(len(tops))]
+    highest = min(tops) if is_up else max(tops)
+    lowest = max(tops) if is_up else min(tops)
+    offset = abs(highest - lowest) / 3
+    highest = highest + offset if is_up else highest - offset
+    lowest = highest - offset if is_up else highest + offset
+    spacer = abs(highest - lowest) / (len(tops) - 1)
+    tops = [highest + offset - (spacer * i) for i in range(len(tops))]
     return tops
 
 

@@ -76,81 +76,37 @@ G_KEY = {
 }
 
 
-def get_left_note(x, radius, difference, direction):
-    if direction == 'up':
-        return x - radius if difference > 1 else x + radius
-    else:
-        return x + radius if difference > 1 else x - radius
-
-
-def get_left_alteration(x, radius, difference, direction):
-    left = x - (radius * 3.5) if difference > 2 else x - (radius * 6)
-    if direction != 'up':
-        left += radius * 1.25
-    return left
-
-
-def get_notes_path(noterect, notes, direction='down'):
-    if not notes:
-        ratio = noterect.height() / 15
-        point = noterect.center()
-        return get_path(EIGHTH_REST, ratio=ratio, position=point)
-
-    radius = noterect.height() / POSITIONS_COUNT
-    x = noterect.center().x()
-    previous_position = sys.maxsize
-    previous_alteration_position = sys.maxsize
-    notes_points = []
-    alterations_points = []
-    for note in notes:
-        position = get_note_position(note)
-        top = get_top_from_position(noterect, position)
-        difference = abs(position - previous_position)
-        left = get_left_note(x, radius, difference, direction)
-        notes_points.append(QtCore.QPointF(left, top))
-        previous_position = position
-
-        if is_altered(note):
-            difference = abs(position - previous_alteration_position)
-            left = get_left_alteration(x, radius, difference, direction)
-            alterations_points.append(QtCore.QPointF(left, top))
-            previous_alteration_position = position
-
+def get_notes_bodies_path(centers, height):
     path = QtGui.QPainterPath()
-    for point in notes_points:
-        path.addPath(get_note_path(point, radius))
-
-    for point in alterations_points:
-        ratio = noterect.height() / 10
-        path.addPath(get_path(DIESE, ratio=ratio, position=point))
-
-    rect = QtCore.QRectF(
-        x - (radius * 2) - (radius / 2),
-        noterect.top(),
-        radius * 2 + radius,
-        noterect.height())
-
-    down = get_additional_staff_lines(rect, get_note_position(notes[0]))
-    if down:
-        path.addPath(down)
-    up = get_additional_staff_lines(rect, get_note_position(notes[-1]))
-    if up:
-        path.addPath(up)
+    radius = height / POSITIONS_COUNT
+    for center in centers:
+        path.addPath(get_note_path(center, radius))
     return path
 
 
-def get_notes_connections_path(noterects, sequence):
+def get_notes_alterations_path(centers, height):
+    path = QtGui.QPainterPath()
+    ratio = height / 10
+    for center in centers:
+        path.addPath(get_path(BEMOL, ratio=ratio, position=center))
+    return path
+
+
+def get_notes_connections_path(lefts, y, height, sequence):
     path = QtGui.QPainterPath()
     directions = get_beams_directions(sequence)
     bottoms = [
-        get_beam_bottom(noterects[0], notes, d == 'up') if notes else None
+        y + get_beam_bottom(height, notes, d == 'up') if notes else None
         for d, notes in zip(directions, sequence)]
-    tops = get_beams_tops(noterects[0], sequence, directions)
+    tops = [
+        y + t if t else t
+        for t in get_beams_tops(height, sequence, directions)]
     iterator = past_and_futur(
-        [a for a in zip(noterects, tops, bottoms, directions)])
+        [a for a in zip(lefts, tops, bottoms, directions)])
     start_point = None
+
     for _, current, futur in iterator:
-        noterect = current[0]
+        x = current[0]
         top = current[1]
         bottom = current[2]
         direction = current[3]
@@ -159,27 +115,42 @@ def get_notes_connections_path(noterects, sequence):
             start_point = None
             continue
 
-        x = noterect.center().x()
         beam = QtGui.QPainterPath(QtCore.QPointF(x, top))
         beam.lineTo(QtCore.QPointF(x, bottom))
         path.addPath(beam)
 
-        end_point = QtCore.QPointF(noterect.center().x(), top)
+        end_point = QtCore.QPointF(x, top)
         if next_top is not None:
             if start_point is None:
-                start_point = QtCore.QPointF(noterect.center().x(), top)
+                start_point = QtCore.QPointF(x, top)
             continue
+
         if start_point is None:
             path.addPath(
                 get_path(
                     TAIL,
                     rotation=-180 if direction == 'down' else None,
-                    ratio=noterect.height() / 8,
+                    ratio=height / 8,
                     position=end_point,
                     mirrorh=direction == 'down'))
             continue
-        height = noterect.height()
         path.addPath(get_beam_connection_path(start_point, end_point, height))
+    return path
+
+
+def get_eighth_rest_path(left, top, height):
+    return get_path(
+        EIGHTH_REST,
+        ratio=height / 15,
+        position=QtCore.QPointF(left, top + (height / 2)))
+
+
+def get_measure_separator(rect):
+    top = rect.top() + get_top_from_position(rect.height(), 33)
+    bottom = rect.top() + get_top_from_position(rect.height(), 25)
+    x = rect.right()
+    path = QtGui.QPainterPath(QtCore.QPointF(x, top))
+    path.lineTo(QtCore.QPointF(x, bottom))
     return path
 
 
@@ -201,8 +172,9 @@ def get_path(
     ratio /= 100
 
     path = QtGui.QPainterPath(QtCore.QPointF(*array['start']))
-    points_arrays = array['points']
-    for points in points_arrays:
+    path.setFillRule(QtCore.Qt.WindingFill)
+
+    for points in array['points']:
         if len(points) == 1:
             path.lineTo(*[float(x) for x in points[0]])
         elif len(points) == 2:
@@ -213,14 +185,15 @@ def get_path(
     transform = QtGui.QTransform()
     if position:
         transform.translate(position.x(), position.y())
+
     center = array.get('center')
     if center:
         transform.translate(-center[0] * ratio, -center[1] * ratio)
+
     if rotation:
         transform.rotate(rotation)
-    scalex = - ratio if mirrorh else ratio
-    transform.scale(scalex, ratio)
-    path.setFillRule(QtCore.Qt.WindingFill)
+    scaleh = - ratio if mirrorh else ratio
+    transform.scale(scaleh, ratio)
     return transform.map(path)
 
 
