@@ -6,7 +6,9 @@ from sequencereader.shapes import (
     get_notes_bodies_path, get_path, G_KEY, get_measure_separator,
     get_notes_connections_path, get_eighth_rest_path,
     get_notes_alterations_path)
-from sequencereader.staff import get_standard_staff_lines, get_beams_directions
+from sequencereader.staff import (
+    get_standard_staff_lines, get_beams_directions, get_beam_bottom,
+    get_beams_tops)
 from sequencereader.geometries import (
     extract_quarters_rects, extract_notes_lefts,
     get_note_body_and_alterations_centers)
@@ -20,24 +22,43 @@ class IGQuater(object):
         self.directions = None
         self.centers = None
         self.alteration_centers = None
+        self.rests = None
         self.bodies = None
         self.alterations = None
         self.connections = None
-        self.rests = None
 
     def set_rect(self, rect):
         if rect is None:
             return
+
         self.rect = rect
         self.lefts = extract_notes_lefts(self.rect)
         self.directions = get_beams_directions(self.sequence)
         self.centers, self.alteration_centers = self._get_note_centers()
+        self.rests = self._get_rests_paths()
         self.bodies = get_notes_bodies_path(self.centers, self.rect.height())
         self.alterations = get_notes_alterations_path(
             self.alteration_centers, self.rect.height())
         self.connections = get_notes_connections_path(
-            self.lefts, self.rect.top(), self.rect.height(), self.sequence)
-        self.rests = self._get_rests_paths()
+            self.lefts,
+            self.rect.height(),
+            self._get_beams_tops(),
+            self._get_beams_bottoms(),
+            self.directions)
+
+    def _get_beams_bottoms(self):
+        top = self.rect.top()
+        height = self.rect.height()
+        return [
+            top + get_beam_bottom(height, notes, d == 'up')
+            if notes else None
+            for d, notes in zip(self.directions, self.sequence)]
+
+    def _get_beams_tops(self):
+        height = self.rect.height()
+        return [
+            self.rect.top() + t if t else t
+            for t in get_beams_tops(height, self.sequence, self.directions)]
 
     def _get_rests_paths(self):
         rests = []
@@ -61,7 +82,6 @@ class IGQuater(object):
 
     def draw(self, painter):
         draw_quarter(painter, self)
-
 
 
 class IGMeasure(object):
@@ -93,13 +113,13 @@ class IGKeySpace():
     def __init__(self, rect):
         self.rect = rect
         self.staff_lines = get_standard_staff_lines(rect) if rect else None
-        ratio =  self.rect.height() / 3.5
+        ratio = self.rect.height() / 3.5
         self.key = get_path(G_KEY, ratio, position=self.rect.center())
 
     def set_rect(self, rect):
         self.rect = rect
         self.staff_lines = get_standard_staff_lines(rect) if rect else None
-        ratio =  self.rect.height() / 3.5
+        ratio = self.rect.height() / 3.5
         self.key = get_path(G_KEY, ratio, position=self.rect.center())
 
     def draw(self, painter):

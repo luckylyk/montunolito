@@ -92,32 +92,25 @@ def get_notes_alterations_path(centers, height):
     return path
 
 
-def get_notes_connections_path(lefts, y, height, sequence):
+def get_beam_path(x, top, bottom):
+    path = QtGui.QPainterPath(QtCore.QPointF(x, top))
+    path.lineTo(QtCore.QPointF(x, bottom))
+    return path
+
+
+def get_notes_connections_path(lefts, height, tops, bottoms, directions):
     path = QtGui.QPainterPath()
-    directions = get_beams_directions(sequence)
-    bottoms = [
-        y + get_beam_bottom(height, notes, d == 'up') if notes else None
-        for d, notes in zip(directions, sequence)]
-    tops = [
-        y + t if t else t
-        for t in get_beams_tops(height, sequence, directions)]
+    start_point = None
     iterator = past_and_futur(
         [a for a in zip(lefts, tops, bottoms, directions)])
-    start_point = None
 
-    for _, current, futur in iterator:
-        x = current[0]
-        top = current[1]
-        bottom = current[2]
-        direction = current[3]
+    for _, (x, top, bottom, direction), futur in iterator:
         next_top = futur[1] if futur else None
         if not top:
             start_point = None
             continue
 
-        beam = QtGui.QPainterPath(QtCore.QPointF(x, top))
-        beam.lineTo(QtCore.QPointF(x, bottom))
-        path.addPath(beam)
+        path.addPath(get_beam_path(x, top, bottom))
 
         end_point = QtCore.QPointF(x, top)
         if next_top is not None:
@@ -126,13 +119,13 @@ def get_notes_connections_path(lefts, y, height, sequence):
             continue
 
         if start_point is None:
-            path.addPath(
-                get_path(
-                    TAIL,
-                    rotation=-180 if direction == 'down' else None,
-                    ratio=height / 8,
-                    position=end_point,
-                    mirrorh=direction == 'down'))
+            tail = get_path(
+                TAIL,
+                rotation=-180 if direction == 'down' else None,
+                ratio=height / 8,
+                position=end_point,
+                mirrorh=direction == 'down')
+            path.addPath(tail)
             continue
         path.addPath(get_beam_connection_path(start_point, end_point, height))
     return path
@@ -160,7 +153,7 @@ def get_path(
     This method transform a dict to a QPainterPath().
     The path will be transformed with the given ratio(in%), rotation(degree),
     position(QPoint) and have an horizontal mirror.
-    The dict must contains 2 keys 
+    The dict must contains 2 keys
         'start': (x, y)
         'points': (
             [(x, y)], # will be interpreted as lineTo
