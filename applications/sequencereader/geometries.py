@@ -4,7 +4,8 @@ from sequencereader.staff import POSITIONS_COUNT, get_note_position, is_altered
 
 
 MEASURE_WIDTH = 350
-MEASURE_HEIGHT = MEASURE_WIDTH * .8
+MEASURE_HEIGHT = MEASURE_WIDTH
+MEASURE_HSPACING = -125
 KEYSPACE_WIDTH = 50
 
 
@@ -17,7 +18,7 @@ def extract_measures_rects(rect):
         left += MEASURE_WIDTH
         if left > (rect.width() - (MEASURE_WIDTH / 2)):
             left = KEYSPACE_WIDTH
-            top += MEASURE_HEIGHT
+            top += MEASURE_HEIGHT + MEASURE_HSPACING
     return rects
 
 
@@ -26,7 +27,7 @@ def extract_rects_keyspaces(rect):
     rects = []
     while top < rect.height():
         rects.append(QtCore.QRect(0, top, KEYSPACE_WIDTH, MEASURE_HEIGHT))
-        top += MEASURE_HEIGHT
+        top += MEASURE_HEIGHT + MEASURE_HSPACING
     return rects
 
 
