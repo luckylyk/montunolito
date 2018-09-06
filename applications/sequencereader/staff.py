@@ -1,5 +1,4 @@
-from PyQt5 import QtGui, QtCore
-import sys
+from PyQt5 import QtGui
 from montunolito.core.solfege import SCALE_LENGTH
 from montunolito.core.utils import remap_number, past_and_futur
 
