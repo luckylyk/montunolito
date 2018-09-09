@@ -1,17 +1,10 @@
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 from montunolito.core.solfege import SCALE_LENGTH
 from montunolito.core.utils import remap_number, past_and_futur
+from sequencereader.rules import (
+    STAFF_LINES_NUMBERS, POSITIONS_COUNT, BEMOLE_SCALE, get_matching_line,
+    get_note_position)
 
-
-# poisitons scales
-DIESE_SCALE = 0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6
-BEMOLE_SCALE = 0, 1, 1, 2, 3, 3, 4, 4, 5, 6, 6, 7
-ALTERED_INDEXES = 1, 4, 6, 9, 11
-
-STAFF_LINES_NUMBERS = 26
-POSITIONS_COUNT = 54
-MATCHERS = {m: [(m * 2) - i for i in range(1, 3)] for m in range(13)}
-MATCHERS.update({m: [(m * 2) - i for i in range(2, 4)] for m in range(18, 28)})
 BEAM_LENGTH_FACTOR = .15
 STRAIGHT_CONNECTION_FACTOR = .05
 
@@ -27,49 +20,68 @@ def get_staff_lines(rect, start=0, end=STAFF_LINES_NUMBERS + 1):
     return path
 
 
+def get_extra_stafflines_path(
+        top, height, radius, centers, positions, up=False):
+
+    centers = reversed(centers) if up else centers
+    positions = reversed(positions) if up else positions
+    reference_line = 18 if up else 13
+
+    path = QtGui.QPainterPath()
+    rect = QtCore.QRectF()
+    rect.setTop(top)
+    rect.setHeight(height)
+
+    previous_center = None
+    start_line = None
+    use_double_line = False
+    need_draw = False
+    for center, position in zip(centers, positions):
+        if position < 35 if up else position > 23:
+            if start_line:
+                begin = min([start_line, reference_line])
+                end = max([start_line, reference_line])
+                path.addPath(get_staff_lines(rect, begin, end))
+                need_draw = False
+            break
+
+        need_draw = True
+        if previous_center is None:
+            previous_center = center
+            left = center.x() + radius if up else center.x() - radius
+            right = center.x() - radius if up else center.x() + radius
+            rect.setLeft(left)
+            rect.setRight(right)
+
+        if not start_line:
+            start_line = get_matching_line(position)
+
+        if center.x() != previous_center.x() and use_double_line is False:
+            end_line = get_matching_line(position)
+            begin = min([start_line, end_line])
+            end = max([start_line, end_line])
+            path.addPath(get_staff_lines(rect, begin, end))
+            if center.x() > previous_center.x():
+                right = center.x() - radius if up else center.x() + radius
+                rect.setRight(right)
+            else:
+                left = center.x() + radius if up else center.x() - radius
+                rect.setLeft(left)
+            use_double_line = True
+            start_line = end_line
+
+    if need_draw:
+        path.addPath(get_staff_lines(rect, start_line, 13))
+    return path
+
+
 def get_standard_staff_lines(rect):
     return get_staff_lines(rect, 13, 18)
-
-
-def get_additional_staff_lines(rect, position):
-    if position > 23 and position < 35:
-        return None
-    for line, positions in MATCHERS.items():
-        if position in positions:
-            if position <= 23:
-                return get_staff_lines(rect, line, 13)
-            return get_staff_lines(rect, 18, line)
 
 
 def get_top_from_position(height, position):
     position = POSITIONS_COUNT - position
     return (height / POSITIONS_COUNT) * (position - 1)
-
-
-def get_note_position(note, display_scale=None):
-    display_scale = display_scale or BEMOLE_SCALE
-    offset = (note // SCALE_LENGTH) * 7
-    line = display_scale[remap_number(note, SCALE_LENGTH)]
-    return offset + line
-
-
-def get_beams_directions(sequence):
-    directions = []
-    positions_averages = []
-    for _, notes, next_notes in past_and_futur(sequence):
-        if not notes:
-            directions.append(None)
-            positions_averages = []
-            continue
-
-        positions_averages.append(
-            sum([get_note_position(n) for n in notes]) / len(notes))
-        if not next_notes:
-            averages_count = len(positions_averages)
-            average = sum([a for a in positions_averages]) / averages_count
-            for _ in range(averages_count):
-                directions.append('up' if average < 29 else 'down')
-    return directions
 
 
 def get_beam_start_end(height, notes):
@@ -134,6 +146,3 @@ def get_average_beam_tops(tops, is_up):
     tops = [highest + offset - (spacer * i) for i in range(len(tops))]
     return tops
 
-
-def is_altered(note):
-    return remap_number(note, SCALE_LENGTH) in ALTERED_INDEXES

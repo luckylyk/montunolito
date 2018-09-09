@@ -63,6 +63,7 @@ class SequenceReader(QtWidgets.QWidget):
         self._igmeasures = [
             IGMeasure(None, s) for s in split_array(sequence, 8)]
         rects = extract_rects_keyspaces(self.rect())
+        self._igmeasures[-1].end = True
         self._igkeyspaces = [IGKeySpace(rect) for rect in rects]
 
     def update_geometries(self):

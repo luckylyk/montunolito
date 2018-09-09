@@ -1,10 +1,7 @@
 from PyQt5 import QtGui, QtCore
 import sys
 from montunolito.core.utils import past_and_futur
-from sequencereader.staff import (
-    get_note_position, get_top_from_position, POSITIONS_COUNT,
-    get_additional_staff_lines, get_beam_bottom, get_beams_tops,
-    get_beams_directions, is_altered)
+from sequencereader.staff import get_top_from_position, POSITIONS_COUNT
 
 
 BEAMCONNECTION_WIDTH_FACTOR = .025
@@ -43,11 +40,11 @@ EIGHTH_REST = {
     'start': (31, 100),
     'points': (
         [(25, 100)],
-        [(100, 0)],
-        [(75, 25), (50, 33), (25, 33)],
+        [(75, 0)],
+        [(66, 25), (50, 33), (25, 33)],
         [(0, 33), (0, 0), (25, 0)],
         [(45, 0), (45, 27), (25, 27)],
-        [(33, 27), (75, 27), (100, 0)],
+        [(33, 27), (66, 27), (75, 0)],
         [(31, 100)])}
 
 G_KEY = {
@@ -70,81 +67,10 @@ G_KEY = {
         [(61, 0), (62, 8), (62, 12)],
         [(62, 39), (35, 39), (35, 58)],
         [(35, 75), (65, 75), (65, 60)],
-        [(63, 44), (45, 44), (45, 59)],
+        [(63, 48), (45, 48), (45, 59)],
         [(45, 59), (47, 65), (50, 65)]
     )
 }
-
-
-def get_notes_bodies_path(centers, height):
-    path = QtGui.QPainterPath()
-    radius = height / POSITIONS_COUNT
-    for center in centers:
-        path.addPath(get_note_path(center, radius))
-    return path
-
-
-def get_notes_alterations_path(centers, height):
-    path = QtGui.QPainterPath()
-    ratio = height / 10
-    for center in centers:
-        path.addPath(get_path(BEMOL, ratio=ratio, position=center))
-    return path
-
-
-def get_beam_path(x, top, bottom):
-    path = QtGui.QPainterPath(QtCore.QPointF(x, top))
-    path.lineTo(QtCore.QPointF(x, bottom))
-    return path
-
-
-def get_notes_connections_path(lefts, height, tops, bottoms, directions):
-    path = QtGui.QPainterPath()
-    start_point = None
-    iterator = past_and_futur(
-        [a for a in zip(lefts, tops, bottoms, directions)])
-
-    for _, (x, top, bottom, direction), futur in iterator:
-        next_top = futur[1] if futur else None
-        if not top:
-            start_point = None
-            continue
-
-        path.addPath(get_beam_path(x, top, bottom))
-
-        end_point = QtCore.QPointF(x, top)
-        if next_top is not None:
-            if start_point is None:
-                start_point = QtCore.QPointF(x, top)
-            continue
-
-        if start_point is None:
-            tail = get_path(
-                TAIL,
-                rotation=-180 if direction == 'down' else None,
-                ratio=height / 8,
-                position=end_point,
-                mirrorh=direction == 'down')
-            path.addPath(tail)
-            continue
-        path.addPath(get_beam_connection_path(start_point, end_point, height))
-    return path
-
-
-def get_eighth_rest_path(left, top, height):
-    return get_path(
-        EIGHTH_REST,
-        ratio=height / 15,
-        position=QtCore.QPointF(left, top + (height / 2)))
-
-
-def get_measure_separator(rect):
-    top = rect.top() + get_top_from_position(rect.height(), 33)
-    bottom = rect.top() + get_top_from_position(rect.height(), 25)
-    x = rect.right()
-    path = QtGui.QPainterPath(QtCore.QPointF(x, top))
-    path.lineTo(QtCore.QPointF(x, bottom))
-    return path
 
 
 def get_path(
@@ -188,6 +114,86 @@ def get_path(
     scaleh = - ratio if mirrorh else ratio
     transform.scale(scaleh, ratio)
     return transform.map(path)
+
+
+def get_notes_bodies_path(centers, height):
+    path = QtGui.QPainterPath()
+    radius = height / POSITIONS_COUNT
+    for center in centers:
+        path.addPath(get_note_path(center, radius))
+    return path
+
+
+def get_notes_alterations_path(centers, height):
+    path = QtGui.QPainterPath()
+    ratio = height / 10
+    for center in centers:
+        path.addPath(get_path(BEMOL, ratio=ratio, position=center))
+    return path
+
+
+def get_beam_path(x, top, bottom):
+    path = QtGui.QPainterPath(QtCore.QPointF(x, top))
+    path.lineTo(QtCore.QPointF(x, bottom))
+    return path
+
+
+def get_notes_connections_path(lefts, height, tops, bottoms, dirs):
+    path = QtGui.QPainterPath()
+    start_point = None
+    iterator = past_and_futur([a for a in zip(lefts, tops, bottoms, dirs)])
+
+    for i, (_, (x, top, bottom, direction), futur) in enumerate(iterator):
+        next_top = futur[1] if futur else None
+        if not top:
+            start_point = None
+            continue
+
+        path.addPath(get_beam_path(x, top, bottom))
+
+        end_point = QtCore.QPointF(x, top)
+        if next_top is not None:
+            if start_point is None:
+                start_point = QtCore.QPointF(x, top)
+            continue
+
+        if start_point is None:
+            if i % 2 != 0:
+                tail = get_path(
+                    TAIL,
+                    rotation=-180 if direction == 'down' else None,
+                    ratio=height / 8,
+                    position=end_point,
+                    mirrorh=direction == 'down')
+                path.addPath(tail)
+            continue
+        path.addPath(get_beam_connection_path(start_point, end_point, height))
+
+    return path
+
+
+def get_eighth_rest_path(left, top, height):
+    return get_path(
+        EIGHTH_REST,
+        ratio=height / 15,
+        position=QtCore.QPointF(left, top + (height / 2)))
+
+
+def get_measure_separator(rect, end=False):
+    top = rect.top() + get_top_from_position(rect.height(), 33)
+    bottom = rect.top() + get_top_from_position(rect.height(), 25)
+    x = rect.right() if end is False else rect.right() - (rect.width() / 33)
+    path = QtGui.QPainterPath(QtCore.QPointF(x, top))
+    path.lineTo(QtCore.QPointF(x, bottom))
+    if end is False:
+        return path
+    path.moveTo(rect.right(), top)
+    path.lineTo(rect.right(), bottom)
+    right = rect.right() - (rect.width() / 60)
+    path.lineTo(right, bottom)
+    path.lineTo(right, top)
+    path.lineTo(rect.right(), top)
+    return path
 
 
 def get_note_path(point, radius):

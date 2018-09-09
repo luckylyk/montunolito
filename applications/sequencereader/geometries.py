@@ -1,11 +1,11 @@
 import sys
 from PyQt5 import QtCore
-from sequencereader.staff import POSITIONS_COUNT, get_note_position, is_altered
+from sequencereader.rules import POSITIONS_COUNT, get_note_position, is_altered
 
 
-MEASURE_WIDTH = 350
-MEASURE_HEIGHT = MEASURE_WIDTH
-MEASURE_HSPACING = -125
+MEASURE_WIDTH = 800
+MEASURE_HEIGHT = MEASURE_WIDTH * .8
+MEASURE_HSPACING = -100
 KEYSPACE_WIDTH = 50
 
 
@@ -32,7 +32,7 @@ def extract_rects_keyspaces(rect):
 
 
 def extract_quarters_rects(measurerect):
-    padding = measurerect.width() * .05
+    padding = measurerect.width() * .08
     measurerect = QtCore.QRectF(
         measurerect.left() + padding, measurerect.top(),
         measurerect.width() - (2 * padding), measurerect.height())

@@ -1,4 +1,4 @@
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 
 
 def draw_measure(painter, igmeasure):
@@ -7,6 +7,11 @@ def draw_measure(painter, igmeasure):
     # painter.drawRect(igmeasure.rect)
     painter.drawPath(igmeasure.staff_lines)
     painter.drawPath(igmeasure.separator)
+    if not igmeasure.positions: return
+    option = QtGui.QTextOption()
+    option.setAlignment(QtCore.Qt.AlignCenter)
+    for i, p in enumerate(igmeasure.positions):
+        painter.drawText(QtCore.QRectF(p.x() - 15, p.y() - 15, 30, 30), str(i), option)
 
 
 def draw_quarter(painter, quarter):
@@ -18,6 +23,8 @@ def draw_quarter(painter, quarter):
     painter.drawPath(quarter.bodies)
     painter.drawPath(quarter.connections)
     painter.drawPath(quarter.alterations)
+    for lines in quarter.extralines:
+        painter.drawPath(lines)
     for rest in quarter.rests:
         painter.drawPath(rest)
 

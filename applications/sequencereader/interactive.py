@@ -1,14 +1,16 @@
 
 from montunolito.core.utils import split_array
-
+from PyQt5 import QtCore
 from sequencereader.painting import draw_measure, draw_quarter, draw_keyspace
 from sequencereader.shapes import (
     get_notes_bodies_path, get_path, G_KEY, get_measure_separator,
     get_notes_connections_path, get_eighth_rest_path,
     get_notes_alterations_path)
+from sequencereader.rules import (
+    get_beams_directions, POSITIONS_COUNT, get_note_position)
 from sequencereader.staff import (
-    get_standard_staff_lines, get_beams_directions, get_beam_bottom,
-    get_beams_tops)
+    get_standard_staff_lines, get_beam_bottom, get_beams_tops,
+    get_extra_stafflines_path, get_top_from_position)
 from sequencereader.geometries import (
     extract_quarters_rects, extract_notes_lefts,
     get_note_body_and_alterations_centers)
@@ -26,6 +28,7 @@ class IGQuater(object):
         self.bodies = None
         self.alterations = None
         self.connections = None
+        self.extralines = None
 
     def set_rect(self, rect):
         if rect is None:
@@ -45,6 +48,7 @@ class IGQuater(object):
             self._get_beams_tops(),
             self._get_beams_bottoms(),
             self.directions)
+        self.extralines = self._get_extra_stafflines()
 
     def _get_beams_bottoms(self):
         top = self.rect.top()
@@ -62,7 +66,9 @@ class IGQuater(object):
 
     def _get_rests_paths(self):
         rests = []
-        for notes, left in zip(self.sequence, self.lefts):
+        for i, (notes, left) in enumerate(zip(self.sequence, self.lefts)):
+            if i % 2 != 0:
+                continue
             if not notes:
                 rests.append(
                     get_eighth_rest_path(
@@ -80,6 +86,33 @@ class IGQuater(object):
             alteration_centers.extend(a)
         return centers, alteration_centers
 
+    def _get_extra_stafflines(self):
+        radius = (self.rect.height() / POSITIONS_COUNT) * 1.25
+        path = []
+        index = 0
+        for notes in self.sequence:
+            notes_centers = self.centers[index: index + len(notes)]
+            index += len(notes)
+            positions = [get_note_position(n) for n in notes]
+            down_lines = get_extra_stafflines_path(
+                self.rect.top(),
+                self.rect.height(),
+                radius,
+                notes_centers,
+                positions)
+
+            up_lines = get_extra_stafflines_path(
+                self.rect.top(),
+                self.rect.height(),
+                radius,
+                notes_centers,
+                positions,
+                up=True)
+
+            path.append(down_lines)
+            path.append(up_lines)
+        return path
+
     def draw(self, painter):
         draw_quarter(painter, self)
 
@@ -87,19 +120,24 @@ class IGQuater(object):
 class IGMeasure(object):
     def __init__(self, rect, sequence):
         self.rect = rect
+        self.end = False
         self.staff_lines = get_standard_staff_lines(rect) if rect else None
-        self.separator = get_measure_separator(rect) if rect else None
+        self.separator = get_measure_separator(rect, self.end) if rect else None
         sequences = split_array(sequence, 4)
         rects = extract_quarters_rects(rect) if rect else [None] * 2
         self.igquarters = [IGQuater(r, s) for r, s in zip(rects, sequences)]
+        self.positions = None
 
     def set_rect(self, rect):
         self.rect = rect
         self.staff_lines = get_standard_staff_lines(rect) if rect else None
-        self.separator = get_measure_separator(rect) if rect else None
+        self.separator = get_measure_separator(rect, self.end) if rect else None
         rects = extract_quarters_rects(rect) if rect else [None] * 2
         for igquater, rect in zip(self.igquarters, rects):
             igquater.set_rect(rect)
+        if not rect:
+            return
+        self.positions = [QtCore.QPointF(12, get_top_from_position(self.rect.height(), i)) for i in range(POSITIONS_COUNT)]
 
     def draw(self, painter):
         if self.rect is None:

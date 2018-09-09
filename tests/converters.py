@@ -109,7 +109,7 @@ CHORDS = {
 def get_full_generated_eighthkbnotes():
 
     montunos = montuno_generator(
-        pattern=load_pattern_json(),
+        pattern=PATTERNS['montuno'],
         chord_grid=load_chord_json(),
         tonality=3)
 
@@ -139,11 +139,14 @@ def load_pattern_json():
 
 if __name__ == "__main__":
 
+    print (get_full_generated_eighthkbnotes())
+    exit()
     eighthkbnotes = get_extreme_eighth_notes()
     # (
     #     get_pre_registered_eighthkbnotes() +
     #     get_generated_eighthkbnotes() +
     #     get_full_generated_eighthkbnotes())
+    
 
     fileoutput = r'C:\Users\zil\Desktop\xmltest\''
     xmlcontent = convert_to_musicxml(eighthkbnotes, tempo=600)
