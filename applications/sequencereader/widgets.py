@@ -1,64 +1,48 @@
 
 from PyQt5 import QtWidgets, QtGui, QtCore
+
 from montunolito.core.utils import split_array, set_array_lenght_multiple
-
-from sequencereader.interactive import IGMeasure, IGKeySpace
+from sequencereader.rules import Signature, SIGNATURES
+from sequencereader.interactive import IGMeasure, IGKeySpace, IGSignature
 from sequencereader.geometries import (
-    extract_measures_rects, extract_rects_keyspaces)#, extract_notes_rects,
-#     extract_quarters_rects)
-# from sequencereader.shapes import get_notes_path, get_notes_connections_path, get_path, G_KEY
-# from sequencereader.staff import get_note_position, get_standard_staff_lines, get_additional_staff_lines, get_beams_directions
+    extract_measures_rects, extract_rects_keyspaces, extract_signature_rects)
 
-from montunolito.core.solfege import NOTES, SCALE_LENGTH
-from montunolito.core.utils import remap_number
+from itertools import cycle
 
 
-def get_sample_sequence():
-    a = [48]
-    b = [40, 60]
-    c = [65, 66, 75]
-    d = [43, 50]
-    return (a, [], b, d)
+SIGNATURES = cycle(SIGNATURES)
 
 
-class Test(QtWidgets.QWidget):
-    sequence = [33, 43, 44, 45, 75], [38, 45], [52], [33, 43, 44, 56, 60]
-    sequence = get_sample_sequence()
+class SequenceReaderWidget(QtWidgets.QWidget):
 
-    def paintEvent(self, _):
-        painter = QtGui.QPainter()
-        painter.begin(self)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.setBrush(QtGui.QBrush(QtGui.QColor('black')))
-        quarterrects = extract_quarters_rects(self.rect())
-        connections = []
+    def __init__(self, sequence, parent=None):
+        super().__init__(parent, QtCore.Qt.Window)
+        self.sequencereader = SequenceReader(sequence)
 
-        key_pos = QtCore.QPointF(
-            self.rect().width() / 25,
-            self.rect().center().y() - 0)#(self.rect().height()/1))
-        path = get_path(
-            G_KEY, ratio=self.rect().height() / 3.5,
-            position=key_pos)
-        painter.drawPath(path)
+        self._scroll_area = QtWidgets.QScrollArea()
+        self._scroll_area.setWidget(self.sequencereader)
+        self._scroll_area.setWidgetResizable(True)
+        # hack to deactivate scroll on wheelEvent
+        # self._scroll_area.wheelEvent = lambda x: None
 
-        for quarterrect in quarterrects:
-            noterects = extract_notes_rects(quarterrect)
-            directions = get_beams_directions(self.sequence)
-            for notes, noterect, d in zip(self.sequence, noterects, directions):
-                path = get_notes_path(noterect, notes, direction=d)
-                painter.drawPath(path)
-            connections.append(get_notes_connections_path(noterects, self.sequence))
-        painter.drawPath(get_standard_staff_lines(self.rect()))
-        for connection in connections:
-            painter.drawPath(connection)
-        painter.end()
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+        self.layout.addWidget(self._scroll_area)
 
 
 class SequenceReader(QtWidgets.QWidget):
-    def __init__(self, sequence, parent=None):
+    def __init__(self, sequence, signature='A', mode='major', parent=None):
         super().__init__(parent)
         self._sequence = set_array_lenght_multiple(
             sequence, multiple=8, default=[])
+
+        self._signature = Signature()
+        self._signature.set_values(signature, mode)
+
+        rects = extract_signature_rects(self.rect(), self._signature)
+        self._igsignatures = [
+            IGSignature(rect, self._signature) for rect in rects]
 
         self._igmeasures = [
             IGMeasure(None, s) for s in split_array(sequence, 8)]
@@ -68,15 +52,21 @@ class SequenceReader(QtWidgets.QWidget):
 
     def update_geometries(self):
         rects = set_array_lenght_multiple(
-            extract_measures_rects(self.rect()),
+            extract_measures_rects(self.rect(), self._signature),
             len(self._igmeasures),
             default=None)
+
         for rect, igmeasure in zip(rects, self._igmeasures):
             igmeasure.set_rect(rect)
+
         rects = extract_rects_keyspaces(self.rect())
         self._igkeyspaces = [IGKeySpace(rect) for rect in rects]
 
-    def resizeEvent(self, event):
+        rects = extract_signature_rects(self.rect(), self._signature)
+        self._igsignatures = [
+            IGSignature(rect, self._signature) for rect in rects]
+
+    def resizeEvent(self, _):
         self.update_geometries()
         self.repaint()
 
@@ -85,6 +75,18 @@ class SequenceReader(QtWidgets.QWidget):
         painter.begin(self)
         self.paint(painter)
         painter.end()
+
+    def mousePressEvent(self, _):
+        mode = 'major' if self._signature.mode == 'minor' else 'minor'
+        self._signature.set_values(mode=mode)
+        self.update_geometries()
+        self.repaint()
+
+    def wheelEvent(self, event):
+        if event.angleDelta().y() > 0:
+            self._signature.set_values(signature=next(SIGNATURES))
+            self.update_geometries()
+            self.repaint()
 
     def cursor(self):
         return self.mapFromGlobal(QtGui.QCursor.pos())
@@ -95,3 +97,5 @@ class SequenceReader(QtWidgets.QWidget):
             igmeasure.draw(painter)
         for igkeyspace in self._igkeyspaces:
             igkeyspace.draw(painter)
+        for igsignature in self._igsignatures:
+            igsignature.draw(painter)

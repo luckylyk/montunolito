@@ -8,8 +8,10 @@ sys.path.insert(0, APPLICATIONS_FOLDER)
 sys.path.insert(0, MONTUNOLITO_FOLDER)
 
 from PyQt5 import QtWidgets
-from sequencereader.widgets import SequenceReader
-from sequencereader.rules import get_signature_positions, is_bemol_signature, get_bemol_signatures, get_sharp_signatures
+from sequencereader.widgets import SequenceReaderWidget
+from sequencereader.rules import (
+    get_signature_positions, is_bemol_signature, get_bemol_signatures,
+    get_sharp_signatures)
 
 
 def get_pre_registered_eighthkbnotes():
@@ -62,12 +64,11 @@ def get_pre_registered_eighthkbnotes():
         [36, 48, 60], [], [42, 48, 54, 60], [], [34, 46, 58], [],
         [36, 42, 48, 54], [34, 46, 58], [34, 46, 58]]
 
-    return [
-        a, b, c, a, [], d, [], a, [], d, [], a, [], c, a, a] * 4
+    return [a, b, c, a, [], d, [], a, [], d, [], a, [], c, a, a] * 4
 
 application = QtWidgets.QApplication(sys.argv)
 # sequence_reader = Test()
-sequence_reader = SequenceReader(get_pre_registered_eighthkbnotes())
+sequence_reader = SequenceReaderWidget(get_pre_registered_eighthkbnotes())
 sequence_reader.show()
 application.exec_()
 
@@ -80,3 +81,20 @@ application.exec_()
 # print(get_beams_directions(get_pre_registered_eighthkbnotes()))
 # print(get_beams_directions(get_pre_registered_eighthkbnotes()))
 # print(get_beams_directions(get_pre_registered_eighthkbnotes()))
+
+# from sequencereader.rules import get_signature_positions
+# print(get_signature_positions('A', major=False))
+# print(get_bemol_signatures())
+# print(get_sharp_signatures())
+# print(get_signature_positions('G', major=True))
+# print(get_signature_positions('Db', major=True))
+# print(get_signature_positions('C', major=True))
+# print(get_signature_positions('A', major=True))
+# print(get_signature_positions('F', major=True))
+# print(get_signature_positions('F#', major=True))
+# print(get_signature_positions('E', major=True))
+
+
+# from sequencereader.rules import get_alteration_value
+# print (get_alteration_value(55, 33))
+# print (get_alteration_value(81, 47))

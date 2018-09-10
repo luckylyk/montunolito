@@ -146,3 +146,13 @@ def get_average_beam_tops(tops, is_up):
     tops = [highest + offset - (spacer * i) for i in range(len(tops))]
     return tops
 
+
+def get_signature_centers(rect, signature):
+    centers = []
+    offset = rect.width() / (len(signature.positions) + 1)
+    x = rect.left() + offset
+    for position in signature.positions:
+        y = rect.top() + get_top_from_position(rect.height(), position)
+        centers.append(QtCore.QPoint(x, y))
+        x += offset
+    return centers

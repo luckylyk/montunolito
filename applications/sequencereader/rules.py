@@ -1,16 +1,21 @@
 from montunolito.core.utils import past_and_futur, remap_number
-from montunolito.core.solfege import SCALE_LENGTH
+from montunolito.core.solfege import SCALE_LENGTH, NOTES
 
-# poisitons scales
+# positons scales
 SHARP_SCALE = 0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6
 BEMOLE_SCALE = 0, 1, 1, 2, 3, 3, 4, 4, 5, 6, 6, 7
-ALTERED_INDEXES = 1, 4, 6, 9, 11
+
+SHARP_KEY_SIGNATURES_POSITIONS = 33, 30, 34, 31, 28, 32, 29
+BEMOL_KEY_SIGNATURES_POSITIONS = 29, 32, 28, 31, 27, 30, 26
+SHARP_NOTES_ALTERED = 8, 3, 10, 5, 0, 7, 2
+BEMOL_NOTES_ALTERED = [n for n in reversed(SHARP_NOTES_ALTERED)]
 SIGNATURES = (
     'C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#',
     'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'B')
 
-SHARP_KEY_SIGNATURES_POSITIONS = 33, 30, 34, 31, 38, 32, 29
-BEMOL_KEY_SIGNATURES_POSITIONS = 29, 32, 28, 31, 27, 30, 26
+ALTERED_INDEXES = 1, 4, 6, 9, 11
+POSITION_PER_NATURAL_NOTES = [
+    i for i in range(89) if len(NOTES[remap_number(i, SCALE_LENGTH)]) == 1]
 
 STAFF_LINES_NUMBERS = 26
 POSITIONS_COUNT = 54
@@ -25,11 +30,13 @@ def get_signature_positions(signature, major=True):
 
     if is_bemol_signature(signature, major=major):
         signatures = get_bemol_signatures(major=major)
+        positions = BEMOL_KEY_SIGNATURES_POSITIONS
     else:
         signatures = get_sharp_signatures(major=major)
+        positions = SHARP_KEY_SIGNATURES_POSITIONS
 
     index = signatures.index(signature)
-    return SHARP_KEY_SIGNATURES_POSITIONS[:index + 1]
+    return positions[:index + 1]
 
 
 def is_empty_signature(signature, major=True):
@@ -88,3 +95,46 @@ def get_beams_directions(sequence):
 
 def is_altered(note):
     return remap_number(note, SCALE_LENGTH) in ALTERED_INDEXES
+
+
+def get_alteration_value(note, position):
+    reference = POSITION_PER_NATURAL_NOTES[position]
+    return note - reference
+
+
+def get_visible_alteration(sequence, signature):
+    '''TODO'''
+
+
+class Signature():
+    def __init__(self):
+        self.mode = None
+        self.signature = None
+        self.positions = None
+        self.shape = None
+
+    def reset(self):
+        self.mode = None
+        self.signature = None
+        self.positions = None
+        self.shape = None
+
+    def set_values(self, signature=None, mode=None, ):
+        self.mode = mode or self.mode
+        self.signature = signature or self.signature
+        self.process()
+
+    def process(self):
+        if None in (self.signature, self.mode):
+            return
+        major = self.mode == 'major'
+        self.positions = get_signature_positions(self.signature, major=major)
+
+    def is_bemol(self):
+        return is_bemol_signature(self.signature, self.mode == 'major')
+
+    def is_empty(self):
+        return bool(len(self.positions))
+
+    def is_sharp(self):
+        return not any([self.is_bemol(), self.is_empty()])

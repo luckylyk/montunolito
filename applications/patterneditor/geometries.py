@@ -598,14 +598,6 @@ def extract_noterects(rect, number=4):
         for i in range(number)]
 
 
-def get_button_menu_rect(rect, index=0):
-    return QtCore.QRect(
-        rect.left() + (rect.height() * index),
-        rect.top(),
-        rect.height(),
-        rect.height())
-
-
 def shrink_rect(rect, value):
     return QtCore.QRect(
         rect.left() + value,

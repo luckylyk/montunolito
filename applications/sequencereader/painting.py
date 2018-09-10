@@ -7,11 +7,11 @@ def draw_measure(painter, igmeasure):
     # painter.drawRect(igmeasure.rect)
     painter.drawPath(igmeasure.staff_lines)
     painter.drawPath(igmeasure.separator)
-    if not igmeasure.positions: return
+    # if not igmeasure.positions: return
     option = QtGui.QTextOption()
     option.setAlignment(QtCore.Qt.AlignCenter)
-    for i, p in enumerate(igmeasure.positions):
-        painter.drawText(QtCore.QRectF(p.x() - 15, p.y() - 15, 30, 30), str(i), option)
+    # for i, p in enumerate(igmeasure.positions):
+    #     painter.drawText(QtCore.QRectF(p.x() - 15, p.y() - 15, 30, 30), str(i), option)
 
 
 def draw_quarter(painter, quarter):
@@ -35,3 +35,12 @@ def draw_keyspace(painter, igkeyspace):
     # painter.drawRect(igkeyspace.rect)
     painter.drawPath(igkeyspace.staff_lines)
     painter.drawPath(igkeyspace.key)
+
+
+def draw_signature(painter, igsignature):
+    painter.setBrush(QtGui.QBrush(QtGui.QColor('black')))
+    painter.setPen(QtGui.QPen(QtGui.QColor('black')))
+    # painter.drawRect(igkeyspace.rect)
+    painter.drawPath(igsignature.staff_lines)
+    painter.drawPath(igsignature.shapes)
+

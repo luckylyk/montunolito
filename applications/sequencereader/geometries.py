@@ -3,22 +3,38 @@ from PyQt5 import QtCore
 from sequencereader.rules import POSITIONS_COUNT, get_note_position, is_altered
 
 
-MEASURE_WIDTH = 800
+MEASURE_WIDTH = 350
 MEASURE_HEIGHT = MEASURE_WIDTH * .8
 MEASURE_HSPACING = -100
-KEYSPACE_WIDTH = 50
+KEYSPACE_WIDTH = 30
 
 
-def extract_measures_rects(rect):
-    left = KEYSPACE_WIDTH
+def extract_measures_rects(rect, signature):
+    signature_width = define_signature_width(MEASURE_HEIGHT, signature)
+    left = KEYSPACE_WIDTH + signature_width
     top = 0
     rects = []
     while top < rect.height():
         rects.append(QtCore.QRect(left, top, MEASURE_WIDTH, MEASURE_HEIGHT))
         left += MEASURE_WIDTH
         if left > (rect.width() - (MEASURE_WIDTH / 2)):
-            left = KEYSPACE_WIDTH
+            left = KEYSPACE_WIDTH + signature_width
             top += MEASURE_HEIGHT + MEASURE_HSPACING
+    return rects
+
+
+def define_signature_width(height, signature):
+    return height / 15 * len(signature.positions)
+
+
+def extract_signature_rects(rect, signature):
+    width = define_signature_width(MEASURE_HEIGHT, signature)
+    left = KEYSPACE_WIDTH
+    top = 0
+    rects = []
+    while top < rect.height():
+        rects.append(QtCore.QRect(left, top, width, MEASURE_HEIGHT))
+        top += MEASURE_HEIGHT + MEASURE_HSPACING
     return rects
 
 

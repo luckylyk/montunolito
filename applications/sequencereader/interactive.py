@@ -1,16 +1,20 @@
 
-from montunolito.core.utils import split_array
 from PyQt5 import QtCore
-from sequencereader.painting import draw_measure, draw_quarter, draw_keyspace
+
+from montunolito.core.utils import split_array
+
+from sequencereader.painting import (
+    draw_measure, draw_quarter, draw_keyspace, draw_signature)
 from sequencereader.shapes import (
     get_notes_bodies_path, get_path, G_KEY, get_measure_separator,
-    get_notes_connections_path, get_eighth_rest_path,
+    get_notes_connections_path, get_eighth_rest_path, BEMOL, SHARP,
     get_notes_alterations_path)
 from sequencereader.rules import (
-    get_beams_directions, POSITIONS_COUNT, get_note_position)
+    get_beams_directions, POSITIONS_COUNT, get_note_position,
+    get_signature_positions, is_empty_signature, is_bemol_signature)
 from sequencereader.staff import (
     get_standard_staff_lines, get_beam_bottom, get_beams_tops,
-    get_extra_stafflines_path, get_top_from_position)
+    get_extra_stafflines_path, get_top_from_position, get_signature_centers)
 from sequencereader.geometries import (
     extract_quarters_rects, extract_notes_lefts,
     get_note_body_and_alterations_centers)
@@ -126,7 +130,6 @@ class IGMeasure(object):
         sequences = split_array(sequence, 4)
         rects = extract_quarters_rects(rect) if rect else [None] * 2
         self.igquarters = [IGQuater(r, s) for r, s in zip(rects, sequences)]
-        self.positions = None
 
     def set_rect(self, rect):
         self.rect = rect
@@ -137,7 +140,6 @@ class IGMeasure(object):
             igquater.set_rect(rect)
         if not rect:
             return
-        self.positions = [QtCore.QPointF(12, get_top_from_position(self.rect.height(), i)) for i in range(POSITIONS_COUNT)]
 
     def draw(self, painter):
         if self.rect is None:
@@ -147,12 +149,27 @@ class IGMeasure(object):
             igquater.draw(painter)
 
 
+class IGSignature():
+    def __init__(self, rect, signature):
+        self.rect = rect
+        self.signature = signature
+        self.shape = BEMOL if signature.is_bemol() else SHARP
+        self.centers = get_signature_centers(rect, signature)
+        self.shapes = get_notes_alterations_path(
+            self.centers, self.rect.height(), self.shape)
+        self.staff_lines = get_standard_staff_lines(self.rect)
+
+    def draw(self, painter):
+        draw_signature(painter, self)
+
+
+
 class IGKeySpace():
     def __init__(self, rect):
-        self.rect = rect
-        self.staff_lines = get_standard_staff_lines(rect) if rect else None
-        ratio = self.rect.height() / 3.5
-        self.key = get_path(G_KEY, ratio, position=self.rect.center())
+        self.rect = None
+        self.staff_lines = None
+        self.key = None
+        self.set_rect(rect)
 
     def set_rect(self, rect):
         self.rect = rect

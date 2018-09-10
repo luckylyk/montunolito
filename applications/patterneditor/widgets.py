@@ -5,7 +5,8 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from patterneditor.interactive import IGPattern
 from patterneditor.context import DrawContext
 from patterneditor.painting import draw_background, draw_menu_background
-from patterneditor.geometries import get_pattern_size, get_balloon_spike_point, GRID_SPACING
+from patterneditor.geometries import (
+    get_pattern_size, get_balloon_spike_point, GRID_SPACING)
 from patterneditor.themes import THEMES
 
 

@@ -20,7 +20,7 @@ BEMOL = {
         [(25, 70), (25, 80), (0, 98)],
         [(25, 70), (25, 80), (0, 98)])}
 
-DIESE = {
+SHARP = {
     'center': (50, 50),
     'start': (33, 39),
     'points': (
@@ -28,6 +28,15 @@ DIESE = {
         [(33, 75)], [(66, 66)], [(66, 57)], [(33, 66)], [None, (42, 20)],
         [(42, 88)], [(44, 88)], [(44, 20)], [(42, 20)], [None, (56, 17)],
         [(56, 85)], [(58, 85)], [(58, 17)], [(56, 17)])}
+
+NATURAL = {
+    'center': (50, 50),
+    'start': (42, 0),
+    'points': (
+        [(42, 73)], [(44, 73)], [(44, 0)], [(44, 0)], [None, (42, 77)],
+        [(66, 68)], [(66, 59)], [(42, 68)], [(42, 77)], [None, (42, 43)],
+        [(66, 34)], [(66, 25)], [(42, 34)], [(42, 43)], [None, (66, 100)],
+        [(64, 100)], [(64, 33)], [(66, 33)], [(66, 100)])}
 
 TAIL = {
     'start': (0, 0),
@@ -124,11 +133,11 @@ def get_notes_bodies_path(centers, height):
     return path
 
 
-def get_notes_alterations_path(centers, height):
+def get_notes_alterations_path(centers, height, shape=BEMOL):
     path = QtGui.QPainterPath()
     ratio = height / 10
     for center in centers:
-        path.addPath(get_path(BEMOL, ratio=ratio, position=center))
+        path.addPath(get_path(shape, ratio=ratio, position=center))
     return path
 
 
