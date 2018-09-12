@@ -92,22 +92,25 @@ def get_top_from_position(height, position):
     return (height / POSITIONS_COUNT) * (position - 1)
 
 
-def get_note_body_and_alterations_centers(notes, x, y, height, direction):
+def get_note_body_and_alterations_centers(
+        notes, alterations, x, y, height, direction, display_scale):
     radius = height / POSITIONS_COUNT
     previous_position = sys.maxsize
     previous_alteration_position = sys.maxsize
     centers = []
     alterations_centers = []
-    for note in notes:
-        position = get_note_position(note)
+    for note, alteration in zip(notes, alterations):
+        position = get_note_position(note, display_scale)
         top = y + get_top_from_position(height, position)
         difference = abs(position - previous_position)
         left = get_note_x(x, radius, difference, direction)
         centers.append(QtCore.QPointF(left, top))
         previous_position = position
-        if is_altered(note):
-            difference = abs(position - previous_alteration_position)
-            left = get_alteration_x(x, radius, difference, direction)
-            alterations_centers.append(QtCore.QPointF(left, top))
-            previous_alteration_position = position
+
+        if alteration is None:
+            continue
+        difference = abs(position - previous_alteration_position)
+        left = get_alteration_x(x, radius, difference, direction)
+        alterations_centers.append(QtCore.QPointF(left, top))
+        previous_alteration_position = position
     return centers, alterations_centers

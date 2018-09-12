@@ -10,7 +10,7 @@ sys.path.insert(0, MONTUNOLITO_FOLDER)
 from PyQt5 import QtWidgets
 from sequencereader.widgets import SequenceReaderWidget
 from sequencereader.rules import (
-    get_signature_positions, is_bemol_signature, get_bemol_signatures,
+    get_signature_positions, is_flat_signature, get_flat_signatures,
     get_sharp_signatures)
 
 
@@ -63,8 +63,8 @@ def get_pre_registered_eighthkbnotes():
         [39, 51, 63], [], [42, 48, 54, 60], [42, 54, 66], [], [34, 46, 58], [],
         [36, 48, 60], [], [42, 48, 54, 60], [], [34, 46, 58], [],
         [36, 42, 48, 54], [34, 46, 58], [34, 46, 58]]
-
     return [a, b, c, a, [], d, [], a, [], d, [], a, [], c, a, a] * 4
+
 
 application = QtWidgets.QApplication(sys.argv)
 # sequence_reader = Test()
@@ -84,7 +84,7 @@ application.exec_()
 
 # from sequencereader.rules import get_signature_positions
 # print(get_signature_positions('A', major=False))
-# print(get_bemol_signatures())
+# print(get_flat_signatures())
 # print(get_sharp_signatures())
 # print(get_signature_positions('G', major=True))
 # print(get_signature_positions('Db', major=True))

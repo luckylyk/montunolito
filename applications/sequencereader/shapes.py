@@ -8,7 +8,7 @@ BEAMCONNECTION_WIDTH_FACTOR = .025
 TAILS_HEIGHT_FACTOR = .33
 
 
-BEMOL = {
+FLAT = {
     'center': (16, 76),
     'start': (0, 0),
     'points': (
@@ -37,6 +37,11 @@ NATURAL = {
         [(66, 68)], [(66, 59)], [(42, 68)], [(42, 77)], [None, (42, 43)],
         [(66, 34)], [(66, 25)], [(42, 34)], [(42, 43)], [None, (66, 100)],
         [(64, 100)], [(64, 33)], [(66, 33)], [(66, 100)])}
+
+CORRESPONDING_ALTERATION_SHAPE = {
+    -1: FLAT,
+    0: NATURAL,
+    1: SHARP}
 
 TAIL = {
     'start': (0, 0),
@@ -133,10 +138,11 @@ def get_notes_bodies_path(centers, height):
     return path
 
 
-def get_notes_alterations_path(centers, height, shape=BEMOL):
+def get_notes_alterations_path(values, centers, height):
     path = QtGui.QPainterPath()
     ratio = height / 10
-    for center in centers:
+    for value, center in zip(values, centers):
+        shape = CORRESPONDING_ALTERATION_SHAPE[value]
         path.addPath(get_path(shape, ratio=ratio, position=center))
     return path
 

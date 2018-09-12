@@ -45,7 +45,8 @@ class SequenceReader(QtWidgets.QWidget):
             IGSignature(rect, self._signature) for rect in rects]
 
         self._igmeasures = [
-            IGMeasure(None, s) for s in split_array(sequence, 8)]
+            IGMeasure(None, s, self._signature)
+            for s in split_array(sequence, 8)]
         rects = extract_rects_keyspaces(self.rect())
         self._igmeasures[-1].end = True
         self._igkeyspaces = [IGKeySpace(rect) for rect in rects]
@@ -85,6 +86,8 @@ class SequenceReader(QtWidgets.QWidget):
     def wheelEvent(self, event):
         if event.angleDelta().y() > 0:
             self._signature.set_values(signature=next(SIGNATURES))
+            for igmeasure in self._igmeasures:
+                igmeasure.set_signature(self._signature)
             self.update_geometries()
             self.repaint()
 

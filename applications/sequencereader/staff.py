@@ -2,7 +2,7 @@ from PyQt5 import QtGui, QtCore
 from montunolito.core.solfege import SCALE_LENGTH
 from montunolito.core.utils import remap_number, past_and_futur
 from sequencereader.rules import (
-    STAFF_LINES_NUMBERS, POSITIONS_COUNT, BEMOLE_SCALE, get_matching_line,
+    STAFF_LINES_NUMBERS, POSITIONS_COUNT, FLAT_SCALE, get_matching_line,
     get_note_position)
 
 BEAM_LENGTH_FACTOR = .15
@@ -84,26 +84,26 @@ def get_top_from_position(height, position):
     return (height / POSITIONS_COUNT) * (position - 1)
 
 
-def get_beam_start_end(height, notes):
-    first_note = get_note_position(notes[0])
-    last_note = get_note_position(notes[-1])
+def get_beam_start_end(height, notes, display_scale):
+    first_note = get_note_position(notes[0], display_scale)
+    last_note = get_note_position(notes[-1], display_scale)
     start = get_top_from_position(height, first_note)
     end = get_top_from_position(height, last_note)
     return start, end
 
 
-def get_beam_bottom(height, notes, up=True):
-    start, end = get_beam_start_end(height, notes)
+def get_beam_bottom(height, notes, display_scale, up=True):
+    start, end = get_beam_start_end(height, notes, display_scale)
     return start if up else end
 
 
-def get_beam_top(height, notes, up=True):
-    start, end = get_beam_start_end(height, notes)
+def get_beam_top(height, notes, display_scale, up=True):
+    start, end = get_beam_start_end(height, notes, display_scale)
     offset = height * BEAM_LENGTH_FACTOR
     return end - offset if up else start + offset
 
 
-def get_beams_tops(height, sequence, directions):
+def get_beams_tops(height, sequence, directions, display_scale):
     tops = []
     tops_tmp = []
     iterator = zip(past_and_futur(sequence), directions)
@@ -115,7 +115,7 @@ def get_beams_tops(height, sequence, directions):
             continue
 
         is_up = direction == 'up'
-        tops_tmp.append(get_beam_top(height, notes, up=is_up))
+        tops_tmp.append(get_beam_top(height, notes, display_scale, up=is_up))
         if not next_notes:
             if abs(tops_tmp[0] - tops_tmp[-1]) < straight:
                 top = min(tops_tmp) if is_up else max(tops_tmp)
@@ -156,3 +156,4 @@ def get_signature_centers(rect, signature):
         centers.append(QtCore.QPoint(x, y))
         x += offset
     return centers
+

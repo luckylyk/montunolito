@@ -11,6 +11,8 @@ from montunolito.converters.musicxml.convert import convert_to_musicxml
 
 
 class SimpleGenerator(QtWidgets.QWidget):
+    sequenceGenerated = QtCore.pyqtSignal(object)
+
     def __init__(self, parent=None):
         super().__init__(parent, QtCore.Qt.Window)
         self.setWindowTitle('simple generator')
@@ -161,3 +163,5 @@ class SimpleGenerator(QtWidgets.QWidget):
 
         with open(fileoutput, 'w') as myfile:
             myfile.write(xmlcontent)
+
+        self.sequenceGenerated.emit(keyboard_sequence)

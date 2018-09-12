@@ -15,6 +15,7 @@ from montunolito.core.chord import get_new_chordgrid
 
 from patterneditor.application import PatternEditor
 from chordeditor.application import ChordGridEditor
+from sequencereader.widgets import SequenceReaderWidget
 from montunomakina.generators import SimpleGenerator
 
 
@@ -28,6 +29,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chords = []
         self.chords_count = 0
         self.generator = SimpleGenerator()
+        self.generator.sequenceGenerated.connect(self.view_sequence)
 
         self.workspace = QtWidgets.QMdiArea()
         self.workspace.addSubWindow(self.generator)
@@ -99,6 +101,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.generator.raise_()
         except RuntimeError:
             self.generator = SimpleGenerator()
+            self.generator.sequenceGenerated.connect(self.view_sequence)
             self.workspace.addSubWindow(self.generator)
             self.generator.show()
 
@@ -106,6 +109,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.patterns = [app for app in self.patterns if test_application(app)]
         self.chords = [app for app in self.chords if test_application(app)]
         self.update_generator()
+
+    def view_sequence(self, sequence):
+        sequence_reader = SequenceReaderWidget(sequence)
+        self.workspace.addSubWindow(sequence_reader)
+        sequence_reader.show()
 
 
 def test_application(app):

@@ -22,7 +22,7 @@ def draw_quarter(painter, quarter):
     painter.setBrush(QtGui.QBrush(QtGui.QColor('black')))
     painter.drawPath(quarter.bodies)
     painter.drawPath(quarter.connections)
-    painter.drawPath(quarter.alterations)
+    painter.drawPath(quarter.alterations_path)
     for lines in quarter.extralines:
         painter.drawPath(lines)
     for rest in quarter.rests:
