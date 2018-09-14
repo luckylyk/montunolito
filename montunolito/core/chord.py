@@ -12,3 +12,7 @@ def deepcopy(chordgrid):
             continue
         chordgrid_copy.append({k: v for k, v in chord.items()})
     return chordgrid_copy
+
+
+def is_valid_chordgrid(chordgrid):
+    return bool(chordgrid[0])

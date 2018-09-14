@@ -28,18 +28,18 @@ LINE_MATCHERS.update(
     {m: [(m * 2) - i for i in range(2, 4)] for m in range(18, 28)})
 
 
-def get_signature_positions(signature, major=True):
-    if is_empty_signature(signature, major=major):
+def get_signature_positions(tonality, major=True):
+    if is_empty_signature(tonality, major=major):
         return []
 
-    if is_flat_signature(signature, major=major):
-        signatures = get_flat_signatures(major=major)
+    if is_flat_signature(tonality, major=major):
+        tonalities = get_flat_tonalities(major=major)
         positions = BEMOL_KEY_SIGNATURES_POSITIONS
     else:
-        signatures = get_sharp_signatures(major=major)
+        tonalities = get_sharp_tonalities(major=major)
         positions = SHARP_KEY_SIGNATURES_POSITIONS
 
-    index = signatures.index(signature)
+    index = tonalities.index(tonality)
     return positions[:index + 1]
 
 
@@ -48,36 +48,36 @@ def get_signature_notes(signature, major=True):
         return []
 
     if is_flat_signature(signature, major=major):
-        signatures = get_flat_signatures(major=major)
+        tonalities = get_flat_tonalities(major=major)
         positions = BEMOL_NOTES_ALTERED
     else:
-        signatures = get_sharp_signatures(major=major)
+        tonalities = get_sharp_tonalities(major=major)
         positions = SHARP_NOTES_ALTERED
 
-    index = signatures.index(signature)
+    index = tonalities.index(signature)
     return positions[:index + 1]
 
 
-def is_empty_signature(signature, major=True):
+def is_empty_signature(tonality, major=True):
     if major:
-        return signature == 'C'
-    return signature == 'A'
+        return tonality == 'C'
+    return tonality == 'A'
 
 
-def is_flat_signature(signature, major=True):
-    return signature in get_flat_signatures(major=major)
+def is_flat_signature(tonality, major=True):
+    return tonality in get_flat_tonalities(major=major)
 
 
-def get_flat_signatures(major=True):
+def get_flat_tonalities(major=True):
     if major:
         return SIGNATURES[8:]
     return [e for e in reversed(SIGNATURES[11:] + SIGNATURES[:3])]
 
 
-def get_sharp_signatures(major=True):
+def get_sharp_tonalities(major=True):
     if major:
         return SIGNATURES[1:8]
-    return SIGNATURES[11:] + SIGNATURES[:2]
+    return SIGNATURES[4:11]
 
 
 def get_matching_line(position):
@@ -145,13 +145,13 @@ def get_alterations(sequence, signature):
     return result
 
 
-def get_positions_alteration(signature, display_scale):
-    if is_empty_signature(signature):
+def get_positions_alteration(tonality, display_scale, major=True):
+    if is_empty_signature(tonality, major):
         return [0 for _ in range(POSITIONS_COUNT)]
 
-    flat = is_flat_signature(signature)
+    flat = is_flat_signature(tonality)
     value = -1 if flat else +1
-    notes = get_signature_notes(signature)
+    notes = get_signature_notes(tonality, major)
     altered_positions = [
         l for n in notes for l in get_positions(n, display_scale)]
 
@@ -170,29 +170,29 @@ def get_positions(note, display_scale):
 class Signature():
     def __init__(self):
         self.mode = None
-        self.signature = None
+        self.tonality = None
         self.positions = None
         self.shape = None
 
     def reset(self):
         self.mode = None
-        self.signature = None
+        self.tonality = None
         self.positions = None
         self.shape = None
 
-    def set_values(self, signature=None, mode=None, ):
+    def set_values(self, tonality=None, mode=None):
         self.mode = mode or self.mode
-        self.signature = signature or self.signature
+        self.tonality = tonality or self.tonality
         self.process()
 
     def process(self):
-        if None in (self.signature, self.mode):
+        if None in (self.tonality, self.mode):
             return
         major = self.mode == 'major'
-        self.positions = get_signature_positions(self.signature, major=major)
+        self.positions = get_signature_positions(self.tonality, major=major)
 
     def is_flat(self):
-        return is_flat_signature(self.signature, self.mode == 'major')
+        return is_flat_signature(self.tonality, self.mode == 'major')
 
     def is_empty(self):
         return bool(len(self.positions))

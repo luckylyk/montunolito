@@ -79,7 +79,7 @@ class ChordGridEditor():
         if not self.check_save():
             return
 
-        filename = open_dialog()
+        filename = open_dialog(filter_="mmc")
         if not filename:
             return
 
@@ -93,7 +93,7 @@ class ChordGridEditor():
 
     def save(self):
         if self._workingfile is None:
-            filename = save_dialog()
+            filename = save_dialog(filter_="mmc")
             if not filename:
                 return
             self._workingfile = filename

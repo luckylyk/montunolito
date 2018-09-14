@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from montunolito.core.solfege import NOTES
 from montunolito.core.iterators import montuno_generator
 from montunolito.core.pattern import is_valid_pattern, is_iterable_pattern
+from montunolito.core.chord import is_valid_chordgrid
 from montunolito.libs.jsonutils import json_to_pattern
 from montunolito.libs.qt.dialogs import (
     open_dialog, save_dialog, check_pattern_dialog, invalid_file_dialog)
@@ -54,7 +55,7 @@ class SimpleGenerator(QtWidgets.QWidget):
         self._generator = QtWidgets.QPushButton('Generate')
         self._generator.setFixedHeight(40)
         self._generator.setFont(font)
-        self._generator.released.connect(self.generate_xml)
+        self._generator.released.connect(self.generate)
 
         self._data_layout = QtWidgets.QFormLayout(self)
         self._data_layout.addRow('select pattern', self._patterneditor_combo)
@@ -133,7 +134,7 @@ class SimpleGenerator(QtWidgets.QWidget):
         with open(filepath, 'r') as f:
             return json.load(f)
 
-    def generate_xml(self):
+    def generate(self):
         pattern = self.get_pattern()
         if pattern is None:
             return
@@ -141,15 +142,14 @@ class SimpleGenerator(QtWidgets.QWidget):
         if result is False:
             check_pattern_dialog(result, details)
             return
-
-        fileoutput = save_dialog()
-        if not fileoutput:
+        chordgrid = self.get_chords()
+        if not is_valid_chordgrid(chordgrid):
+            message = 'Chordgrid need a start chord'
+            QtWidgets.QMessageBox.critical(None, 'Error', message)
             return
-        fileoutput = fileoutput[:-4] + '.xml'
-
         generator = montuno_generator(
             pattern=pattern,
-            chord_grid=self.get_chords(),
+            chord_grid=chordgrid,
             tonality=self._tonality.currentIndex())
 
         eighths_count = int(self._measures_lineedit.text()) * 8
@@ -157,11 +157,5 @@ class SimpleGenerator(QtWidgets.QWidget):
         for _ in range(eighths_count):
             keyboard_eighth = next(generator)
             keyboard_sequence.append(keyboard_eighth)
-
-        tempo = int(self._tempo.text())
-        xmlcontent = convert_to_musicxml(keyboard_sequence, tempo=tempo)
-
-        with open(fileoutput, 'w') as myfile:
-            myfile.write(xmlcontent)
 
         self.sequenceGenerated.emit(keyboard_sequence)

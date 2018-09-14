@@ -117,7 +117,7 @@ class PatternEditor():
     def open(self):
         if not self.check_save():
             return
-        filename = open_dialog()
+        filename = open_dialog(filter_="mmp")
         if not filename:
             return
         with open(filename, 'r') as f:
@@ -137,7 +137,7 @@ class PatternEditor():
 
     def save(self):
         if self._workingfile is None:
-            filename = save_dialog()
+            filename = save_dialog(filter_="mmp")
             if not filename:
                 return
             self._workingfile = filename

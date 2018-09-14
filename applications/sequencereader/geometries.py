@@ -3,10 +3,18 @@ from PyQt5 import QtCore
 from sequencereader.rules import POSITIONS_COUNT, get_note_position, is_altered
 
 
-MEASURE_WIDTH = 350
-MEASURE_HEIGHT = MEASURE_WIDTH * .8
-MEASURE_HSPACING = -100
+MEASURE_WIDTH = 325
+MEASURE_HEIGHT = MEASURE_WIDTH * .75
+MEASURE_HSPACING = -30
 KEYSPACE_WIDTH = 30
+
+
+def get_widget_size(signature, line_count):
+    signature_width = define_signature_width(MEASURE_HEIGHT, signature)
+    width = KEYSPACE_WIDTH + signature_width + (MEASURE_WIDTH * 4)
+    height = \
+        (line_count * (MEASURE_HEIGHT + MEASURE_HSPACING)) - MEASURE_HSPACING
+    return QtCore.QSize(width, height)
 
 
 def extract_measures_rects(rect, signature):
@@ -81,7 +89,7 @@ def get_note_x(x, radius, difference, direction):
 
 
 def get_alteration_x(x, radius, difference, direction):
-    left = x - (radius * 3.5) if difference > 2 else x - (radius * 6)
+    left = x - (radius * 3.5) if difference > 5 else x - (radius * 6)
     if direction != 'up':
         left += radius * 1.25
     return left
@@ -112,5 +120,6 @@ def get_note_body_and_alterations_centers(
         difference = abs(position - previous_alteration_position)
         left = get_alteration_x(x, radius, difference, direction)
         alterations_centers.append(QtCore.QPointF(left, top))
-        previous_alteration_position = position
+        previous_alteration_position = position if difference > 5 else sys.maxsize
+
     return centers, alterations_centers

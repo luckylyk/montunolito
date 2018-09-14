@@ -151,7 +151,7 @@ class IGMeasure(object):
         self.staff_lines = get_standard_staff_lines(rect) if rect else None
         self.separator = get_measure_separator(rect, self.end) if rect else None
         self.sequence = sequence
-        alterations = split_array(get_alterations(sequence, signature.signature), 4)
+        alterations = split_array(get_alterations(sequence, signature.tonality), 4)
         sequences = split_array(sequence, 4)
         rects = extract_quarters_rects(rect) if rect else [None] * 2
         self.igquarters = [
@@ -169,7 +169,7 @@ class IGMeasure(object):
             return
 
     def set_signature(self, signature):
-        alterations = split_array(get_alterations(self.sequence, signature.signature), 4)
+        alterations = split_array(get_alterations(self.sequence, signature.tonality), 4)
         for a, igquarter in zip(alterations, self.igquarters):
             igquarter.set_alterations(a, signature.display_scale())
 
@@ -184,10 +184,10 @@ class IGMeasure(object):
 class IGSignature():
     def __init__(self, rect, signature):
         self.rect = rect
-        self.signature = signature
+        self.tonality = signature
         self.centers = get_signature_centers(rect, signature)
         self.shapes = get_notes_alterations_path(
-            [self.signature.value()] * len(self.centers),
+            [self.tonality.value()] * len(self.centers),
             self.centers, self.rect.height())
         self.staff_lines = get_standard_staff_lines(self.rect)
 

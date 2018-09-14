@@ -8,10 +8,11 @@ sys.path.insert(0, APPLICATIONS_FOLDER)
 sys.path.insert(0, MONTUNOLITO_FOLDER)
 
 from PyQt5 import QtWidgets
-from sequencereader.widgets import SequenceReaderWidget
-from sequencereader.rules import (
-    get_signature_positions, is_flat_signature, get_flat_signatures,
-    get_sharp_signatures)
+from sequencereader.application import SequenceReader
+from sequencereader.rules import Signature
+# from sequencereader.rules import (
+#     get_signature_positions, is_flat_signature, get_flat_tonality,
+#     get_sharp_signatures)
 
 
 def get_pre_registered_eighthkbnotes():
@@ -68,7 +69,7 @@ def get_pre_registered_eighthkbnotes():
 
 application = QtWidgets.QApplication(sys.argv)
 # sequence_reader = Test()
-sequence_reader = SequenceReaderWidget(get_pre_registered_eighthkbnotes())
+sequence_reader = SequenceReader(get_pre_registered_eighthkbnotes())
 sequence_reader.show()
 application.exec_()
 

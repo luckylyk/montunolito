@@ -26,26 +26,29 @@ def data_lost_question():
     return None
 
 
-def save_dialog(path=None):
+def save_dialog(path=None, filter_=None):
+    filter_ = '*.' + filter_ if filter_ else '*.json'
     filenames = QtWidgets.QFileDialog.getSaveFileName(
         None,
         caption='Save file',
         directory=path or os.path.expanduser("~"),
-        filter='*.json')
+        filter=filter_)
     filename = filenames[0]
     if not filename:
         return
-    if not filename.lower().endswith(".json"):
-        filename += ".json"
+    end = filter_[1:]
+    if not filename.lower().endswith(end):
+        filename += end
     return filename
 
 
-def open_dialog(path=None):
+def open_dialog(path=None, filter_=None):
+    filter_ = '*.' + filter_ if filter_ else '*.json'
     filenames = QtWidgets.QFileDialog.getOpenFileName(
         None,
         caption='Open file',
         directory=path or os.path.expanduser("~"),
-        filter='*.json')
+        filter=filter_)
     return filenames[0]
 
 

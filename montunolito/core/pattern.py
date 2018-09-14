@@ -14,7 +14,7 @@ EMPTY_PATTERN = {
     'relationships': {},
     'behaviors': {}
 }
-EMPTY_BEHAVIORS = {'static': 0, 'melodic': 0, 'arpegic': 0}
+EMPTY_BEHAVIORS = {'static': 1, 'melodic': 1, 'arpegic': 1}
 
 
 def get_new_pattern():
@@ -217,6 +217,12 @@ def deepcopy(pattern):
     return cpattern
 
 
+def is_dead_end(pattern, index):
+    relationships = pattern['relationships'][index]
+    iterability = sum([v for v in relationships.values()])
+    return not bool(iterability)
+
+
 def is_valid_pattern(pattern):
     try:
         pattern['figures']
@@ -243,13 +249,10 @@ def is_iterable_pattern(pattern):
 
     indexes = get_existing_indexes(pattern)
     for index in indexes:
-        occurence_probability = get_index_occurence_probablity(pattern, index)
-        if not occurence_probability:
+        if not get_index_occurence_probablity(pattern, index):
             warnings.append('figure at {} will never played'.format(index))
             continue
-        relationships = pattern['relationships'][index]
-        iterability = sum([v for v in relationships.values()])
-        if not iterability:
+        if is_dead_end(pattern, index):
             errors.append(
                 'figure at {} is a dead end,'
                 'it doesn\'t have out relationships'.format(index))
