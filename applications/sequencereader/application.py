@@ -1,9 +1,11 @@
 import json
+from scipy.io.wavfile import write
 
 from montunolito.libs.qt.shortcuts import set_shortcut
 from montunolito.libs.qt.dialogs import save_dialog, open_dialog
 from montunolito.converters.musicxml.convert import convert_to_musicxml
 from montunolito.converters.midi.convert import convert_to_midi
+from montunolito.converters.wav.convert import convert_sequence_to_int16
 
 from sequencereader.widgets import SequenceReaderWidget
 from sequencereader.rules import Signature
@@ -22,7 +24,7 @@ class SequenceReader():
 
         self.view.menu.openSequenceRequested.connect(self.open)
         self.view.menu.saveSequenceRequested.connect(self.save)
-        self.view.menu.exportWavRequested.connect(lambda: None)
+        self.view.menu.exportWavRequested.connect(self.export_wav)
         self.view.menu.exportMidiRequested.connect(self.export_mid)
         self.view.menu.exportXmlRequested.connect(self.export_xml)
         self.view.menu.tonalityChanged.connect(self.set_tonality)
@@ -55,6 +57,14 @@ class SequenceReader():
         with open(filename, 'r') as f:
             sequence = json.load(f)
         self.view.musicsheet.set_sequence(sequence)
+
+    def export_wav(self):
+        sequence = self.view.musicsheet.sequence
+        fileoutput = save_dialog(filter_='wav')
+        if not fileoutput:
+            return
+        sound_array = convert_sequence_to_int16(sequence)
+        write(fileoutput, 44100, sound_array)
 
     def export_xml(self):
         sequence = self.view.musicsheet.sequence

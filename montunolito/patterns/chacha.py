@@ -1,5 +1,5 @@
 
-NAME = 'chacha'
+NAME = 'Chacha'
 
 
 PATTERN = {

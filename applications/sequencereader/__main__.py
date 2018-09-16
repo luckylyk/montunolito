@@ -10,21 +10,8 @@ sys.path.insert(0, MONTUNOLITO_FOLDER)
 from PyQt5 import QtWidgets
 from sequencereader.application import SequenceReader
 from sequencereader.rules import Signature
-# from sequencereader.rules import (
-#     get_signature_positions, is_flat_signature, get_flat_tonality,
-#     get_sharp_signatures)
 
-
-def get_pre_registered_eighthkbnotes():
-    a = [60, 69, 75]
-    b = [25, 31, 35]
-    c = [38, 50]
-    d = [40, 41, 46]
-    # return (a, [], c, d)
-    # return [a, [], [], [], a, [], [], []] #, [], [], [], [], [], [], [], [], [], []]
-    # return [[i] for i in range(88)]
-    # return [a, [], [], [], [], [], [], [], [], [], [], [], [], []]
-    return [
+test_sequence = [
         [39, 51, 63], [42, 54], [46, 58], [39, 51, 63], [], [46, 58], [51, 63],
         [49, 61, 73], [], [53, 61, 65, 73], [], [49, 61, 73], [41, 53, 65], [],
         [44, 56, 68], [], [44, 56, 68], [], [48, 54, 60, 66], [44, 56, 68], [],
@@ -64,38 +51,9 @@ def get_pre_registered_eighthkbnotes():
         [39, 51, 63], [], [42, 48, 54, 60], [42, 54, 66], [], [34, 46, 58], [],
         [36, 48, 60], [], [42, 48, 54, 60], [], [34, 46, 58], [],
         [36, 42, 48, 54], [34, 46, 58], [34, 46, 58]]
-    return [a, b, c, a, [], d, [], a, [], d, [], a, [], c, a, a] * 4
 
 
 application = QtWidgets.QApplication(sys.argv)
-# sequence_reader = Test()
-sequence_reader = SequenceReader(get_pre_registered_eighthkbnotes())
+sequence_reader = SequenceReader(test_sequence)
 sequence_reader.show()
 application.exec_()
-
-
-############################################################################
-#################################  TESTS  ##################################
-############################################################################
-# from sequencereader.staff import get_beams_directions
-# print(get_beams_directions(get_pre_registered_eighthkbnotes()))
-# print(get_beams_directions(get_pre_registered_eighthkbnotes()))
-# print(get_beams_directions(get_pre_registered_eighthkbnotes()))
-# print(get_beams_directions(get_pre_registered_eighthkbnotes()))
-
-# from sequencereader.rules import get_signature_positions
-# print(get_signature_positions('A', major=False))
-# print(get_flat_signatures())
-# print(get_sharp_signatures())
-# print(get_signature_positions('G', major=True))
-# print(get_signature_positions('Db', major=True))
-# print(get_signature_positions('C', major=True))
-# print(get_signature_positions('A', major=True))
-# print(get_signature_positions('F', major=True))
-# print(get_signature_positions('F#', major=True))
-# print(get_signature_positions('E', major=True))
-
-
-# from sequencereader.rules import get_alteration_value
-# print (get_alteration_value(55, 33))
-# print (get_alteration_value(81, 47))

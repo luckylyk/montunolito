@@ -1,5 +1,5 @@
 
-NAME = 'afterbeat'
+NAME = 'Simple Afterbeat'
 
 
 PATTERN = {

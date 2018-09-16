@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtCore
-from sequencereader.rules import POSITIONS_COUNT, get_note_position, is_altered
+from sequencereader.rules import POSITIONS_COUNT, get_note_position
 
 
 MEASURE_WIDTH = 325

@@ -153,13 +153,17 @@ def get_beam_path(x, top, bottom):
     return path
 
 
-def get_notes_connections_path(lefts, height, tops, bottoms, dirs):
+def get_notes_connections_path(lefts, height, tops, bottoms, directions):
+    '''
+    this method return all the QPainterPath of the connect between the 
+    given notes
+    '''
     path = QtGui.QPainterPath()
     start_point = None
-    iterator = past_and_futur([a for a in zip(lefts, tops, bottoms, dirs)])
 
-    for i, (_, (x, top, bottom, direction), futur) in enumerate(iterator):
-        next_top = futur[1] if futur else None
+    iterator = zip(lefts, tops, bottoms, directions)
+    for i, (x, top, bottom, direction) in enumerate(iterator):
+        next_top = tops[i+1] if i < len(tops) - 1 else None
         if not top:
             start_point = None
             continue

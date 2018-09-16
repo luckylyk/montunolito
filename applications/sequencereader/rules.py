@@ -112,10 +112,6 @@ def get_beams_directions(sequence):
     return directions
 
 
-def is_altered(note):
-    return remap_number(note, SCALE_LENGTH) in ALTERED_INDEXES
-
-
 def get_alteration_value(note, position):
     reference = POSITION_PER_NATURAL_NOTES[position]
     return note - reference

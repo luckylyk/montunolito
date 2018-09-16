@@ -115,14 +115,14 @@ class SimpleGenerator(QtWidgets.QWidget):
             return self._patterneditors[current_combo_index].pattern
 
         filename = self._patternfilepath_lineedit.text()
-        with open(filename, 'r') as f:
-            try:
-                pattern = json.load(f)
-                pattern = json_to_pattern(pattern)
-                return pattern
-            except:
-                invalid_file_dialog(filename)
-                return None
+        try:
+            with open(filename, 'r') as f:
+                    pattern = json.load(f)
+                    pattern = json_to_pattern(pattern)
+                    return pattern
+        except:
+            invalid_file_dialog(filename)
+            return None
 
     def get_chords(self):
         current_combo_index = self._chordseditor_combo.currentIndex()
@@ -130,9 +130,13 @@ class SimpleGenerator(QtWidgets.QWidget):
         if current_combo_index != combo_lenght:
             return self._chordeditors[current_combo_index].chordgrid
 
-        filepath = self._chordspath_lineedit.text()
-        with open(filepath, 'r') as f:
-            return json.load(f)
+        filename = self._chordspath_lineedit.text()
+        try:
+            with open(filename, 'r') as f:
+                return json.load(f)
+        except:
+            invalid_file_dialog(filename)
+            return None
 
     def generate(self):
         pattern = self.get_pattern()

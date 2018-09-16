@@ -5,11 +5,17 @@ from sequencereader.rules import (
     STAFF_LINES_NUMBERS, POSITIONS_COUNT, FLAT_SCALE, get_matching_line,
     get_note_position)
 
+
 BEAM_LENGTH_FACTOR = .15
 STRAIGHT_CONNECTION_FACTOR = .05
 
 
 def get_staff_lines(rect, start=0, end=STAFF_LINES_NUMBERS + 1):
+    '''
+    this is a generic function who return a QPainterPath containing the gives
+    staff lines. Per default it return all existing staff lines. But the range
+    can be precised with the start and end arguments.
+    '''
     path = QtGui.QPainterPath()
     space = rect.height() / (STAFF_LINES_NUMBERS + 1)
     bottom = rect.bottom() - (space * start)
@@ -20,9 +26,23 @@ def get_staff_lines(rect, start=0, end=STAFF_LINES_NUMBERS + 1):
     return path
 
 
+def get_standard_staff_lines(rect):
+    '''
+    this method is an alias to the most common usage of the method
+    get_staff_lines. It returns the 5 main lines off a staff
+    '''
+    return get_staff_lines(rect, 13, 18)
+
+
 def get_extra_stafflines_path(
         top, height, radius, centers, positions, up=False):
-
+    '''
+    this method receive a list of center and position notes. It return a
+    QPainterPath containing the extra staff lines around the note centers if
+    they are out off the common staff lines. This return the path only for a
+    side of the normal staff. That mean, if up is True the note under the
+    common aren't processed.
+    '''
     centers = reversed(centers) if up else centers
     positions = reversed(positions) if up else positions
     reference_line = 18 if up else 13
@@ -35,17 +55,15 @@ def get_extra_stafflines_path(
     previous_center = None
     start_line = None
     use_double_line = False
-    need_draw = False
+    need_extra = False # stay false if no extraline are needed
     for center, position in zip(centers, positions):
         if position < 35 if up else position > 23:
             if start_line:
-                begin = min([start_line, reference_line])
-                end = max([start_line, reference_line])
+                begin, end = sorted([start_line, reference_line])
                 path.addPath(get_staff_lines(rect, begin, end))
-                need_draw = False
             break
 
-        need_draw = True
+        need_extra = True
         if previous_center is None:
             previous_center = center
             left = center.x() + radius if up else center.x() - radius
@@ -56,10 +74,11 @@ def get_extra_stafflines_path(
         if not start_line:
             start_line = get_matching_line(position)
 
+        # Since two notes are to close and don't have the same x position
+        # The extra line become larger to cover the two note width
         if center.x() != previous_center.x() and use_double_line is False:
             end_line = get_matching_line(position)
-            begin = min([start_line, end_line])
-            end = max([start_line, end_line])
+            begin, end = sorted([start_line, end_line])
             path.addPath(get_staff_lines(rect, begin, end))
             if center.x() > previous_center.x():
                 right = center.x() - radius if up else center.x() + radius
@@ -70,13 +89,9 @@ def get_extra_stafflines_path(
             use_double_line = True
             start_line = end_line
 
-    if need_draw:
+    if need_extra:
         path.addPath(get_staff_lines(rect, start_line, 13))
     return path
-
-
-def get_standard_staff_lines(rect):
-    return get_staff_lines(rect, 13, 18)
 
 
 def get_top_from_position(height, position):
@@ -156,4 +171,3 @@ def get_signature_centers(rect, signature):
         centers.append(QtCore.QPoint(x, y))
         x += offset
     return centers
-
