@@ -1,4 +1,4 @@
-NAME = 'Cumbia (melody)'
+NAME = 'Cumbia'
 
 
 PATTERN = {

@@ -12,6 +12,6 @@ from montunolito.patterns import PATTERNS
 from application import PatternEditor
 
 application = QtWidgets.QApplication(sys.argv)
-pe = PatternEditor(PATTERNS['montuno'])
+pe = PatternEditor(PATTERNS['Montuno (melodic)'])
 pe.show()
 application.exec_()

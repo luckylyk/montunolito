@@ -1,5 +1,5 @@
 
-NAME = 'Montuno (complexe)'
+NAME = 'Montuno (melodic)'
 
 
 PATTERN = {

@@ -73,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def new_pattereditor(self):
         self.patterns_count += 1
-        pattern = PatternEditor(PATTERNS['Montuno (complexe)'])
+        pattern = PatternEditor(PATTERNS['Montuno (melodic)'])
         pattern.set_title('{} {}'.format(pattern.title, self.patterns_count))
         pattern.view.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         pattern.view.destroyed.connect(self.window_closed)
