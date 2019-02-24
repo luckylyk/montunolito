@@ -137,4 +137,5 @@ def past_and_futur(array):
     for i, element in enumerate(array):
         futur_element = array[i + 1] if i < len(array) - 1 else None
         yield past_element, element, futur_element
+        past_element = element
 
